@@ -1772,29 +1772,29 @@ FX_API_URL=https://open.er-api.com/v6/latest/GBP
 
 Build and test each stage independently before wiring together. Sessions 1–8 are the core pipeline foundations. Sessions 9–17 build the PCB generation pipeline and enhancements. Sessions 18–20 are integration, frontend, and deployment.
 
-**Session 1 — Capability Taxonomy + Component Database**  
-Build `data/capabilities.json` and `data/components.json` with all fields. Write validation script. Do not proceed until validated.
+**Session 1 — Capability Taxonomy + Component Database** ✅ COMPLETE
+`data/capabilities.json` (full taxonomy, 50+ capability IDs), `data/components.json` (199 components, 8 categories). `python/validate_components.py` + `python/run_validation.py`. Nexar MPN validation run: 20/24 confirmed, 5 MPNs corrected (package suffixes + module swaps for SSD1306/ILI9341). Validation report: `python/pcb_wizard_validation_report.json`. Note: 4 motor drivers (DRV8833PWPR, A4988SETTR-T, PCA9685PW, DRV8302DCAR) hit eval tier limit — revalidate with fresh Nexar token.
 
-**Session 2 — Capability Resolver + Pricing + Credits**  
-Build `server/resolver.js` with unit tests. Build `server/pricing.js` with design price tiers, credits, and volume discount logic.
+**Session 2 — Capability Resolver + Pricing + Credits** ✅ COMPLETE (resolver + pricing; credits deferred to Session 4)
+`server/resolver.js`: 8-step resolver — normalise → MCU selection (score-ranked) → remaining caps → supporting components (auto-adds TP4056 for LiPo, RTC crystal holders, etc.) → power budget → conflict detection → layer recommendation → pricing. Tiers: Tier 1 £499 / Tier 2 £599 / Tier 3 £749, repeat customer 10% discount. Tested: ESP32+sensors+LiPo (Tier 2, 3 components, layer warning), ATmega328P simple (Tier 1), invalid input (400 error). Separate `server/pricing.js` and credits system deferred.
 
-**Session 3 — Fab Rate Cards**  
+**Session 3 — Fab Rate Cards**
 Build `data/fab_rates/pcbtrain.json`, `pcbway.json`, and initial `eurocircuits.json`. Validate rate cards against each fab's online calculator at several board sizes. DigiKey PNs in `components.json` are for BOM reference only — no live API in v1.
 
-**Session 4 — User Accounts (SQLite)**  
+**Session 4 — User Accounts (SQLite)**
 Build `server/accounts.js`. Schema: `users`, `designs`, `credits`, `orders`. Implement register/login (email + password, bcrypt hashed). Session tokens stored in Redis. Test full CRUD.
 
-**Session 5 — Natural Language Parser**  
-Build `server/nlparser.js`. Iterate system prompt until parsing accuracy is reliable across 20+ varied descriptions. Test edge cases: ambiguous inputs, conflicting requirements, unknown terms.
+**Session 5 — Natural Language Parser** ✅ COMPLETE
+`server/nlparser.js`: calls `claude-sonnet-4-6` with structured system prompt, returns `{ capabilities[], suggested_board: { layers, dimensions_mm, power_source }, confidence_notes[] }`. Strips hallucinated capability IDs automatically. Graceful fallback (`{ success: false }`) when `ANTHROPIC_API_KEY` missing — never blocks the user. All 6 BRIEF test cases passed live. Endpoint: `POST /api/parse-intent`.
 
-**Session 6 — Design Validator**  
+**Session 6 — Design Validator**
 Build `python/validator.py` and `data/validation_rules.json`. Unit test every check with known-good and known-bad component combinations.
 
-**Session 7 — Stripe Integration (Both Payment Flows)**  
+**Session 7 — Stripe Integration (Both Payment Flows)**
 Build `server/stripe.js` for design fee and manufacturing checkout. Test all scenarios: cancellation, refund, duplicate webhook, expired quote.
 
-**Session 8 — Node.js API Skeleton**  
-Wire all server modules. All endpoints working end-to-end with stubs. Smoke test full status lifecycle with a dummy job.
+**Session 8 — Node.js API Skeleton** 🔄 IN PROGRESS
+`server/index.js` live on port 3000: `GET /api/health`, `GET /api/capabilities`, `GET /api/components`, `GET /api/components/:id`, `POST /api/parse-intent`, `POST /api/resolve`. Remaining: job queue endpoints, `GET /api/jobs/:id/status`, Stripe webhook handler, accounts middleware — wire in as Sessions 3/4/7 are completed.
 
 **Session 9 — Python Placement Engine + SVG Preview**  
 Build `placement.py` and `svg_preview.py`. Verify SA improvement. Verify SVG renders correctly with validation overlays.
