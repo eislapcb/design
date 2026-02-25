@@ -1,0 +1,3 @@
+# pcbnew — comes with KiCad, do not pip install
+scipy>=1.11.0
+numpy>=1.24.0

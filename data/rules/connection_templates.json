@@ -1,0 +1,151 @@
+{
+  "description": "Interface wiring templates. The resolver uses these to generate netlists. Each template defines how a peripheral's pins connect to the MCU and power rails.",
+
+  "power": {
+    "3v3_device": {
+      "connections": [
+        { "device_pin": "VCC", "net": "3V3" },
+        { "device_pin": "GND", "net": "GND" }
+      ],
+      "auto_add": [
+        { "component": "cap_100nf_0402", "connections": [{"pin":"1","net":"3V3"},{"pin":"2","net":"GND"}], "placement": "within_2mm_of_vcc" }
+      ]
+    },
+    "5v_device": {
+      "connections": [
+        { "device_pin": "VCC", "net": "5V" },
+        { "device_pin": "GND", "net": "GND" }
+      ],
+      "auto_add": [
+        { "component": "cap_100nf_0402", "connections": [{"pin":"1","net":"5V"},{"pin":"2","net":"GND"}], "placement": "within_2mm_of_vcc" }
+      ]
+    }
+  },
+
+  "i2c": {
+    "connections": [
+      { "device_pin": "SDA", "net": "I2C{n}_SDA", "mcu_function": "i2c_{n}.sda" },
+      { "device_pin": "SCL", "net": "I2C{n}_SCL", "mcu_function": "i2c_{n}.scl" }
+    ],
+    "shared_bus": true,
+    "bus_passives": [
+      { "component": "res_4k7_0402", "from": "I2C{n}_SDA", "to": "3V3", "quantity": 1, "note": "One pair per bus, not per device" },
+      { "component": "res_4k7_0402", "from": "I2C{n}_SCL", "to": "3V3", "quantity": 1 }
+    ],
+    "address_conflict_check": true,
+    "max_devices_per_bus": 8,
+    "notes": "All I2C devices on same bus share SDA/SCL. Check I2C addresses for conflicts. If conflict, use second I2C bus (n=1)."
+  },
+
+  "spi": {
+    "connections": [
+      { "device_pin": "MOSI", "net": "SPI{n}_MOSI", "mcu_function": "spi_{n}.mosi" },
+      { "device_pin": "MISO", "net": "SPI{n}_MISO", "mcu_function": "spi_{n}.miso" },
+      { "device_pin": "SCK",  "net": "SPI{n}_SCK",  "mcu_function": "spi_{n}.sck" },
+      { "device_pin": "CS",   "net": "SPI{n}_CS{m}", "mcu_function": "gpio", "note": "Each SPI device gets unique CS on a GPIO" }
+    ],
+    "shared_bus": true,
+    "notes": "SPI bus shared via individual CS lines. MOSI/MISO/SCK are common. Each device gets a unique GPIO as CS."
+  },
+
+  "uart": {
+    "connections": [
+      { "device_pin": "TX", "net": "UART{n}_RX", "mcu_function": "uart_{n}.rx", "note": "Device TX → MCU RX (crossover)" },
+      { "device_pin": "RX", "net": "UART{n}_TX", "mcu_function": "uart_{n}.tx", "note": "Device RX → MCU TX (crossover)" }
+    ],
+    "shared_bus": false,
+    "notes": "Each UART device needs its own UART instance. Cannot share. If MCU has limited UARTs, use SoftwareSerial or multiplex."
+  },
+
+  "one_wire": {
+    "connections": [
+      { "device_pin": "DATA", "net": "ONEWIRE_{n}", "mcu_function": "gpio" }
+    ],
+    "bus_passives": [
+      { "component": "res_4k7_0402", "from": "ONEWIRE_{n}", "to": "3V3", "quantity": 1 }
+    ],
+    "shared_bus": true,
+    "notes": "One-wire devices share a single data line. Each device has unique ROM ID."
+  },
+
+  "analog_input": {
+    "connections": [
+      { "device_pin": "OUT", "net": "ADC_{label}", "mcu_function": "adc" }
+    ],
+    "notes": "Analog sensor output to MCU ADC pin. One ADC pin per analog device."
+  },
+
+  "pwm_output": {
+    "connections": [
+      { "device_pin": "SIGNAL", "net": "PWM_{label}", "mcu_function": "pwm" }
+    ],
+    "notes": "MCU PWM output to device signal input (servos, LED dimming, buzzer)."
+  },
+
+  "gpio_digital": {
+    "connections": [
+      { "device_pin": "SIGNAL", "net": "GPIO_{label}", "mcu_function": "gpio" }
+    ],
+    "notes": "Simple digital I/O — buttons, reed switches, PIR output, relay drive."
+  },
+
+  "i2s": {
+    "connections": [
+      { "device_pin": "BCLK", "net": "I2S_BCLK", "mcu_function": "i2s.bclk" },
+      { "device_pin": "WS",   "net": "I2S_WS",   "mcu_function": "i2s.ws" },
+      { "device_pin": "SD",   "net": "I2S_SD",    "mcu_function": "i2s.data_in", "note": "Microphone data IN to MCU" },
+      { "device_pin": "DOUT", "net": "I2S_DOUT",  "mcu_function": "i2s.data_out", "note": "MCU data OUT to DAC/amp" }
+    ],
+    "shared_bus": true,
+    "notes": "I2S mic and DAC can share bus (different data directions)."
+  },
+
+  "can": {
+    "connections": [
+      { "device_pin": "TXD", "net": "CAN_TX", "mcu_function": "can.tx" },
+      { "device_pin": "RXD", "net": "CAN_RX", "mcu_function": "can.rx" },
+      { "transceiver_pin": "CANH", "net": "CAN_H", "connector": "screw_terminal_3pin.1" },
+      { "transceiver_pin": "CANL", "net": "CAN_L", "connector": "screw_terminal_3pin.2" },
+      { "transceiver_pin": "GND",  "net": "GND",   "connector": "screw_terminal_3pin.3" }
+    ],
+    "notes": "MCU CAN peripheral → transceiver (MCP2562) → screw terminal. TVS + CMC + termination auto-added."
+  },
+
+  "rs485": {
+    "connections": [
+      { "device_pin": "DI", "net": "RS485_TX", "mcu_function": "uart_{n}.tx" },
+      { "device_pin": "RO", "net": "RS485_RX", "mcu_function": "uart_{n}.rx" },
+      { "device_pin": "DE", "net": "RS485_DE", "mcu_function": "gpio", "note": "Direction enable" },
+      { "device_pin": "RE", "net": "RS485_DE", "note": "Active low — tie to DE for auto direction" },
+      { "transceiver_pin": "A", "net": "RS485_A", "connector": "screw_terminal.1" },
+      { "transceiver_pin": "B", "net": "RS485_B", "connector": "screw_terminal.2" }
+    ],
+    "notes": "Half-duplex RS-485. DE/RE tied together — MCU GPIO controls direction. TVS + CMC + termination auto-added."
+  },
+
+  "sdcard_spi": {
+    "connections": [
+      { "device_pin": "MOSI", "net": "SPI{n}_MOSI", "mcu_function": "spi_{n}.mosi" },
+      { "device_pin": "MISO", "net": "SPI{n}_MISO", "mcu_function": "spi_{n}.miso" },
+      { "device_pin": "SCK",  "net": "SPI{n}_SCK",  "mcu_function": "spi_{n}.sck" },
+      { "device_pin": "CS",   "net": "SD_CS",        "mcu_function": "gpio" },
+      { "device_pin": "CD",   "net": "SD_DETECT",    "mcu_function": "gpio", "optional": true, "note": "Card detect — optional" }
+    ],
+    "notes": "SD card in SPI mode. Shares SPI bus with other SPI devices via unique CS."
+  },
+
+  "camera_dvp": {
+    "connections": [
+      { "device_pin": "XCLK",  "mcu_function": "pwm", "note": "MCU provides clock to camera" },
+      { "device_pin": "PCLK",  "mcu_function": "gpio", "note": "Pixel clock from camera" },
+      { "device_pin": "VSYNC", "mcu_function": "gpio" },
+      { "device_pin": "HREF",  "mcu_function": "gpio" },
+      { "device_pin": "D0-D7", "mcu_function": "gpio", "count": 8, "note": "8-bit parallel data" },
+      { "device_pin": "SIOD",  "net": "CAM_SDA", "note": "SCCB (I2C-like) for camera config" },
+      { "device_pin": "SIOC",  "net": "CAM_SCL" },
+      { "device_pin": "PWDN",  "mcu_function": "gpio", "note": "Power down control" },
+      { "device_pin": "RESET", "mcu_function": "gpio", "note": "Hardware reset" }
+    ],
+    "notes": "Camera DVP needs 13+ GPIO pins. Only practical on ESP32 (dedicated camera interface) or STM32 (DCMI peripheral). Not feasible on ATmega328P or nRF52840."
+  }
+}

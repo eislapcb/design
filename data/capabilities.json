@@ -1,0 +1,655 @@
+{
+  "capabilities": [
+    {
+      "id": "wifi",
+      "display_label": "WiFi",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Triggers RF placement rules. Antenna keep-out zone required."
+    },
+    {
+      "id": "bluetooth",
+      "display_label": "Bluetooth",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Can be satisfied by same component as WiFi (e.g. ESP32)."
+    },
+    {
+      "id": "lora",
+      "display_label": "LoRa (long range radio)",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Requires antenna connector on board edge. Auto-adds SMA connector."
+    },
+    {
+      "id": "zigbee",
+      "display_label": "Zigbee",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Can be satisfied by nRF52840 MCU with Zigbee stack."
+    },
+    {
+      "id": "can_bus",
+      "display_label": "CAN Bus",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Industrial/automotive. Requires CAN transceiver."
+    },
+    {
+      "id": "ethernet",
+      "display_label": "Ethernet",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Requires magnetics + RJ45 connector. Auto-adds HR911105A."
+    },
+    {
+      "id": "usb_device",
+      "display_label": "USB (device mode)",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Board appears as USB device to host. Requires USB-capable MCU or bridge IC."
+    },
+    {
+      "id": "usb_host",
+      "display_label": "USB (host mode)",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Board can connect USB peripherals. Requires USB host-capable MCU."
+    },
+    {
+      "id": "uart",
+      "display_label": "Serial / UART",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Basic serial comms. Most MCUs include hardware UART."
+    },
+    {
+      "id": "processing_basic",
+      "display_label": "Basic (simple tasks, low power)",
+      "group": "processing",
+      "follow_up": null,
+      "notes": "8-bit MCU e.g. ATmega328. Tier 1 pricing."
+    },
+    {
+      "id": "processing_standard",
+      "display_label": "Standard (IoT, sensor fusion)",
+      "group": "processing",
+      "follow_up": null,
+      "notes": "32-bit ARM e.g. ESP32, RP2040, STM32F4. Tier 2 pricing."
+    },
+    {
+      "id": "processing_powerful",
+      "display_label": "Powerful (ML, video, complex)",
+      "group": "processing",
+      "follow_up": null,
+      "notes": "e.g. STM32H7, i.MX RT. Tier 3 pricing. LQFP only, no BGA."
+    },
+    {
+      "id": "sense_temperature",
+      "display_label": "Temperature",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "Often same component as humidity (Si7021, BME680)."
+    },
+    {
+      "id": "sense_humidity",
+      "display_label": "Humidity",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "Often same component as temperature."
+    },
+    {
+      "id": "sense_motion_imu",
+      "display_label": "Motion / IMU (accelerometer, gyro)",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "6-axis or 9-axis IMU. I2C or SPI interface."
+    },
+    {
+      "id": "sense_proximity",
+      "display_label": "Proximity / distance",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "Time-of-flight or ultrasonic sensor."
+    },
+    {
+      "id": "sense_light",
+      "display_label": "Light / ambient",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "Ambient light sensor, lux measurement."
+    },
+    {
+      "id": "sense_gas",
+      "display_label": "Gas / air quality",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "VOC, CO2, or multi-gas sensor."
+    },
+    {
+      "id": "sense_pressure",
+      "display_label": "Barometric pressure",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "Can be combined with temperature (BMP280, BME680)."
+    },
+    {
+      "id": "sense_gps",
+      "display_label": "GPS / location",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "Requires antenna, external or patch. UART interface."
+    },
+    {
+      "id": "sense_camera",
+      "display_label": "Camera",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "Requires CSI or parallel interface. Significant complexity. Tier 3 MCU recommended."
+    },
+    {
+      "id": "adc_external",
+      "display_label": "Analogue input (ADC)",
+      "group": "sensing",
+      "follow_up": {
+        "question": "How many analogue channels do you need?",
+        "type": "number",
+        "default": 1
+      },
+      "notes": "External ADC if MCU ADC insufficient. 16-bit precision."
+    },
+    {
+      "id": "power_usb",
+      "display_label": "USB powered (5V input)",
+      "group": "power",
+      "follow_up": null,
+      "notes": "Standard USB-C or micro-USB input. 500mA limit."
+    },
+    {
+      "id": "power_lipo",
+      "display_label": "LiPo battery",
+      "group": "power",
+      "follow_up": null,
+      "notes": "Requires charging IC + protection. Auto-adds TP4056."
+    },
+    {
+      "id": "power_aa",
+      "display_label": "AA/AAA batteries",
+      "group": "power",
+      "follow_up": {
+        "question": "How many cells?",
+        "type": "select",
+        "options": [
+          "1 cell (1.5V)",
+          "2 cells (3V)",
+          "3 cells (4.5V)"
+        ],
+        "default": "2 cells (3V)"
+      },
+      "notes": "1.5V cells, needs boost converter for 3.3V MCU."
+    },
+    {
+      "id": "power_mains",
+      "display_label": "Mains / DC jack (9-24V)",
+      "group": "power",
+      "follow_up": null,
+      "notes": "Requires regulation stage. Auto-adds regulator."
+    },
+    {
+      "id": "power_solar",
+      "display_label": "Solar panel input",
+      "group": "power",
+      "follow_up": null,
+      "notes": "Requires MPPT or charge controller. Typically combined with LiPo."
+    },
+    {
+      "id": "low_power_sleep",
+      "display_label": "Low power / deep sleep",
+      "group": "power",
+      "follow_up": null,
+      "notes": "Influences MCU selection. Conflicts with always-on displays."
+    },
+    {
+      "id": "motor_dc",
+      "display_label": "DC motor control",
+      "group": "output",
+      "follow_up": {
+        "question": "How many DC motors?",
+        "type": "number",
+        "default": 1,
+        "max": 4
+      },
+      "notes": "H-bridge driver required. Auto-adds flyback diodes."
+    },
+    {
+      "id": "motor_stepper",
+      "display_label": "Stepper motor control",
+      "group": "output",
+      "follow_up": {
+        "question": "How many stepper motors?",
+        "type": "number",
+        "default": 1,
+        "max": 4
+      },
+      "notes": "Stepper driver IC required."
+    },
+    {
+      "id": "motor_servo",
+      "display_label": "Servo control",
+      "group": "output",
+      "follow_up": {
+        "question": "How many servos?",
+        "type": "number",
+        "default": 1,
+        "max": 8
+      },
+      "notes": "PWM output, usually just GPIO pin. No separate driver IC needed."
+    },
+    {
+      "id": "relay",
+      "display_label": "Relay output",
+      "group": "output",
+      "follow_up": {
+        "question": "How many relay channels?",
+        "type": "number",
+        "default": 1,
+        "max": 4
+      },
+      "notes": "High-voltage switching. Auto-adds flyback diodes."
+    },
+    {
+      "id": "led_single",
+      "display_label": "LED indicator(s)",
+      "group": "output",
+      "follow_up": {
+        "question": "How many LEDs?",
+        "type": "number",
+        "default": 1,
+        "max": 8
+      },
+      "notes": "Simple GPIO output with current-limiting resistor."
+    },
+    {
+      "id": "led_rgb_strip",
+      "display_label": "RGB LED strip (NeoPixel/WS2812)",
+      "group": "output",
+      "follow_up": null,
+      "notes": "Requires level shifting (3.3V to 5V data line). Single GPIO pin."
+    },
+    {
+      "id": "speaker_buzzer",
+      "display_label": "Speaker / buzzer",
+      "group": "output",
+      "follow_up": null,
+      "notes": "PWM or I2S audio output."
+    },
+    {
+      "id": "display_oled",
+      "display_label": "Small OLED display",
+      "group": "ui",
+      "follow_up": null,
+      "notes": "I2C, typically 128x64, SSD1306 driver."
+    },
+    {
+      "id": "display_lcd",
+      "display_label": "LCD display",
+      "group": "ui",
+      "follow_up": null,
+      "notes": "Parallel or SPI character LCD."
+    },
+    {
+      "id": "display_tft",
+      "display_label": "Colour TFT display",
+      "group": "ui",
+      "follow_up": null,
+      "notes": "SPI, various sizes. ILI9341 or ST7789 driver."
+    },
+    {
+      "id": "buttons",
+      "display_label": "Push buttons",
+      "group": "ui",
+      "follow_up": {
+        "question": "How many buttons?",
+        "type": "number",
+        "default": 2,
+        "max": 8
+      },
+      "notes": "Tactile switches with hardware debounce."
+    },
+    {
+      "id": "touch",
+      "display_label": "Capacitive touch",
+      "group": "ui",
+      "follow_up": null,
+      "notes": "Capacitive touch controller IC (MPR121)."
+    },
+    {
+      "id": "rotary_encoder",
+      "display_label": "Rotary encoder",
+      "group": "ui",
+      "follow_up": null,
+      "notes": "Incremental rotary encoder with push button."
+    },
+    {
+      "id": "storage_sd",
+      "display_label": "SD card",
+      "group": "storage",
+      "follow_up": null,
+      "notes": "SPI interface. Micro SD socket."
+    },
+    {
+      "id": "storage_flash",
+      "display_label": "On-board flash",
+      "group": "storage",
+      "follow_up": null,
+      "notes": "Often built into MCU module (ESP32 has 4MB). External SPI flash if needed."
+    },
+    {
+      "id": "rtc",
+      "display_label": "Real-time clock",
+      "group": "storage",
+      "follow_up": null,
+      "notes": "Requires coin cell or supercap backup. Auto-adds CR2032 holder."
+    },
+    {
+      "id": "eeprom",
+      "display_label": "EEPROM",
+      "group": "storage",
+      "follow_up": null,
+      "notes": "Persistent config storage. I2C interface."
+    },
+    {
+      "id": "nbiot",
+      "display_label": "NB-IoT (cellular)",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Narrowband IoT over licensed cellular spectrum. Requires SIM card slot + LTE antenna. Auto-adds nano-SIM holder. Ultra-low power, ideal for remote/outdoor IoT."
+    },
+    {
+      "id": "lte_m",
+      "display_label": "LTE-M (cellular)",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "LTE Cat-M1 cellular. Higher bandwidth than NB-IoT (375kbps). Supports VoLTE. Same module often supports both NB-IoT and LTE-M. Requires SIM + antenna."
+    },
+    {
+      "id": "rs485",
+      "display_label": "RS-485 / Modbus",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Industrial serial bus. Half-duplex differential pair. Requires MAX485 or similar transceiver. 120 ohm termination at bus ends."
+    },
+    {
+      "id": "thread",
+      "display_label": "Thread (mesh network)",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "IEEE 802.15.4 mesh protocol. Transport layer for Matter smart home standard. Supported by nRF52840. IPv6 native."
+    },
+    {
+      "id": "sense_pir",
+      "display_label": "PIR motion detection",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "Passive infrared motion sensor. Digital output (GPIO). Common in security and occupancy sensing."
+    },
+    {
+      "id": "sense_current",
+      "display_label": "Current / power monitoring",
+      "group": "sensing",
+      "follow_up": {
+        "question": "What type of current sensing?",
+        "type": "select",
+        "options": [
+          "DC current (INA219)",
+          "AC mains (CT clamp)"
+        ],
+        "default": "DC current (INA219)"
+      },
+      "notes": "Current and power measurement. INA219 for DC, SCT-013 CT clamp for AC mains. Smart energy monitoring."
+    },
+    {
+      "id": "ir_transceiver",
+      "display_label": "IR transmit/receive",
+      "group": "output",
+      "follow_up": null,
+      "notes": "Infrared remote control. TSOP38238 receiver + IR LED transmitter. Smart home universal remote."
+    },
+    {
+      "id": "current_loop_4_20ma",
+      "display_label": "4-20mA analogue input",
+      "group": "sensing",
+      "follow_up": {
+        "question": "How many 4-20mA channels?",
+        "type": "number",
+        "default": 1,
+        "max": 4
+      },
+      "notes": "Industrial sensor standard current loop input. Requires precision shunt resistor + ADC. Opens IIoT gateway market."
+    },
+    {
+      "id": "nfc",
+      "display_label": "NFC",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Near Field Communication. Device provisioning, Matter 1.4 onboarding, tap-to-pair. PN532 or ST25DV."
+    },
+    {
+      "id": "sense_heartrate",
+      "display_label": "Heart rate / SpO2",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "Optical heart rate and blood oxygen sensor. MAX30102. Wearable health monitoring."
+    },
+    {
+      "id": "vibration_motor",
+      "display_label": "Haptic feedback / vibration",
+      "group": "output",
+      "follow_up": null,
+      "notes": "LRA or ERM vibration motor with DRV2605 driver. Wearable notifications and feedback."
+    },
+    {
+      "id": "sense_soil_moisture",
+      "display_label": "Soil moisture",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "Capacitive soil moisture sensor. Analogue output via ADC. Smart agriculture staple."
+    },
+    {
+      "id": "sense_weight",
+      "display_label": "Weight / load cell",
+      "group": "sensing",
+      "follow_up": {
+        "question": "How many load cells?",
+        "type": "number",
+        "default": 1,
+        "max": 4
+      },
+      "notes": "HX711 load cell amplifier. Smart scales, tank level by weight, industrial weighing."
+    },
+    {
+      "id": "rs232",
+      "display_label": "RS-232 serial",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Legacy serial interface. MAX3232 level shifter converts 3.3V UART to ±12V RS-232. DB9 connector. Common for legacy industrial gear, GPS receivers, debug consoles."
+    },
+    {
+      "id": "rs422",
+      "display_label": "RS-422 (full-duplex)",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Full-duplex differential serial. 4-wire (TX+/TX-, RX+/RX-). MAX490 transceiver. Used in CNC, motion control, long-distance serial links."
+    },
+    {
+      "id": "output_0_10v",
+      "display_label": "0-10V analogue output",
+      "group": "output",
+      "follow_up": {
+        "question": "How many 0-10V output channels?",
+        "type": "number",
+        "default": 1,
+        "max": 4
+      },
+      "notes": "Building automation standard. Controls dimmers, VFDs, damper actuators. MCP4725 DAC + op-amp gain stage. Requires higher voltage rail (12-24V)."
+    },
+    {
+      "id": "highside_switch",
+      "display_label": "Power switching (high-side)",
+      "group": "output",
+      "follow_up": {
+        "question": "How many switched outputs?",
+        "type": "number",
+        "default": 1,
+        "max": 4
+      },
+      "notes": "P-MOSFET high-side switch. Cuts power to external modules/sensors. Essential for battery-powered IoT deep sleep — power-gate GPS, cellular, sensors."
+    },
+    {
+      "id": "sense_mmwave_presence",
+      "display_label": "mmWave presence detection",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "Millimetre-wave radar presence sensor. Detects stationary humans via micro-movement (breathing). Works through thin walls. LD2410C or LD2412. UART interface."
+    },
+    {
+      "id": "i2s_audio",
+      "display_label": "I2S digital audio (mic/speaker)",
+      "group": "output",
+      "follow_up": {
+        "question": "What audio capability?",
+        "type": "select",
+        "options": [
+          "Microphone only",
+          "Speaker only",
+          "Both (voice assistant)"
+        ],
+        "default": "Both (voice assistant)"
+      },
+      "notes": "I2S digital audio bus. INMP441 MEMS mic for input, MAX98357A I2S DAC+amp for output. Core requirement for voice assistants (ESPHome/Home Assistant)."
+    },
+    {
+      "id": "display_epaper",
+      "display_label": "E-Paper / E-Ink display",
+      "group": "ui",
+      "follow_up": {
+        "question": "What e-paper size?",
+        "type": "select",
+        "options": [
+          "1.54 inch",
+          "2.13 inch",
+          "2.9 inch",
+          "4.2 inch"
+        ],
+        "default": "2.9 inch"
+      },
+      "notes": "Low-power bistable display. Retains image without power. SPI interface. Ideal for battery-powered status dashboards. Waveshare modules most common."
+    },
+    {
+      "id": "gpio_expander",
+      "display_label": "GPIO expander (extra I/O pins)",
+      "group": "ui",
+      "follow_up": {
+        "question": "How many extra GPIO pins needed?",
+        "type": "select",
+        "options": [
+          "8 pins (PCF8574)",
+          "16 pins (MCP23017)"
+        ],
+        "default": "16 pins (MCP23017)"
+      },
+      "notes": "I2C GPIO expander. MCP23017 adds 16 GPIO, PCF8574 adds 8 GPIO. Use when MCU runs out of pins for buttons, LEDs, relays, etc."
+    },
+    {
+      "id": "sense_thermocouple",
+      "display_label": "Thermocouple temperature (high-temp)",
+      "group": "sensing",
+      "follow_up": {
+        "question": "Thermocouple type?",
+        "type": "select",
+        "options": [
+          "Type K (most common)",
+          "Type J",
+          "Type T"
+        ],
+        "default": "Type K (most common)"
+      },
+      "notes": "High-temperature measurement (-200 to +1350°C for Type K). MAX31855 cold-junction compensated converter. SPI interface. Industrial, HVAC, cooking, kiln monitoring."
+    },
+    {
+      "id": "sense_ultrasonic",
+      "display_label": "Ultrasonic distance",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "HC-SR04 ultrasonic ranging. 2cm to 4m range. Trigger+Echo GPIO interface. Robotics, tank level, parking sensors. Needs 5V supply."
+    },
+    {
+      "id": "sense_door_window",
+      "display_label": "Door/window sensor (reed switch)",
+      "group": "sensing",
+      "follow_up": {
+        "question": "How many door/window sensors?",
+        "type": "number",
+        "default": 1,
+        "max": 8
+      },
+      "notes": "Magnetic reed switch input. GPIO with pull-up. Security, smart home automation. External reed switch connects via 2-pin header."
+    },
+    {
+      "id": "sense_water_flow",
+      "display_label": "Water flow meter",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "Hall-effect pulse output water flow sensor. GPIO interrupt counting. Smart water metering, irrigation monitoring. YF-S201 or similar."
+    },
+    {
+      "id": "rfid",
+      "display_label": "RFID / NFC reader (13.56MHz)",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "MFRC522 or PN532 RFID/NFC reader. SPI or I2C. Access control, attendance, inventory tagging. Reads MIFARE Classic/Ultralight, NTAG."
+    },
+    {
+      "id": "sense_color",
+      "display_label": "Color / RGB light sensor",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "TCS34725 color sensor with IR filter and white LED. I2C. Color sorting, ambient light color temperature, display calibration."
+    },
+    {
+      "id": "i2c_mux",
+      "display_label": "I2C Bus Multiplexer",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Expand one I2C bus into 8 separate channels. Auto-suggested when address conflicts are detected."
+    },
+    {
+      "id": "level_shifting",
+      "display_label": "Voltage Level Shifting",
+      "group": "connectivity",
+      "follow_up": null,
+      "notes": "Translate signals between 3.3V and 5V domains. Bidirectional (TXB0104/0108) or unidirectional (74AHCT125)."
+    },
+    {
+      "id": "analog_signal_conditioning",
+      "display_label": "Analog Signal Conditioning",
+      "group": "sensing",
+      "follow_up": null,
+      "notes": "Op-amp circuits for buffering, amplifying, or filtering analog sensor signals before ADC input."
+    },
+    {
+      "id": "voltage_regulation_3v3",
+      "display_label": "3.3V Voltage Regulation",
+      "group": "power",
+      "follow_up": null,
+      "notes": "Provides regulated 3.3V rail. AMS1117 for simple, AP2112K for battery, MP2359 for high efficiency."
+    },
+    {
+      "id": "voltage_regulation_5v",
+      "display_label": "5V Voltage Regulation",
+      "group": "power",
+      "follow_up": null,
+      "notes": "Provides regulated 5V rail from higher voltage or battery. MT3608 boost or MP2359 buck."
+    }
+  ]
+}

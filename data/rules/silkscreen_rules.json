@@ -1,0 +1,553 @@
+{
+  "_description": "Silkscreen design rules for PCB Wizard resolver. Covers reference designators, polarity markings, pin 1 indicators, connector labels, board info block, and manufacturing constraints. Applied to every board.",
+  "_version": "1.0",
+  "reference_designators": {
+    "description": "Every component gets a reference designator on silkscreen, positioned adjacent to the component. Follows IEC 60617 / IEEE 315 conventions.",
+    "prefixes": {
+      "U": [
+        "mcu",
+        "ic",
+        "comms",
+        "sensor_ic",
+        "level_shifter",
+        "i2c_mux",
+        "op_amp",
+        "usb_uart",
+        "adc",
+        "gpio_expander",
+        "rtc",
+        "eeprom",
+        "flash",
+        "can_controller",
+        "can_transceiver",
+        "rs485_transceiver",
+        "rs232_transceiver",
+        "motor_driver",
+        "battery_protection",
+        "battery_charger",
+        "ldo",
+        "buck_converter",
+        "buck_boost",
+        "esd_protection"
+      ],
+      "R": [
+        "resistor"
+      ],
+      "C": [
+        "capacitor"
+      ],
+      "L": [
+        "inductor",
+        "ferrite_bead"
+      ],
+      "D": [
+        "diode",
+        "led",
+        "tvs_diode",
+        "schottky",
+        "zener"
+      ],
+      "Q": [
+        "mosfet",
+        "transistor"
+      ],
+      "Y": [
+        "crystal",
+        "oscillator"
+      ],
+      "J": [
+        "connector",
+        "header",
+        "terminal",
+        "barrel_jack",
+        "usb_connector",
+        "fpc_connector",
+        "card_socket"
+      ],
+      "SW": [
+        "switch",
+        "button",
+        "tactile_switch"
+      ],
+      "F": [
+        "fuse",
+        "ptc_fuse",
+        "fuse_holder"
+      ],
+      "RV": [
+        "varistor",
+        "mov"
+      ],
+      "TP": [
+        "test_point"
+      ],
+      "FB": [
+        "ferrite_bead"
+      ],
+      "FL": [
+        "filter",
+        "common_mode_choke"
+      ],
+      "H": [
+        "mounting_hole"
+      ],
+      "FID": [
+        "fiducial"
+      ]
+    },
+    "assignment_rules": [
+      "Designators assigned sequentially per prefix: U1, U2, U3...",
+      "Assignment order follows schematic sheet order, then left-to-right, top-to-bottom on each sheet",
+      "MCU is always U1. Primary voltage regulator is U2.",
+      "Passive components supporting a specific IC share a number group where possible (e.g., U3's decoupling cap is C30, C31...)"
+    ],
+    "placement_rules": {
+      "position": "Adjacent to component, outside courtyard, readable without rotating board",
+      "orientation": "Text reads left-to-right or bottom-to-top only. Never upside down.",
+      "size": {
+        "ics_and_connectors_mm": 1,
+        "passives_0402_mm": 0.6,
+        "passives_0603_mm": 0.8,
+        "passives_0805_plus_mm": 1
+      },
+      "hidden_designators": [
+        "Fiducials (FID) — no silkscreen needed",
+        "Mounting holes (H) — optional, usually hidden",
+        "Test points (TP) — label with net name instead, see test_point_labels"
+      ]
+    }
+  },
+  "polarity_and_pin1_markings": {
+    "description": "Critical for correct assembly. Wrong polarity = damaged components. Wrong pin 1 = non-functional board.",
+    "ic_pin1": {
+      "marking": "Dot or triangle on silkscreen at pin 1 corner",
+      "size_mm": 0.5,
+      "position": "Outside component courtyard, at pin 1 corner",
+      "applies_to": "All ICs (U prefix) — QFP, QFN, SOIC, TSSOP, SOT-23-5+",
+      "note": "KiCad footprints include pin 1 mark in fab layer. Copy to silkscreen or add explicit dot."
+    },
+    "polarised_capacitors": {
+      "marking": "+ symbol near positive pad",
+      "applies_to": "All electrolytic and tantalum caps (CP_ footprints)",
+      "components": [
+        "cap_470uf_vmot",
+        "cap_100uf_cellular"
+      ],
+      "note": "Reversed electrolytic = explosion risk. Mark clearly."
+    },
+    "diode_polarity": {
+      "marking": "Cathode band line on silkscreen matching component body marking",
+      "applies_to": "All diodes, LEDs, TVS, Schottky, Zener",
+      "note": "KiCad footprints include cathode band. Verify it matches schematic net assignment."
+    },
+    "led_polarity": {
+      "marking": "Cathode indicated by flat edge or dot. Add + near anode pad on silkscreen.",
+      "applies_to": "All LEDs (0402, 0603, 0805)",
+      "note": "LED polarity varies by manufacturer even in same package. Verify against specific LCSC part datasheet."
+    },
+    "connector_pin1": {
+      "marking": "Triangle or arrow pointing to pin 1. Number '1' next to pin 1 pad.",
+      "applies_to": "All multi-pin connectors and headers",
+      "additional": "For connectors with >4 pins, also mark the last pin number"
+    },
+    "mosfet_orientation": {
+      "marking": "Gate (G), Drain (D), Source (S) labels on silkscreen near pads",
+      "applies_to": [
+        "dmg2305ux",
+        "ao3400a"
+      ],
+      "note": "SOT-23 MOSFETs — pin assignment varies between manufacturers. Labels prevent assembly errors."
+    }
+  },
+  "connector_labels": {
+    "description": "Every connector gets a functional label on silkscreen so the user knows what to plug in where.",
+    "labelling_rules": [
+      "Label goes adjacent to connector, between connector and board edge if possible",
+      "Use the net name or function, not just the designator",
+      "Pin functions labelled individually for multi-pin connectors"
+    ],
+    "standard_labels": {
+      "usb_c_connector": {
+        "label": "USB-C",
+        "pin_labels": null
+      },
+      "dc_barrel_jack": {
+        "label": "DC IN\\n7-24V",
+        "pin_labels": null
+      },
+      "screw_terminal_2pin": {
+        "label_power": "VIN  GND",
+        "label_mains": "L  N",
+        "label_motor": "M+  M-",
+        "note": "Label depends on function — resolver must select appropriate label"
+      },
+      "jst_ph_2pin": {
+        "label": "BATT\\n+ —",
+        "pin_labels": [
+          "B+",
+          "B-"
+        ]
+      },
+      "header_4pin_i2c": {
+        "label": "I2C",
+        "pin_labels": [
+          "VCC",
+          "GND",
+          "SDA",
+          "SCL"
+        ]
+      },
+      "header_6pin_spi": {
+        "label": "SPI",
+        "pin_labels": [
+          "VCC",
+          "GND",
+          "SCK",
+          "MOSI",
+          "MISO",
+          "CS"
+        ]
+      },
+      "uart_header_4pin": {
+        "label": "UART",
+        "pin_labels": [
+          "VCC",
+          "GND",
+          "TX",
+          "RX"
+        ]
+      },
+      "servo_connector_3pin": {
+        "label": "SERVO",
+        "pin_labels": [
+          "SIG",
+          "VCC",
+          "GND"
+        ]
+      },
+      "swd_header_10pin": {
+        "label": "SWD",
+        "pin_labels": null,
+        "note": "Standard ARM 10-pin — keyed header, no individual labels needed"
+      },
+      "avr_isp_6pin": {
+        "label": "ISP",
+        "pin_labels": [
+          "MISO",
+          "VCC",
+          "SCK",
+          "MOSI",
+          "RST",
+          "GND"
+        ]
+      },
+      "tag_connect_tc2050": {
+        "label": "TC2050",
+        "pin_labels": null
+      },
+      "mmwave_header_5pin": {
+        "label": "RADAR",
+        "pin_labels": [
+          "VCC",
+          "GND",
+          "TX",
+          "RX",
+          "OUT"
+        ]
+      },
+      "qwiic_connector": {
+        "label": "QWIIC",
+        "pin_labels": null,
+        "note": "Standardised pinout — no individual labels needed"
+      },
+      "sd_card_socket": {
+        "label": "SD",
+        "pin_labels": null
+      },
+      "fpc_connector_24pin": {
+        "label": "CAMERA",
+        "pin_labels": null
+      },
+      "fpc_connector_40pin": {
+        "label": "LCD",
+        "pin_labels": null
+      }
+    },
+    "sensor_connector_labels": {
+      "description": "External sensor connectors get both the sensor type and electrical info",
+      "examples": [
+        {
+          "connector": "soil_probe_connector",
+          "label": "SOIL\\n3V3"
+        },
+        {
+          "connector": "ct_clamp_jack",
+          "label": "CT\\nAIN"
+        },
+        {
+          "connector": "reed_switch_connector",
+          "label": "REED\\nGPIO"
+        },
+        {
+          "connector": "flow_sensor_connector",
+          "label": "FLOW\\nPULSE"
+        }
+      ]
+    }
+  },
+  "test_point_labels": {
+    "description": "Test points are labelled with the net name they're connected to, not a reference designator.",
+    "format": "Net name in 0.8mm text, adjacent to test point pad",
+    "examples": [
+      {
+        "net": "3V3",
+        "label": "3V3"
+      },
+      {
+        "net": "5V",
+        "label": "5V"
+      },
+      {
+        "net": "GND",
+        "label": "GND"
+      },
+      {
+        "net": "SDA",
+        "label": "SDA"
+      },
+      {
+        "net": "SCL",
+        "label": "SCL"
+      },
+      {
+        "net": "TX_DBG",
+        "label": "TX"
+      },
+      {
+        "net": "VBAT",
+        "label": "VBAT"
+      },
+      {
+        "net": "VMOT",
+        "label": "VMOT"
+      }
+    ]
+  },
+  "board_info_block": {
+    "description": "Every board gets an info block on the bottom silkscreen layer with project and revision info.",
+    "position": "Bottom layer (B.Silkscreen), lower-right corner of board, inside board outline",
+    "contents": {
+      "line_1": "Project name (from user input)",
+      "line_2": "Version / revision (e.g., Rev 1.0)",
+      "line_3": "Date (ISO format: YYYY-MM-DD)",
+      "line_4": "PCB Wizard order reference number",
+      "line_5": "Board dimensions (e.g., 80×50mm)"
+    },
+    "text_size_mm": 0.8,
+    "box": {
+      "border": true,
+      "border_width_mm": 0.15,
+      "padding_mm": 0.5
+    },
+    "additional_marks": {
+      "order_number": {
+        "description": "PCB Wizard order reference number. Unique per order, assigned at time of manufacture.",
+        "format": "PW-XXXXXX",
+        "position": "Inside board info block, line 4",
+        "layer": "B.Silkscreen"
+      }
+    }
+  },
+  "functional_zone_labels": {
+    "description": "Large text labels on silkscreen identifying functional areas of the board. Helps with debugging and assembly verification.",
+    "text_size_mm": 1.5,
+    "style": "Bold, uppercase",
+    "examples": [
+      {
+        "zone": "MCU area",
+        "label": "MCU"
+      },
+      {
+        "zone": "Power regulation area",
+        "label": "POWER"
+      },
+      {
+        "zone": "Motor driver area",
+        "label": "MOTORS"
+      },
+      {
+        "zone": "Sensor header cluster",
+        "label": "SENSORS"
+      },
+      {
+        "zone": "Communication modules",
+        "label": "COMMS"
+      },
+      {
+        "zone": "Programming/debug headers",
+        "label": "DEBUG"
+      }
+    ],
+    "rules": [
+      "Only add zone labels if the board has distinct functional areas (most boards >40mm × 40mm do)",
+      "Place in open copper-free areas where silkscreen will print clearly",
+      "Do not overlap with component designators or connector labels"
+    ]
+  },
+  "orientation_markings": {
+    "description": "Board-level orientation aids for assembly and enclosure alignment",
+    "board_orientation_corner": {
+      "description": "A small triangle or filled circle in one corner of the board to indicate orientation. Critical for boards that look symmetrical.",
+      "position": "Top-left corner of board (same corner as pin 1 of primary connector or MCU)",
+      "marking": "Filled triangle pointing toward board centre, 2mm side length",
+      "layer": "F.Silkscreen"
+    },
+    "mounting_hole_labels": {
+      "description": "If board has mounting holes, number them M1-M4 for enclosure alignment documentation",
+      "text_size_mm": 0.8,
+      "position": "Adjacent to each mounting hole",
+      "note": "Helps match board to enclosure drawing"
+    }
+  },
+  "keepout_and_antenna_markings": {
+    "description": "Silkscreen markings for areas where components/copper must not be placed",
+    "antenna_keepout": {
+      "applies_to": [
+        "esp32_wroom_32",
+        "nrf52840_qiaa",
+        "rfm95w",
+        "sim7080g"
+      ],
+      "marking": {
+        "type": "Dashed rectangle on silkscreen",
+        "label": "ANTENNA\\nKEEP CLEAR",
+        "text_size_mm": 0.8,
+        "note": "Outline the antenna keepout zone on silkscreen. No copper pour, components, or enclosure material in this zone."
+      },
+      "dimensions_per_component": {
+        "esp32_wroom_32": {
+          "zone_mm": "15mm from end of module, full width",
+          "direction": "Extends beyond board edge ideally"
+        },
+        "nrf52840_qiaa": {
+          "zone_mm": "10mm radius from antenna pin",
+          "note": "Depends on antenna design — PCB trace, chip, or external"
+        },
+        "rfm95w": {
+          "zone_mm": "10mm around SMA/u.FL connector and antenna trace",
+          "note": "Wire antenna extends off-board"
+        },
+        "sim7080g": {
+          "zone_mm": "Per module datasheet keepout drawing"
+        }
+      }
+    },
+    "crystal_zone": {
+      "applies_to": [
+        "crystal_32khz"
+      ],
+      "marking": {
+        "type": "Dashed rectangle on silkscreen",
+        "label": "32K XTAL\\nNO ROUTE",
+        "text_size_mm": 0.6,
+        "note": "Marks the ground plane keepout zone for the 32kHz crystal. Reminds layout reviewer not to route under it."
+      }
+    },
+    "mains_isolation": {
+      "note": "Covered in mains_safety_rules.json silkscreen_markings section. Not duplicated here."
+    }
+  },
+  "assembly_aids": {
+    "description": "Additional silkscreen features to help with manual assembly and inspection",
+    "component_outlines": {
+      "description": "KiCad footprints include component outlines on F.Fab layer. These should be copied to F.Silkscreen for THT components and large SMD components. Small passives (0402, 0603) get outline on fab only — silkscreen outline would be too cluttered.",
+      "show_outline_on_silk": {
+        "tht_components": true,
+        "smd_0402": false,
+        "smd_0603": false,
+        "smd_0805_plus": true,
+        "smd_ic": true,
+        "connectors": true,
+        "modules": true
+      }
+    },
+    "solder_jumpers": {
+      "description": "If the design includes configuration options (e.g., I2C address selection), use solder jumper pads with silkscreen labels",
+      "example": {
+        "component": "bme680",
+        "jumper_label": "ADDR\\n76 [77]",
+        "note": "Square brackets indicate default (closed) position. User can cut trace and bridge other pad."
+      }
+    }
+  },
+  "resolver_behavior": [
+    "For every board generated:",
+    "1. Assign reference designators using prefix table. MCU = U1, primary regulator = U2.",
+    "2. Add pin 1 dots on all ICs (U prefix)",
+    "3. Add polarity marks on all polarised components (electrolytics, diodes, LEDs, MOSFETs)",
+    "4. Add functional labels on all connectors from connector_labels table",
+    "5. Add net name labels on all test points",
+    "6. Add board info block on B.Silkscreen with project name, revision, date",
+    "7. Add PCB Wizard order number (PW-XXXXXX) in board info block on B.Silkscreen",
+    "8. Add antenna keepout outlines for all RF components",
+    "9. Add 32kHz crystal no-route zone outline if 32kHz crystal present",
+    "10. Add functional zone labels if board area > 1600mm² (40×40mm)",
+    "11. Add board orientation corner mark",
+    "12. Run DRC: no silkscreen over exposed pads, min text height 0.8mm, min line width 0.15mm",
+    "13. If mains components present: apply mains_safety_rules.json silkscreen markings in addition"
+  ],
+  "manufacturing_constraints": {
+    "min_line_width_mm": 0.15,
+    "min_text_height_mm": 0.8,
+    "recommended_text_height_mm": 1,
+    "min_text_width_mm": 0.15,
+    "font": "KiCad default (stroke font)",
+    "layers": [
+      "F.Silkscreen",
+      "B.Silkscreen"
+    ],
+    "clearance_to_pads_mm": 0.15,
+    "note": "These are conservative values compatible with all major PCB fabricators. Silkscreen over exposed copper/pads will be clipped by the fab house."
+  },
+  "logo_zone": {
+    "description": "Reserved area on every board for the PCB Wizard copper logo. Logo is rendered as a copper pour on the top layer for aesthetic purposes. Design TBD — zone is reserved at a fixed size and position.",
+    "layer": "F.Cu",
+    "type": "Copper pour (filled zone)",
+    "rendering": "Logo artwork will be converted to a KiCad footprint with copper fill on F.Cu. No electrical function — purely aesthetic.",
+    "reserved_area": {
+      "width_mm": 12,
+      "height_mm": 8,
+      "position": "Bottom-right of board, top layer, adjacent to board info block area",
+      "clearance_to_components_mm": 1,
+      "clearance_to_traces_mm": 0.3
+    },
+    "ground_connection": {
+      "connected_to_ground": true,
+      "note": "Logo copper pour should be connected to GND plane via stitching vias for EMC. Floating copper acts as an antenna."
+    },
+    "solder_mask": {
+      "mask_opening": true,
+      "note": "Open solder mask window over logo area so copper is exposed and visible against the black solder mask. This creates a shiny copper/gold finish on black background."
+    },
+    "placeholder": {
+      "current_state": "Logo artwork not yet provided. Resolver reserves the zone and places a temporary text placeholder.",
+      "placeholder_text": "[LOGO]",
+      "placeholder_layer": "F.Silkscreen"
+    },
+    "resolver_behavior": [
+      "Reserve the logo zone on every board — do not place components or route traces through it",
+      "Add zone as a keepout for autorouter on F.Cu (except the logo pour itself)",
+      "When logo artwork is provided, import as KiCad footprint and place in reserved zone",
+      "Until then, place [LOGO] placeholder text on F.Silkscreen"
+    ]
+  },
+  "solder_mask": {
+    "colour": "Black",
+    "finish": "Matte black preferred, gloss black acceptable",
+    "material": "LPI (Liquid Photo-Imageable) — standard",
+    "surface_finish": "HASL lead-free (default) or ENIG (for fine-pitch QFN/BGA and aesthetic copper logo)",
+    "surface_finish_recommendation": "ENIG recommended when logo zone is present — gives gold finish on exposed copper logo against black mask. HASL gives silver/tin finish.",
+    "mask_expansion_mm": 0.05,
+    "note": "Black solder mask with exposed copper logo creates a distinctive professional appearance. ENIG surface finish produces gold-on-black. HASL produces silver-on-black."
+  }
+}

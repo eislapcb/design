@@ -1,0 +1,150 @@
+{
+  "description": "MCU pin allocation tables for schematic generation. The resolver uses these to assign peripheral pins to MCU GPIO, detect conflicts, and generate netlists.",
+
+  "esp32_wroom_32": {
+    "mcu_id": "esp32_wroom_32",
+    "total_gpio": 34,
+    "usable_gpio": 25,
+    "reserved_pins": {
+      "flash_spi": { "pins": [6,7,8,9,10,11], "reason": "Internal flash SPI — NEVER use" },
+      "boot": { "pins": [0], "reason": "GPIO0 — boot mode select, boot button" },
+      "uart0_debug": { "pins": [1,3], "reason": "TX0/RX0 — USB-UART debug console" },
+      "usb_uart": { "pins": [1,3], "reason": "CP2102N TX/RX" }
+    },
+    "input_only": [34, 35, 36, 39],
+    "buses": {
+      "spi_vspi": { "mosi": 23, "miso": 19, "sck": 18, "cs_default": 5, "notes": "VSPI — default SPI bus, use for most peripherals" },
+      "spi_hspi": { "mosi": 13, "miso": 12, "sck": 14, "cs_default": 15, "notes": "HSPI — second SPI bus if VSPI full" },
+      "i2c_0": { "sda": 21, "scl": 22, "notes": "Default I2C bus — all I2C devices share this" },
+      "i2c_1": { "sda": 33, "scl": 32, "notes": "Second I2C bus if address conflict" },
+      "uart_1": { "tx": 17, "rx": 16, "notes": "UART1 — GPS, cellular, mmWave" },
+      "uart_2": { "tx": 26, "rx": 27, "notes": "UART2 — second UART device" },
+      "i2s_0": { "bclk": 26, "ws": 25, "data_out": 22, "data_in": 35, "notes": "I2S for audio — conflicts with UART2 on 26/27" },
+      "can": { "tx": 21, "rx": 22, "notes": "CAN — WARNING: conflicts with I2C0. Use I2C1 if CAN active." }
+    },
+    "adc_pins": {
+      "adc1": [32,33,34,35,36,39],
+      "adc2": [0,2,4,12,13,14,15,25,26,27],
+      "notes": "ADC2 unavailable when WiFi active — use ADC1 for battery monitoring"
+    },
+    "pwm_pins": [2,4,5,12,13,14,15,16,17,18,19,21,22,23,25,26,27,32,33],
+    "touch_pins": [0,2,4,12,13,14,15,27,32,33],
+    "dac_pins": [25,26],
+    "gpio_pool": [2,4,5,12,13,14,15,16,17,18,19,21,22,23,25,26,27,32,33,34,35,36,39],
+    "allocation_priority": "SPI first (fixed pins), I2C second (fixed pins), UART third (flexible), PWM/GPIO last (most flexible)",
+    "notes": "ESP32 has very flexible pin muxing but some hard conflicts. ADC2 + WiFi is the biggest gotcha."
+  },
+
+  "atmega328p_au": {
+    "mcu_id": "atmega328p_au",
+    "total_gpio": 23,
+    "usable_gpio": 20,
+    "reserved_pins": {
+      "crystal": { "pins": ["PB6","PB7"], "reason": "XTAL1/XTAL2 — 16MHz crystal" },
+      "reset": { "pins": ["PC6"], "reason": "nRESET — reset button" },
+      "isp": { "pins": ["PB3","PB4","PB5"], "reason": "MOSI/MISO/SCK — shared with SPI bus + ISP programming" }
+    },
+    "buses": {
+      "spi_0": { "mosi": "PB3", "miso": "PB4", "sck": "PB5", "ss": "PB2", "notes": "Only SPI bus — shared with ISP header" },
+      "i2c_0": { "sda": "PC4", "scl": "PC5", "notes": "Only I2C bus (TWI)" },
+      "uart_0": { "tx": "PD1", "rx": "PD0", "notes": "Only hardware UART" }
+    },
+    "adc_pins": { "adc": ["PC0","PC1","PC2","PC3","PC4","PC5"], "notes": "6 ADC channels, 10-bit. PC4/PC5 shared with I2C." },
+    "pwm_pins": ["PD3","PD5","PD6","PB1","PB2","PB3"],
+    "interrupt_pins": { "int0": "PD2", "int1": "PD3", "pcint": "all" },
+    "gpio_pool": ["PB0","PB1","PB2","PB3","PB4","PB5","PC0","PC1","PC2","PC3","PC4","PC5","PD0","PD1","PD2","PD3","PD4","PD5","PD6","PD7"],
+    "allocation_priority": "SPI/ISP first (fixed), I2C second (fixed), UART third (fixed), ADC fourth, GPIO last",
+    "notes": "Very limited pins. SPI shares with ISP. I2C shares with ADC4/ADC5. One hardware UART only — SoftwareSerial for second device (unreliable above 9600 baud)."
+  },
+
+  "rp2040": {
+    "mcu_id": "rp2040",
+    "total_gpio": 30,
+    "usable_gpio": 26,
+    "reserved_pins": {
+      "crystal": { "pins": ["GP20","GP21"], "reason": "XIN/XOUT — 12MHz crystal (actually dedicated pins, not GPIO)" },
+      "flash_spi": { "pins": ["GP_QSPI_*"], "reason": "Dedicated QSPI flash bus — not GPIO" },
+      "usb": { "pins": ["GP_USB_DP","GP_USB_DM"], "reason": "USB D+/D- — dedicated" },
+      "boot": { "pins": ["BOOTSEL"], "reason": "BOOTSEL button — dedicated pin, not GPIO" }
+    },
+    "buses": {
+      "spi_0": { "mosi": "GP3", "miso": "GP4", "sck": "GP2", "cs": "GP5", "alt_mosi": "GP19", "alt_miso": "GP16", "alt_sck": "GP18", "notes": "SPI0 — flexible pin muxing, multiple options" },
+      "spi_1": { "mosi": "GP11", "miso": "GP12", "sck": "GP10", "cs": "GP13", "notes": "SPI1 — second bus" },
+      "i2c_0": { "sda": "GP0", "scl": "GP1", "alt_sda": "GP4", "alt_scl": "GP5", "notes": "I2C0 — flexible pin muxing" },
+      "i2c_1": { "sda": "GP2", "scl": "GP3", "alt_sda": "GP6", "alt_scl": "GP7", "notes": "I2C1" },
+      "uart_0": { "tx": "GP0", "rx": "GP1", "alt_tx": "GP12", "alt_rx": "GP13", "notes": "UART0 — conflicts with I2C0 on default pins" },
+      "uart_1": { "tx": "GP8", "rx": "GP9", "notes": "UART1" },
+      "pio": { "any_pin": true, "notes": "PIO state machines can implement any protocol on any pin — ultimate flexibility" }
+    },
+    "adc_pins": { "adc": ["GP26","GP27","GP28","GP29_VSYS"], "notes": "4 ADC channels, 12-bit. GP29 reads VSYS voltage (internal divider)." },
+    "pwm_pins": ["GP0","GP1","GP2","GP3","GP4","GP5","GP6","GP7","GP8","GP9","GP10","GP11","GP12","GP13","GP14","GP15","GP16","GP17","GP18","GP19","GP20","GP21","GP22","GP23","GP24","GP25","GP26","GP27","GP28"],
+    "gpio_pool": ["GP0","GP1","GP2","GP3","GP4","GP5","GP6","GP7","GP8","GP9","GP10","GP11","GP12","GP13","GP14","GP15","GP16","GP17","GP18","GP19","GP20","GP21","GP22","GP23","GP24","GP25","GP26","GP27","GP28"],
+    "allocation_priority": "Every pin can do almost anything via muxing. Allocate SPI first (specific alt functions), I2C second, UART third. PIO handles edge cases.",
+    "notes": "Most flexible MCU. PIO can bit-bang any protocol. 29 GPIO all PWM-capable. Only constraint: 4 ADC pins."
+  },
+
+  "nrf52840_qiaa": {
+    "mcu_id": "nrf52840_qiaa",
+    "total_gpio": 48,
+    "usable_gpio": 32,
+    "reserved_pins": {
+      "crystal_hf": { "pins": ["P0.00","P0.01"], "reason": "32MHz crystal XL1/XL2" },
+      "crystal_lf": { "pins": ["P0.00","P0.01"], "reason": "32.768kHz crystal (shared or separate depending on config)" },
+      "reset": { "pins": ["P0.18"], "reason": "nRESET" },
+      "nfc": { "pins": ["P0.09","P0.10"], "reason": "NFC antenna pins — can be reconfigured as GPIO" },
+      "usb": { "pins": ["USB_D+","USB_D-"], "reason": "USB 2.0 — dedicated" }
+    },
+    "buses": {
+      "spi_0": { "mosi": "P0.13", "miso": "P0.15", "sck": "P0.14", "cs": "P0.17", "notes": "SPIM0 — any pin remappable" },
+      "spi_1": { "mosi": "P0.20", "miso": "P0.22", "sck": "P0.21", "cs": "P0.23", "notes": "SPIM1" },
+      "spi_2": { "mosi": "P0.26", "miso": "P0.28", "sck": "P0.27", "cs": "P0.29", "notes": "SPIM2" },
+      "i2c_0": { "sda": "P0.07", "scl": "P0.08", "notes": "TWIM0 — any pin remappable" },
+      "i2c_1": { "sda": "P0.11", "scl": "P0.12", "notes": "TWIM1" },
+      "uart_0": { "tx": "P0.06", "rx": "P0.08", "cts": "P0.07", "rts": "P0.05", "notes": "UARTE0 — any pin remappable" },
+      "uart_1": { "tx": "P0.24", "rx": "P0.25", "notes": "UARTE1" },
+      "i2s": { "sck": "P0.31", "lrck": "P0.30", "sdin": "P0.29", "sdout": "P0.28", "notes": "I2S" },
+      "swd": { "swdio": "SWDIO", "swclk": "SWDCLK", "notes": "Dedicated debug pins" }
+    },
+    "adc_pins": { "adc": ["P0.02","P0.03","P0.04","P0.05","P0.28","P0.29","P0.30","P0.31"], "notes": "8 ADC channels, 12-bit SAADC" },
+    "pwm_pins": "Any GPIO via PWM peripheral (4 PWM instances × 4 channels = 16 simultaneous)",
+    "gpio_pool": "P0.00-P0.31, P1.00-P1.15 (48 total, ~32 usable after reserved)",
+    "allocation_priority": "All peripherals fully remappable. Allocate based on physical routing convenience, not electrical constraint.",
+    "notes": "Most pin-flexible MCU. Any peripheral can be on any pin. 3 SPI, 2 I2C, 2 UART instances. Main constraint: 8 ADC pins on specific port 0 pins."
+  },
+
+  "stm32h743vit6": {
+    "mcu_id": "stm32h743vit6",
+    "total_gpio": 82,
+    "usable_gpio": 70,
+    "reserved_pins": {
+      "crystal_hse": { "pins": ["PH0","PH1"], "reason": "8MHz HSE crystal" },
+      "crystal_lse": { "pins": ["PC14","PC15"], "reason": "32.768kHz LSE crystal" },
+      "reset": { "pins": ["NRST"], "reason": "Reset" },
+      "boot": { "pins": ["BOOT0"], "reason": "Boot mode select" },
+      "usb": { "pins": ["PA11","PA12"], "reason": "USB FS D-/D+" },
+      "swd": { "pins": ["PA13","PA14"], "reason": "SWDIO/SWCLK debug" }
+    },
+    "buses": {
+      "spi_1": { "mosi": "PA7", "miso": "PA6", "sck": "PA5", "cs": "PA4", "notes": "SPI1 on APB2, fastest bus" },
+      "spi_2": { "mosi": "PB15", "miso": "PB14", "sck": "PB13", "cs": "PB12", "notes": "SPI2" },
+      "spi_3": { "mosi": "PB5", "miso": "PB4", "sck": "PB3", "cs": "PA15", "notes": "SPI3" },
+      "i2c_1": { "sda": "PB7", "scl": "PB6", "notes": "I2C1" },
+      "i2c_2": { "sda": "PB11", "scl": "PB10", "notes": "I2C2" },
+      "uart_1": { "tx": "PA9", "rx": "PA10", "notes": "USART1 — high speed" },
+      "uart_2": { "tx": "PA2", "rx": "PA3", "notes": "USART2" },
+      "uart_3": { "tx": "PB10", "rx": "PB11", "notes": "USART3 — conflicts with I2C2" },
+      "can_1": { "tx": "PA12", "rx": "PA11", "notes": "FDCAN1 — conflicts with USB. Use alt pins PB9/PB8" },
+      "can_1_alt": { "tx": "PB9", "rx": "PB8", "notes": "FDCAN1 alternate pins (no USB conflict)" },
+      "ethernet": { "rmii_ref_clk": "PA1", "rmii_crs_dv": "PA7", "rmii_txd0": "PB12", "rmii_txd1": "PB13", "rmii_tx_en": "PB11", "rmii_rxd0": "PC4", "rmii_rxd1": "PC5", "rmii_mdio": "PA2", "rmii_mdc": "PC1", "notes": "RMII Ethernet — uses many pins, conflicts with SPI2" },
+      "sdmmc_1": { "ck": "PC12", "cmd": "PD2", "d0": "PC8", "d1": "PC9", "d2": "PC10", "d3": "PC11", "notes": "SDMMC1 4-bit" },
+      "dcmi": { "hsync": "PA4", "vsync": "PB7", "pixclk": "PA6", "d0": "PC6", "d1": "PC7", "d2": "PE0", "d3": "PE1", "d4": "PE4", "d5": "PB6", "d6": "PE5", "d7": "PE6", "notes": "Camera DCMI interface" },
+      "i2s": { "ws": "PA4", "ck": "PA5", "sd": "PA7", "mck": "PC7", "notes": "I2S — shares pins with SPI1" }
+    },
+    "adc_pins": { "adc1": ["PA0","PA1","PA2","PA3","PA4","PA5","PA6","PA7","PB0","PB1","PC0","PC1","PC2","PC3","PC4","PC5"], "notes": "16 ADC channels, 16-bit" },
+    "pwm_pins": "Multiple timer peripherals, most GPIO pins have timer alternate functions",
+    "dac_pins": ["PA4","PA5"],
+    "gpio_pool": "PA0-PA15, PB0-PB15, PC0-PC15, PD0-PD15, PE0-PE15 (82 total)",
+    "allocation_priority": "Use STM32CubeMX pin mux tool for conflict-free allocation. Many alternate function conflicts on this chip.",
+    "notes": "Most pins, most peripherals, most conflicts. 82 GPIO but extensive multiplexing means careful allocation needed. 3 SPI, 4 I2C, 8 UART, SDMMC, DCMI, Ethernet, CAN — but many share pins."
+  }
+}

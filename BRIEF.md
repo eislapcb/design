@@ -1,0 +1,2756 @@
+# PCB Wizard — Project Brief
+**Version:** 3.9 (Zero-experience UX: Stage 6B replaced with 3D render + plain-English summary card; Revision Loop added with change classification and partial pipeline re-run; Reorder function added; UX Vocabulary Reference added; 3D render export added to Stage 9; API endpoints updated)  
+**Last Updated:** February 2026  
+**Purpose:** Reference document for Claude Code sessions — paste relevant sections at the start of each session to maintain context.
+
+---
+
+## Project Overview
+
+PCB Wizard is a web-based tool that lets users describe what they need their board to *do* — in plain English or via a guided questionnaire — and automatically generates a complete, routed, validated PCB design ready for manufacture. The user describes their project ("I'm building a soil moisture sensor that runs on a battery and sends data to my phone"), the system resolves requirements into specific components, designs the board, validates it against design rules, and presents real manufacturing quotes from multiple fabricators. The customer can order manufacture directly through PCB Wizard.
+
+**The core value proposition:** A non-expert user can go from a plain English project description to a manufacturable, validated PCB with real manufacturing quotes — in under two minutes, without any electronics knowledge required. Expert users get a fast, intelligent design assistant with advanced override capabilities.
+
+**Business model:** Two revenue streams — per-design fee (paid upfront, tiered by complexity) and manufacturing margin (26% on PCBA landed cost for new designs, 13% for reorders). Repeat customers benefit from design history, credits, and volume discounts.
+
+---
+
+## Current State (v1 — Browser-Based)
+
+The existing project (`pcb-wizard.html`) is a single-file HTML/JS application that runs entirely in the browser. It currently provides:
+
+- **Step 1 — Module Selection:** 6 categories, 30+ modules with power estimates and layer requirements, quantity controls
+- **Step 2 — Board Configuration:** Shape (rectangular, circular, L-shape), dimensions, layer count, copper weight, silkscreen/conformal coating/test point toggles
+- **Step 3 — PCB Canvas Preview:** Visual render with colour-coded placement, mounting holes, ratsnest lines
+- **Step 4 — Design Summary & Export:** BOM, power budget, battery life estimate, IPC-610 compliance checklist
+- **Step 5 — KiCad Export:** Downloads `.kicad_pcb`, `.kicad_pro`, `bom.csv`, `README.txt`
+
+- **Datasheet Panel:** Click any component to see specs, PDF links, PCB layout notes, keep-out zones, decoupling requirements
+
+**Limitations of v1:**
+- Autorouting is purely visual — traces are illustrative, not real routed copper
+- Placement is rule-based but runs in-browser JS, limiting sophistication
+- No proper netlist generation
+- KiCad files have footprints placed but unrouted connections (ratsnest only)
+
+---
+
+## Target State (v2 — Server-Side Architecture)
+
+Move all PCB intelligence to the server. The browser becomes a lightweight UI that submits a job and downloads the result. The server handles placement optimisation, netlist generation, real KiCad file creation, FreeRouting autorouting, and file packaging.
+
+**Goals:**
+- **Natural language input** — accept plain English project descriptions, parsed by Claude API into capability selections
+- Capability-first UX as fallback/confirmation — checkbox questionnaire remains for review and override
+- Smart component resolution — one capability satisfies multiple requirements
+- Advisory feedback — conflicts, power warnings, layer recommendations
+- **User accounts and design history** — customers can retrieve, re-order, and fork past designs
+- **Interactive placement review** — customer sees proposed component placement before routing and can adjust
+- Genuinely routed PCB files via FreeRouting
+- **Design validation** — automated checks for common mistakes (missing bypass caps, differential pair violations, etc.) before routing
+- **DRC after routing** — KiCad DRC run programmatically, results included in delivery
+- **Schematic generation** — KiCad schematic produced alongside PCB
+- **Component stock checking** — deferred to v2; BOM includes DigiKey PNs for customer reference
+- Proper IPC-610-compliant placement via simulated annealing
+- Fast, responsive UI
+- Pay-per-design model via Stripe, tiered by complexity
+- **Credits and volume pricing** — loyalty discounts and volume manufacturing margin reduction
+- Post-generation: submit Gerbers + BOM + P&P to fabs for real quotes — all four fabs quoted in parallel (JLCPCB, PCBWay, PCBTrain, Eurocircuits), customer chooses; 26% margin applied regardless of fab selected (13% for reorders)
+- **Assembly service integration** — full SMT assembly quotes and ordering where fabs support it
+- **Email/webhook notifications** — customer notified when design is ready
+- PCB Wizard acts as procurement broker
+
+---
+
+## Architecture
+
+```
+Browser (HTML/JS UI)
+    │
+    │  [Option A] Plain English description → POST /api/parse-intent
+    │  [Option B] Capability checkbox selections
+    ▼
+Node.js API Server
+    │  [Option A] Calls Claude API to parse intent → returns capability selections
+    │  [Option B] Capability selections passed directly
+    ▼
+POST /api/resolve  (capability selections)
+    │  - Runs capability resolver
+    │  - Returns component list + warnings + stock alerts + design price
+    ▼
+Browser — shows resolved components, stock status, warnings, price preview
+    │
+    │  User confirms (or overrides in advanced mode)
+    │  [Logged-in users: option to load a past design instead]
+    │
+    │  POST /api/checkout  (design fee payment)
+    ▼
+Stripe Checkout → webhook → job created and queued
+    ▼
+Job Worker (Node.js)
+    │
+    ▼
+Python: Design Validation  (validator.py)  ← NEW
+    │  - Static checks before routing: missing bypass caps, voltage mismatches,
+    │    differential pair identification, antenna violations, motor driver checks
+    │  - Returns warnings list (does not block routing, but flags issues)
+    │
+    ▼
+Python: Placement Engine  (placement.py)
+    │  - Rule-based placement + simulated annealing
+    │  - Generates placement preview SVG
+    │
+    ▼
+Job status → "awaiting_placement_approval"  ← NEW
+    │
+    │  Browser receives placement SVG preview
+    │  Customer reviews, optionally adjusts component positions
+    │  Customer clicks "Approve & Route"
+    │  POST /api/jobs/:id/approve-placement
+    │
+    ▼
+Python: Netlist + KiCad file gen (placement.py cont.)
+    │
+    ▼
+Python: Schematic Generation  (schematic.py)  ← NEW
+    │  - Generates .kicad_sch from netlist and component data
+    │  - Hierarchical sheets for complex boards
+    │
+    ▼
+FreeRouting  (Java subprocess)
+    │
+    ▼
+Python: Post-Processing  (postprocess.py)
+    │  - Import routing, generate Gerbers, P&P, BOM
+    │  - Run KiCad DRC programmatically  ← NEW
+    │  - Package ZIP (KiCad PCB + schematic + BOM + Gerbers + P&P + DRC report)
+    │
+    ▼
+Node.js: Fab Quoter  (fabquoter.js)
+    │  - Submit to all four fabs in parallel, customer chooses; apply 26% margin (13% reorders)
+    │  - Include assembly quotes where available
+    │
+    ▼
+Job status → "complete"
+    │
+    │  Notification sent (email)  ← NEW
+    ▼
+Browser — ZIP download + DRC report + fab quotes + order buttons
+    │
+    │  [Logged-in users: design saved to account history]
+    │
+    │  Customer selects fab + quantity + assembly option
+    │  POST /api/manufacturing-checkout
+    ▼
+Stripe → webhook → order placed with fab
+```
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Notes |
+|---|---|---|
+| Frontend | HTML + vanilla JS | Keep lightweight, no heavy framework needed |
+| API Server | Node.js + Express | Existing pattern from v1 |
+| Job Queue | BullMQ + Redis | Handles async jobs, retries, concurrency |
+| Payments | Stripe (Checkout + Webhooks) | Design fee + manufacturing order |
+| NL Parsing | Claude API (claude-sonnet-4-6) | Parses plain English → capability selections |
+| User Accounts | SQLite (better-sqlite3) | Lightweight, no separate DB server needed |
+| Placement Engine | Python 3.11+ | pcbnew API, scipy for SA optimisation |
+| Design Validator | Python 3.11+ | Static rule checks before routing |
+| KiCad File I/O | pcbnew (Python API) | PCB + schematic generation, DRC |
+| Autorouter | FreeRouting (Java) | Specctra DSN format |
+| Component Stock | Manual / v2 | BOM lists DigiKey PNs for customer reference. No live API in v1. |
+| Fab Quoting | Fab adapters (Node.js) | Eurocircuits REST; JLCPCB/PCBWay programmatic; PCBTrain rate card |
+| Margin Engine | pricing.js | 26% margin on new design orders; 13% on reorders |
+| Email | Nodemailer + SMTP | Job completion + order confirmation notifications |
+| Hosting | Hetzner CX32 VPS | 4 vCPU, 8GB RAM — ~£7.50/month |
+
+---
+
+## Project Folder Structure
+
+```
+pcb-wizard/
+├── BRIEF.md
+├── package.json
+├── .env
+├── .gitignore
+│
+├── server/
+│   ├── index.js                    # Express API server
+│   ├── queue.js                    # BullMQ job queue setup
+│   ├── worker.js                   # Job worker
+│   ├── resolver.js                 # Capability → component resolver
+│   ├── nlparser.js                 # Claude API: plain English → capabilities
+│   ├── accounts.js                 # User account + design history (SQLite)
+│   ├── pricing.js                  # Design price tier + credits + margin
+│   ├── notifier.js                 # Email notifications (Nodemailer)
+│   ├── fabquoter.js                # Orchestrates fab quotes, applies margin
+│   ├── fabadapters/
+│   │   ├── eurocircuits.js
+│   │   ├── jlcpcb.js               # JLCPCB adapter (uses jlcpcb-signer.js)
+│   │   ├── jlcpcb-signer.js        # Request signing — reverse-engineered from Java SDK
+│   │   ├── pcbway.js
+│   │   └── pcbtrain.js
+│   ├── ordermanager.js             # Places confirmed manufacturing orders
+│   ├── stripe.js                   # Stripe Checkout + webhook handler
+│
+├── python/
+│   ├── validator.py                # Pre-routing design validation checks
+│   ├── placement.py                # Rule-based placement + SA optimisation
+│   ├── svg_preview.py              # Generates placement preview SVG
+│   ├── schematic.py                # KiCad schematic (.kicad_sch) generation
+│   ├── postprocess.py              # Routing import, DRC, Gerbers, P&P, ZIP
+│   ├── dsn_export.py               # KiCad → Specctra DSN
+│   ├── netlist.py                  # Netlist generation
+│   └── utils.py
+│
+├── data/
+│   ├── components.json
+│   ├── capabilities.json
+│   ├── validation_rules.json       # Rules for design validator
+│   └── fab_rates/
+│       └── pcbtrain.json
+│
+├── db/
+│   └── pcbwizard.sqlite            # User accounts, design history, credits
+│
+├── freerouting/
+│   └── freerouting.jar
+│
+├── jobs/
+│   └── {uuid}/
+│       ├── input.json
+│       ├── placement_preview.svg   # Sent to customer for review
+│       ├── board.kicad_pcb
+│       ├── board.kicad_sch         # Generated schematic
+│       ├── board.dsn
+│       ├── board.ses
+│       ├── drc_report.json         # DRC results
+│       ├── gerbers/
+│       ├── bom.csv
+│       ├── pick_and_place.csv
+│       ├── validation_warnings.json
+│       ├── fab_quotes.json
+│       └── output.zip
+│
+└── frontend/
+    ├── index.html
+    ├── account.html
+    └── assets/
+```
+
+---
+
+## Component Database Schema
+
+Every module in the wizard must have a corresponding entry in `data/components.json`. This is the most critical data file — the entire pipeline depends on it.
+
+```json
+{
+  "esp32_wroom_32": {
+    "id": "esp32_wroom_32",
+    "display_name": "ESP32-WROOM-32",
+    "category": "mcu",
+    "subcategory": "wifi_ble",
+    "kicad_footprint": "RF_Module:ESP32-WROOM-32",
+    "dimensions_mm": { "width": 18.0, "height": 25.5 },
+    "courtyard_clearance_mm": 0.5,
+    "placement_zone": "edge_top",
+    "placement_priority": 1,
+    "antenna_keepout_mm": 5.0,
+    "decoupling_caps": [
+      { "value": "100nF", "package": "0402", "pin": "VCC", "max_distance_mm": 2.0 }
+    ],
+    "min_layers": 2,
+    "power_consumption_ma": 240,
+    "supply_voltage": "3.3V",
+    "interfaces": ["SPI", "I2C", "UART", "GPIO"],
+    "digikey_pn": "1904-1038-1-ND",  // BOM reference only — no live API calls in v1
+    "mpn": "ESP32-WROOM-32E(4MB)",
+    "datasheet_url": "https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32e_esp32-wroom-32ue_datasheet_en.pdf",
+    "ipc610_notes": "Antenna must overhang board edge or face clearance zone",
+    "capabilities": ["wifi", "bluetooth", "processing_standard", "gpio", "adc", "pwm"],
+    "capability_score": {
+      "wifi": 10,
+      "bluetooth": 10,
+      "processing_standard": 9,
+      "processing_powerful": 3
+    },
+    "satisfies_processing": true,
+    "cost_gbp_unit": 3.50
+  }
+}
+```
+
+**Placement zones:** `edge_top`, `edge_bottom`, `edge_left`, `edge_right`, `centre`, `power_column`, `any`  
+**Categories:** `mcu`, `power`, `sensor`, `comms`, `display`, `motor_driver`, `passive`, `connector`  
+**Capabilities:** see Capability Taxonomy section below
+
+---
+
+---
+
+## Capability Taxonomy
+
+The full set of capabilities a user can select, organised into groups. Stored in `data/capabilities.json`. Each capability has a display label, a group, an optional follow-up question, and metadata used by the resolver.
+
+### Connectivity
+| Capability ID | Display Label | Notes |
+|---|---|---|
+| `wifi` | WiFi | Triggers RF placement rules |
+| `bluetooth` | Bluetooth | Can be satisfied by same component as WiFi |
+| `lora` | LoRa (long range radio) | Requires antenna connector on board edge |
+| `zigbee` | Zigbee | |
+| `can_bus` | CAN Bus | Industrial/automotive |
+| `ethernet` | Ethernet | Requires magnetics + RJ45 connector |
+| `usb_device` | USB (device mode) | Board appears as USB device to host |
+| `usb_host` | USB (host mode) | Board can connect USB peripherals |
+| `uart` | Serial / UART | Basic serial comms |
+
+### Processing
+| Capability ID | Display Label | Notes |
+|---|---|---|
+| `processing_basic` | Basic (simple tasks, low power) | 8-bit MCU e.g. ATmega328 |
+| `processing_standard` | Standard (IoT, sensor fusion) | 32-bit ARM e.g. ESP32, STM32 |
+| `processing_powerful` | Powerful (ML, video, Linux) | e.g. Raspberry Pi CM4, i.MX8 |
+
+### Sensing
+| Capability ID | Display Label | Notes |
+|---|---|---|
+| `sense_temperature` | Temperature | |
+| `sense_humidity` | Humidity | Often same component as temperature |
+| `sense_motion_imu` | Motion / IMU (accelerometer, gyro) | |
+| `sense_proximity` | Proximity / distance | |
+| `sense_light` | Light / ambient | |
+| `sense_gas` | Gas / air quality | |
+| `sense_pressure` | Barometric pressure | |
+| `sense_gps` | GPS / location | Requires antenna, external or patch |
+| `sense_camera` | Camera | Requires CSI interface, significant complexity |
+| `adc_external` | Analogue input (ADC) | External ADC if MCU ADC insufficient |
+
+### Power
+| Capability ID | Display Label | Notes |
+|---|---|---|
+| `power_usb` | USB powered (5V input) | Standard USB-C or micro-USB input |
+| `power_lipo` | LiPo battery | Requires charging IC + protection |
+| `power_aa` | AA/AAA batteries | 1.5V cells, needs boost converter |
+| `power_mains` | Mains / DC jack (9–24V) | Requires regulation stage |
+| `power_solar` | Solar panel input | Requires MPPT or charge controller |
+| `low_power_sleep` | Low power / deep sleep | Influences MCU selection |
+
+### Output & Actuation
+| Capability ID | Display Label | Notes |
+|---|---|---|
+| `motor_dc` | DC motor control | H-bridge driver |
+| `motor_stepper` | Stepper motor control | Stepper driver IC |
+| `motor_servo` | Servo control | PWM output, often just GPIO |
+| `relay` | Relay output | High-voltage switching |
+| `led_single` | LED indicator(s) | Simple GPIO output |
+| `led_rgb_strip` | RGB LED strip (NeoPixel/WS2812) | Requires level shifting |
+| `speaker_buzzer` | Speaker / buzzer | PWM or I2S audio |
+
+### User Interface
+| Capability ID | Display Label | Notes |
+|---|---|---|
+| `display_oled` | Small OLED display | I2C, typically 128×64 |
+| `display_lcd` | LCD display | Parallel or SPI |
+| `display_tft` | Colour TFT display | SPI, various sizes |
+| `buttons` | Push buttons | |
+| `touch` | Capacitive touch | |
+| `rotary_encoder` | Rotary encoder | |
+
+### Storage & Connectivity
+| Capability ID | Display Label | Notes |
+|---|---|---|
+| `storage_sd` | SD card | SPI interface |
+| `storage_flash` | On-board flash | Often built into MCU module |
+| `rtc` | Real-time clock | Requires coin cell or supercap backup |
+| `eeprom` | EEPROM | Persistent config storage |
+
+---
+
+## Capability Resolver Logic
+
+The resolver lives in `server/resolver.js` and runs synchronously before any job is queued. It takes the user's capability selections and returns a concrete component list, plus any warnings or recommendations.
+
+### Resolution Process
+
+**Step 1 — Normalise inputs**  
+Convert the raw capability selections into a structured requirements object. Tag each capability with its group and any follow-up answers (e.g. "how many DC motors?" → quantity).
+
+**Step 2 — Find MCU candidates**  
+The MCU is resolved first because it may satisfy multiple other capabilities simultaneously. Scan all components with `satisfies_processing: true`. Score each against the selected capabilities using their `capability_score` map — higher score = better fit. The top-scoring MCU that meets the minimum processing tier requested is selected.
+
+After MCU selection, mark all capabilities that the MCU already satisfies as resolved. For example, selecting an ESP32 automatically resolves `wifi`, `bluetooth`, `processing_standard`, `gpio`, `adc`, and `pwm` — none of these need separate components.
+
+**Step 3 — Resolve remaining capabilities**  
+For each unresolved capability, find the best-matching component from the database. Scoring factors:
+- Capability score for this specific capability
+- Power consumption (penalise high-draw options for battery-powered designs)
+- Cost (prefer cheaper options when capability scores are equal)
+- Layer requirements (penalise components requiring more layers than the user requested)
+
+Where one component can satisfy multiple remaining capabilities (e.g. an Si7021 satisfies both `sense_temperature` and `sense_humidity`), it is preferred over two separate components.
+
+**Step 4 — Infer required supporting components**  
+Some capabilities imply supporting components that the user didn't explicitly request. These are added automatically with a note explaining why:
+- LiPo battery → add TP4056 charging IC + protection circuit
+- Mains power input → add appropriate voltage regulator
+- Any RF module → add appropriate antenna (or flag that one is required)
+- LoRa → add SMA connector to BOM
+- Ethernet → add magnetics module + RJ45
+- RTC → add CR2032 coin cell holder
+
+**Step 5 — Power budget check**  
+Sum the `power_consumption_ma` of all resolved components. Evaluate against the power source:
+- USB: 500mA limit (warn if >400mA after leaving headroom)
+- LiPo: calculate estimated runtime based on typical 1000mAh cell
+- AA batteries: flag if total draw exceeds ~200mA continuously (short battery life)
+
+**Step 6 — Conflict detection**  
+Check for known conflicts and generate warnings:
+- LoRa + WiFi simultaneously active: "High RF complexity — recommend keeping LoRa and WiFi transmissions non-simultaneous"
+- LiPo + mains power selected: "Clarify power architecture — do you want mains charging the LiPo, or dual power inputs?"
+- `processing_basic` + WiFi: "Basic MCU can't handle WiFi — upgrading to standard processing tier"
+- `low_power_sleep` + display: "Displays prevent deep sleep — the board will wake briefly to update the display then sleep again"
+- Motor drivers + sensor-heavy design: "Motor switching noise can interfere with sensitive sensors — placement rules will add separation"
+- Layer count too low for complexity: "Recommend 4-layer board for this component count"
+
+**Step 7 — Layer recommendation**  
+Based on total component count, presence of RF modules, and power requirements, recommend a minimum layer count if the user's chosen count is too low. This is advisory, not a hard block.
+
+**Step 8 — Return result**  
+```json
+{
+  "resolved_components": [
+    { "component_id": "esp32_wroom_32", "quantity": 1, "satisfies": ["wifi", "bluetooth", "processing_standard"], "auto_added": false },
+    { "component_id": "si7021", "quantity": 1, "satisfies": ["sense_temperature", "sense_humidity"], "auto_added": false },
+    { "component_id": "tp4056", "quantity": 1, "satisfies": [], "auto_added": true, "reason": "Required for LiPo battery charging" }
+  ],
+  "warnings": [
+    { "level": "info", "message": "ESP32 satisfies WiFi, Bluetooth and processing — no separate comms module needed" },
+    { "level": "warn", "message": "Total current draw is 380mA — close to USB 500mA limit" }
+  ],
+  "power_budget": {
+    "total_ma": 380,
+    "source": "power_usb",
+    "headroom_ma": 120,
+    "estimated_runtime_hours": null
+  },
+  "recommended_layers": 2,
+  "estimated_cost_gbp": 8.50
+}
+```
+
+### Advanced Mode
+
+After the resolver returns, the UI shows the resolved component list with an "Advanced" toggle per component. In advanced mode, the user can:
+- Override any resolved component with a specific alternative from the database
+- Manually add components not in the resolver's output
+- Remove auto-added supporting components (with a warning)
+
+The advanced mode payload is merged with the resolver output before the job is submitted.
+
+---
+
+## Payment Model
+
+### Design Price Tiers
+
+Payment is taken per design, before the job runs. Pricing is tiered by board complexity, calculated at resolve time so the user sees the price before committing. Tiers are defined in `server/pricing.js`.
+
+| Tier | MCU Examples | Design Fee | Engineer Review | Notes |
+|---|---|---|---|---|
+| Tier 1 | ATmega, STM32F0/F1/F3, ESP8266 | £499 | None | LQFP≤64, DIP, SOIC. Simple routing, single supply. |
+| Tier 2 | ESP32, RP2040, nRF52840, STM32F4 | £599 | 4h @ £90/hr | QFN/LQFP. Multi-domain power, USB HS, BLE/WiFi. Dominant tier (~60% of jobs). |
+| Tier 3 | STM32H7, i.MX RT (LQFP only) | £749 | 6h @ £90/hr | LQFP176/208. Complex multi-peripheral. No BGA ever. |
+| Tier 4 | BGA / application processor | Declined | — | Out of scope. Refer to specialist engineer. |
+
+Repeat customers receive 10% off the design fee (T1: £449, T2: £539, T3: £674). The repeat discount is delivered via auto-emailed code 48 hours after confirmed board delivery. Manufacturing margin is never discounted.
+
+Promotional pricing (£299, selected partners only) is a marketing cost — 9% gross margin. Reserved for hackspaces, YouTubers, and accelerator cohort members. Not a standard pricing tier.
+
+The tier is determined by the primary MCU resolved in `resolver.js`. `pricing.js` looks up the MCU component's `tier` field from `components.json`. All boards are 4-layer as standard.
+
+### Stripe Integration
+
+Uses **Stripe Checkout** (hosted payment page) — Stripe handles all card UI, PCI compliance, and 3D Secure. We never touch raw card data.
+
+**Flow:**
+1. User reaches Step 4 (Review & Submit) and sees the design price
+2. Clicks "Pay & Generate" — browser calls `POST /api/checkout`
+3. Server creates a Stripe Checkout session with:
+   - `price_data` for the calculated tier
+   - `metadata` containing the full board config JSON (stringified)
+   - `success_url` pointing back to `/success?session_id={CHECKOUT_SESSION_ID}`
+   - `cancel_url` pointing back to the wizard at Step 4
+4. Server returns the Checkout session URL; browser redirects to Stripe
+5. User completes payment on Stripe's hosted page
+6. Stripe redirects to `success_url`
+7. **Simultaneously**, Stripe sends a `checkout.session.completed` webhook to `POST /api/webhook`
+8. Webhook handler verifies the Stripe signature, extracts board config from `metadata`, creates the job, and queues it
+9. Success page polls for job status using the session ID to look up the job ID
+
+**Critical:** The job must only be created from the webhook, not from the success page redirect. The redirect can be faked; the signed webhook cannot. Always verify `stripe.webhooks.constructEvent()` before acting.
+
+**Webhook endpoint** must be:
+- Excluded from any JSON body parsing middleware (Stripe needs the raw body for signature verification)
+- Registered in the Stripe dashboard pointing to `https://yourdomain.com/api/webhook`
+- Tested locally using the Stripe CLI: `stripe listen --forward-to localhost:3000/api/webhook`
+
+### Refund Policy Consideration
+Since the design is generated automatically and delivered digitally, you should define a refund policy. Suggested approach: automatic refund if the job fails (FreeRouting fails to complete, Python error, etc.) — handled in the worker's error handler by calling the Stripe Refunds API. No refunds for successfully completed designs (the file has been delivered).
+
+### VAT
+Stripe handles VAT collection for UK/EU customers automatically if you enable Stripe Tax. This is strongly recommended to avoid manual VAT accounting. Add `automatic_tax: { enabled: true }` to the Checkout session creation.
+
+---
+
+## Manufacturing Quoting & Margin
+
+### Business Model
+
+PCB Wizard acts as a **procurement broker**. After the design files are generated, PCB Wizard queries all four fabricators (JLCPCB, PCBWay, PCBTrain, Eurocircuits) and presents the customer with side-by-side quotes — price, lead time, and country for each. The customer chooses their fab; PCB Wizard places the order on their behalf regardless of which fab is selected. A **26% margin** is applied to every raw fab price before it is shown to the customer (13% for reorders — same board, no new design work). This margin covers: reprint risk, order management overhead, currency exposure on USD/EUR orders, and customer support.
+
+Financial modelling uses JLCPCB landed costs as the base case (most price-sensitive prototype customers will select JLCPCB). UK fab customers (PCBTrain, Eurocircuits) will pay more for manufacturing but PCB Wizard earns the same percentage margin on a higher absolute value — the model is conservatively stated.
+
+The margin is applied silently — the customer sees only the final price, never the raw fab cost. The `fab_quotes.json` file in the job folder stores both figures internally for your records, but only the customer price is exposed via the API.
+
+```
+customer_price = round(raw_fab_price * 1.26, 2)  # 1.13 for reorders
+```
+
+### Gerber & Output File Generation
+
+Before fab quoting can begin, `postprocess.py` must generate the complete set of manufacturing files. These are also included in the customer ZIP download:
+
+**Gerber files** (to `gerbers/` subfolder):
+- `board.GTL` — top copper
+- `board.GBL` — bottom copper
+- `board.GTS` — top solder mask
+- `board.GBS` — bottom solder mask
+- `board.GTO` — top silkscreen
+- `board.GBO` — bottom silkscreen
+- `board.GM1` — board outline (Edge.Cuts)
+- `board.DRL` — drill file (Excellon format)
+- Additional inner copper layers if >2 layers: `board.G2L`, `board.G3L`, etc.
+
+KiCad's pcbnew API exports Gerbers programmatically. Pin the Gerber format to RS-274X (standard, accepted by all fabs).
+
+**Pick & Place / Centroid file** (`pick_and_place.csv`):
+Required by fabs for SMT assembly. Format:
+```
+Ref,Val,Package,PosX,PosY,Rot,Side
+U1,ESP32-WROOM-32,RF_Module:ESP32-WROOM-32,45.00,35.00,0.00,top
+C1,100nF,Capacitor_SMD:C_0402,43.10,33.50,90.00,top
+```
+Generated from pcbnew footprint positions. All coordinates in mm from board origin, rotation in degrees (0–360).
+
+**BOM CSV** (`bom.csv`) — already generated, no change needed.
+
+### Fab Quoting Architecture
+
+Quoting runs in `server/fabquoter.js` after post-processing completes. It fires requests to all four fabs in parallel (using `Promise.allSettled` so a single fab failure doesn't block the others), collects results, applies the 26% margin (13% for reorders), and writes `fab_quotes.json`.
+
+Each fab has a dedicated adapter in `server/fabadapters/` implementing a common interface:
+
+```javascript
+// All adapters implement this interface
+async function getQuote(jobId, options) {
+  // options: { quantity, assembly, deliveryTier }
+  // returns: { raw_price_gbp, currency, lead_time_days, quote_ref, method }
+  // or throws on failure
+}
+```
+
+### Fab Adapter Details
+
+**JLCPCB (`jlcpcb.js`) — Official Pricing API (live quotes) ✓ API ACCESS APPROVED**
+
+JLCPCB has a full REST API covering the entire order lifecycle. API access has been approved and credentials are ready to use. This is the most reliable automated adapter and should be the default recommended fab in the UI.
+
+**Authentication — three credentials required:**
+
+The API uses `appId` + `accessKey` + `secretKey` (not a single API key). All three must be stored in `.env`:
+
+```
+JLCPCB_APP_ID=your_app_id
+JLCPCB_ACCESS_KEY=your_access_key
+JLCPCB_SECRET_KEY=your_secret_key
+```
+
+Base endpoint: `https://open.jlcpcb.com`
+
+**SDK note — Java only, no Node.js SDK:**
+
+The official SDK is Java-only and handles request signing automatically. Since PCB Wizard runs Node.js, the signing logic must be implemented manually in `jlcpcb.js`. The SDK source is the reference for understanding the signing algorithm — review the core package to understand exactly how requests are signed before building the adapter. Key SDK dependencies (for reference): `okhttp3` for HTTP, `gson` for JSON, `slf4j` for logging.
+
+The SDK uses a **singleton pattern** with double-checked locking for client initialisation — replicate this in Node.js:
+
+```javascript
+// server/fabadapters/jlcpcb.js
+let _client = null;
+
+function getClient() {
+  if (!_client) {
+    _client = createSignedClient({
+      appId: process.env.JLCPCB_APP_ID,
+      accessKey: process.env.JLCPCB_ACCESS_KEY,
+      secretKey: process.env.JLCPCB_SECRET_KEY,
+      endpoint: 'https://open.jlcpcb.com'
+    });
+  }
+  return _client;
+}
+```
+
+**SDK `isSuccessful()` pattern — replicate in Node.js:**
+
+The Java SDK exposes `result.isSuccessful()` as the canonical success check, separate from HTTP status. In Node.js, replicate this as a helper:
+
+```javascript
+function isSuccessful(response) {
+  return response.status === 200 && response.data?.code === 0;
+  // Confirm exact success code value from JLCPCB API docs
+}
+```
+
+**Available API endpoints (from official docs):**
+
+| Endpoint | Purpose | Used in PCB Wizard at |
+|---|---|---|
+| Upload Gerber files | Upload Gerber ZIP, returns `gerber_file_id` | Stage 13 (quoting) |
+| Get PCB pre-review info | Submit `gerber_file_id` + language, returns parsed dimensions + preview image | Stage 13 — validate Gerbers before quoting |
+| Online quote | Submit board spec + `gerber_file_id`, returns itemised cost | Stage 13 — live quote |
+| Get Stack-up information | Query impedance data by layer/thickness/copper/material | Stage 13 — optional, controlled impedance boards |
+| Create order | Submit spec + `gerber_file_id` + shipping address, returns order ID + batch number | ordermanager.js |
+| Query order details by batch number | Returns order info, shipping address, cost | Order tracking |
+| Get PCB production process information | Returns production stage (only after order enters production) | Order tracking UI |
+| Upload blind slot picture | For blind/buried via boards | Advanced boards only |
+| Component information interface | Paginated query of public LCSC library | Assembly BOM validation |
+| Query Private Component Library | Customer's private inventory | Advanced assembly use |
+| Query Component Detail by C-number | Individual component lookup | Assembly BOM validation |
+
+**3D Printing endpoints** — out of scope for v1 but available if 3D enclosure printing is added later.
+
+**Known request field names (from SDK examples):**
+
+Order creation fields visible in SDK: `orderType`, `goodId`, `quantity`, `unitPrice`, `amount`, `createdDate`
+
+File upload fields: `orderNo` (string), `file` (multipart file object)
+
+File download fields: `fileId` (string) — returns filename + input stream
+
+**PCB Wizard integration flow for JLCPCB:**
+
+```
+Stage 13 — Quoting:
+1. POST /upload-gerbers          → { gerber_file_id }
+2. POST /pcb-pre-review          → { width_mm, height_mm, preview_image_url }
+   (cross-check parsed dimensions vs our board spec — flag mismatch)
+3. POST /online-quote            → { unit_price, setup_fee, total, lead_days }
+   Apply 26% margin → customer_price (1.13 for reorders — check job type from metadata)
+   Store gerber_file_id in fab_quotes.json for reuse at order time
+
+Stage order placement (ordermanager.js):
+4. POST /create-order            → { order_id, batch_number, order_type }
+   Use stored gerber_file_id — no re-upload needed
+   Store batch_number in orders table
+
+Order tracking:
+5. POST /query-order/:batch      → shipping + cost details
+6. POST /production-progress     → current production stage
+```
+
+**Assembly BOM validation flow:**
+
+```
+When assembly is requested:
+1. POST /components/search       → paginated LCSC library results
+   (or POST /components/:c_number for individual lookup by lcsc_pn)
+2. For each BOM component: check if lcsc_pn exists and is in stock
+3. Flag Basic vs Extended parts (Extended = ~$3 setup fee each)
+4. Return { assembleable: bool, missing: [...], extended_parts: [...] }
+```
+
+**API technical rules:**
+
+- All requests over **HTTPS only**, **POST method only** — no GET endpoints
+- Standard requests: `Content-Type: application/json`, UTF-8
+- File uploads: `Content-Type: multipart/form-data`
+- All dates: **China Standard Time (GMT+8)**, format `yyyy-MM-dd HH:mm:ss`
+- Every response includes `J-Trace-ID` header — **log this for every request alongside job ID**
+- HTTP 200 does **not** mean business success — always check body `code` field
+- Business errors: `{ "code": 1001, "message": "..." }`
+
+**HTTP status codes:**
+| Code | Meaning |
+|---|---|
+| 200 | Request received — check body `code` for business result |
+| 400 | Invalid parameters / authentication / validation failure |
+| 401 | Unauthorised — signature verification failed |
+| 403 | Forbidden |
+| 500 | JLCPCB internal server error |
+
+**Implementation skeleton for `server/fabadapters/jlcpcb.js`:**
+
+```javascript
+const axios = require('axios');
+const { signRequest } = require('./jlcpcb-signer'); // signing logic to be built from SDK source
+
+const BASE_URL = 'https://open.jlcpcb.com';
+
+let _client = null;
+function getClient() {
+  if (!_client) {
+    _client = axios.create({ baseURL: BASE_URL });
+    _client.interceptors.request.use(req => signRequest(req, {
+      appId: process.env.JLCPCB_APP_ID,
+      accessKey: process.env.JLCPCB_ACCESS_KEY,
+      secretKey: process.env.JLCPCB_SECRET_KEY,
+    }));
+  }
+  return _client;
+}
+
+function isSuccessful(response) {
+  return response.status === 200 && response.data?.code === 0;
+}
+
+const formatDateGMT8 = (date = new Date()) => {
+  const gmt8 = new Date(date.getTime() + 8 * 3600 * 1000);
+  return gmt8.toISOString().replace('T', ' ').substring(0, 19);
+};
+
+async function uploadGerbers(gerberZipPath) {
+  const form = new FormData();
+  form.append('file', fs.createReadStream(gerberZipPath));
+  const res = await getClient().post('/gerbers/upload', form, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  if (!isSuccessful(res)) throw new Error(`JLCPCB upload error: ${res.data.message}`);
+  return res.data.data.gerber_file_id; // confirm field name from full API docs
+}
+
+// ... getPreReview(), getQuote(), createOrder() follow same pattern
+```
+
+Note: `jlcpcb-signer.js` must be built by reverse-engineering the signing logic from the Java SDK core package. This is the primary complexity in the JLCPCB adapter — plan a dedicated sub-session for implementing and testing signing before building the business logic on top.
+
+- Quote method recorded as `"api_live"`
+- **API usage restrictions:** Do not use JLCPCB trademark on website, do not include "JLC" in domain name
+- Docs: https://jlcpcb.com/help/article/jlcpcb-online-api-available-now
+
+**Eurocircuits (`eurocircuits.js`) — Rate Card (estimated) — API access unconfirmed**
+
+Eurocircuits does not appear to offer a public developer API. Their eC-Portal and PCB Visualizer are customer-facing web tools with no documented programmatic interface. All API references on their site relate to their internal component supplier integrations, not third-party access.
+
+Their 2026 roadmap mentions "expanded API-based integration targeting 96% coverage" — but this refers to internal workflow automation, not a customer/partner API. Direct contact has been initiated to explore whether a partner/reseller API exists or is planned (see ENHANCEMENTS.md for email thread).
+
+**Current implementation: rate card model.** Uses `data/fab_rates/eurocircuits.json` with their area-based pooling pricing logic. Rate card dated, reviewed periodically.
+
+- Quote method recorded as `"rate_card"`
+- Displayed with note: "Estimate based on published rates as of [date] — verify at eurocircuits.com"
+- If API access is confirmed in future, this adapter is the right place to add it — the interface is already defined
+- Auth: none required currently
+
+**If API access is confirmed:** Update this adapter to use their programmatic endpoint, change `method` to `"api_live"`, and remove the rate card fallback. Update the brief at that point.
+
+**PCBWay (`pcbway.js`) — Rate Card (estimated)**
+
+No public API. Uses the rate card in `data/fab_rates/pcbway.json`.
+
+- Quote method always recorded as `"rate_card"`
+
+**PCBTrain (`pcbtrain.js`) — Rate Card (estimated)**
+
+No API and no practical programmatic option. Uses the rate card in `data/fab_rates/pcbtrain.json` permanently.
+
+- Quote method always recorded as `"rate_card"`
+- Rate card dated, reviewed periodically
+- Displayed with a note: "Estimate based on published rates as of [date]"
+
+### `fab_quotes.json` Schema
+
+```json
+{
+  "job_id": "abc123",
+  "generated_at": "2026-01-15T10:45:00Z",
+  "board_spec": {
+    "dimensions_mm": [80, 60],
+    "layers": 2,
+    "surface_finish": "HASL",
+    "copper_weight": "1oz",
+    "component_count": 12,
+    "unique_component_count": 8
+  },
+  "margin_rate": 0.26,
+  "quotes": [
+    {
+      "fab": "Eurocircuits",
+      "method": "rate_card",
+      "currency_raw": "EUR",
+      "fx_rate_to_gbp": 0.855,
+      "qty_5":  { "raw_gbp": 24.20, "customer_gbp": 29.04, "lead_days": 15 },
+      "qty_10": { "raw_gbp": 28.50, "customer_gbp": 34.20, "lead_days": 15 },
+      "qty_50": { "raw_gbp": 56.00, "customer_gbp": 67.20, "lead_days": 15 },
+      "assembly_available": true,
+      "quote_ref": null,
+      "url": "https://www.eurocircuits.com",
+      "note": "Estimate based on published rates as of 2026-01 — verify at eurocircuits.com"
+    },
+    {
+      "fab": "JLCPCB",
+      "method": "api_live",
+      "currency_raw": "USD",
+      "fx_rate_to_gbp": 0.79,
+      "qty_5":  { "raw_gbp": 2.53, "customer_gbp": 3.04, "lead_days": 7 },
+      "qty_10": { "raw_gbp": 4.35, "customer_gbp": 5.22, "lead_days": 7 },
+      "qty_50": { "raw_gbp": 14.22, "customer_gbp": 17.06, "lead_days": 7 },
+      "assembly_available": true,
+      "quote_ref": "JLC-2026-XXXXX",
+      "gerber_file_id": "abc123xyz",
+      "url": "https://jlcpcb.com/quote"
+    },
+    {
+      "fab": "PCBWay",
+      "method": "rate_card_fallback",
+      "currency_raw": "USD",
+      "fx_rate_to_gbp": 0.79,
+      "qty_5":  { "raw_gbp": 3.95, "customer_gbp": 4.74, "lead_days": 10 },
+      "qty_10": { "raw_gbp": 5.53, "customer_gbp": 6.64, "lead_days": 10 },
+      "qty_50": { "raw_gbp": 17.38, "customer_gbp": 20.86, "lead_days": 10 },
+      "assembly_available": true,
+      "quote_ref": null,
+      "url": "https://www.pcbway.com/orderonline.aspx"
+    },
+    {
+      "fab": "PCBTrain",
+      "method": "rate_card",
+      "currency_raw": "GBP",
+      "fx_rate_to_gbp": 1.0,
+      "qty_5":  { "raw_gbp": 15.00, "customer_gbp": 18.00, "lead_days": 10 },
+      "qty_10": { "raw_gbp": 18.33, "customer_gbp": 22.00, "lead_days": 10 },
+      "qty_50": { "raw_gbp": 40.00, "customer_gbp": 48.00, "lead_days": 10 },
+      "assembly_available": false,
+      "quote_ref": null,
+      "url": "https://www.pcbtrain.co.uk/quote",
+      "note": "Estimate based on published rates as of 2026-01"
+    }
+  ]
+}
+```
+
+### Manufacturing Order Flow
+
+After the customer selects a fab and quantity from the quote panel:
+
+1. Customer clicks "Order [qty] boards from [fab] — £XX.XX"
+2. Browser calls `POST /api/manufacturing-checkout` with `{ jobId, fab, quantity }`
+3. Server creates a second Stripe Checkout session for the manufacturing amount (customer-facing price including margin)
+4. Stripe webhook on payment success triggers `ordermanager.js`
+5. `ordermanager.js` places the order with the selected fab using their API or order system:
+   - Eurocircuits: use the `quote_ref` from the earlier API quote to confirm the order
+   - JLCPCB/PCBWay: upload Gerbers + BOM + P&P and submit order programmatically
+   - PCBTrain: generate an order summary email with all files attached (manual fulfilment initially)
+6. Order confirmation and tracking reference stored against the job
+7. Customer receives confirmation email (via Stripe or a simple Node.js mailer)
+
+**Delivery address:** Customer provides a shipping address during the manufacturing Stripe Checkout (use Stripe's built-in shipping address collection). This is passed to the fab order.
+
+**PCBTrain manual fulfilment note:** For the initial version, PCBTrain orders can be handled manually — the system flags them as "pending manual order" and sends you a notification email with all the details. Automate this later once the flow is proven.
+
+### Currency Handling
+
+All raw fab prices are converted to GBP before margin is applied. Store the FX rate used at quote time in `fab_quotes.json` so the margin calculation is always auditable. Use a hardcoded daily FX rate (updated via a scheduled cron job calling a free FX API like `https://open.er-api.com`) rather than a live rate per request — this avoids rate limit issues and keeps quote prices stable for the session.
+
+```javascript
+// Cron: update once daily, store in Redis
+// Key: fx:USD_GBP, fx:EUR_GBP
+const rate = await redis.get('fx:USD_GBP') || 0.79; // fallback hardcoded
+```
+
+---
+
+## Pipeline Stages in Detail
+
+### Stage 0A — Natural Language Parsing (Node.js, optional)
+- Endpoint: `POST /api/parse-intent`
+- Input: plain English project description string
+- Calls Claude API (`claude-sonnet-4-6`) with a structured system prompt
+- System prompt instructs Claude to return ONLY a JSON object matching the capability selection schema — no prose, no markdown
+- Claude maps the description to capability IDs, infers power source, suggests board constraints
+- Returns `{ capabilities: [...], suggested_board: { layers, dimensions_mm, power_source } }`
+- Response pre-fills the capability questionnaire for user review — user can adjust before proceeding
+- Falls back gracefully if Claude API is unavailable (show questionnaire empty)
+- This is a fast synchronous call (~1–2 seconds)
+
+**System prompt outline for Claude:**
+```
+You are a PCB requirements parser. Given a plain English project description, 
+return ONLY a valid JSON object with this exact schema:
+{
+  "capabilities": ["capability_id_1", "capability_id_2", ...],
+  "suggested_board": { "layers": 2, "dimensions_mm": [80, 60], "power_source": "power_usb" },
+  "confidence_notes": ["Assumed USB power — clarify if battery needed"]
+}
+Only use capability IDs from this list: [full taxonomy injected here]
+Return nothing except the JSON object. No explanation, no markdown.
+```
+
+### Stage 0B — Capability Resolution (Node.js, synchronous)
+- Endpoint: `POST /api/resolve`
+- Input: capability selections (from NL parser or direct checkbox selection) + board constraints
+- Runs resolver.js (full 8-step resolution)
+- Returns component list, warnings, power budget, design price
+- No live stock check in v1 — BOM includes DigiKey part numbers for customer reference
+
+### Stage 1 — Job Intake (Node.js, via Stripe webhook)
+- Jobs created only from verified Stripe webhook
+- If user is logged in: design config saved to account history immediately at job creation
+- Notifier queued: "Your design is being generated" email sent on job creation
+
+### Stage 2 — Component Resolution (Python)
+- Load resolved components, assign reference designators
+- Flag missing data as errors
+
+### Stage 3 — Design Validation (Python — NEW)
+- `validator.py` runs a library of static checks against the component list and netlist before any routing
+- Checks run in parallel where independent
+- Results written to `validation_warnings.json` — severity: `info`, `warning`, `error`
+- Errors do not block routing (customer has paid — deliver the best result possible with clear warnings)
+
+**Checks implemented:**
+
+*Power integrity:*
+- Every IC with a VCC pin has at least one decoupling capacitor within spec distance
+- LDO/regulator output capacitor present and within recommended value range
+- No component exceeds the power supply capability (e.g. motor driver current vs USB 500mA)
+- Reverse polarity protection present for battery-powered designs (recommendation)
+
+*Signal integrity:*
+- USB D+ and D- identified as differential pair — flagged for FreeRouting differential pair routing
+- I2C pull-up resistors present when I2C devices selected
+- SPI CS lines individually controlled (no shared CS without explicit selection)
+- UART TX/RX not crossed (common mistake when connecting two devices)
+
+*RF and antenna:*
+- RF module placement zone respected (edge of board)
+- No copper polygon under antenna keep-out area in the component database
+- LoRa and WiFi on same board: warn about simultaneous transmission
+
+*Mechanical:*
+- Board area sufficient for component count (warn if estimated component density >80%)
+- Mounting holes present (warn if none detected and board is >50×50mm)
+
+*Assembly:*
+- All SMT components on same side of board where possible (mixed assembly costs more)
+- 0201 or smaller passives flagged as "requires precision assembly"
+
+### Stage 4 — Rule-Based Initial Placement (Python)
+- Same as previous spec
+
+### Stage 5 — Simulated Annealing Optimisation (Python)
+- Same as previous spec
+
+### Stage 6 — Placement SVG Preview Generation (Python — NEW)
+- `svg_preview.py` generates a scaled SVG of the board showing:
+  - Board outline
+  - Each component as a labelled rectangle, colour-coded by category
+  - Validation warnings overlaid (orange/red highlights on affected components)
+  - Ratsnest lines showing connections
+- SVG saved to `jobs/{uuid}/placement_preview.svg`
+- Job status updated to `awaiting_placement_approval`
+- Customer notified by email that their design is ready to review
+
+### Stage 6B — Placement Review and Approval (Node.js + Browser)
+
+The customer is not an engineer. The review step must be something they can actually evaluate. **Never show copper layers, ratsnest, component outlines, or any EDA concept.** The review is a concept approval, not a technical sign-off.
+
+**What the review screen shows:**
+
+1. **Plain-English summary card** — auto-generated from `components.json` and `board_spec`:
+   > *"Your circuit board has a WiFi-enabled microcontroller (ESP32), a temperature and humidity sensor (DHT22), and a USB charging port. It measures 62mm × 44mm. Estimated manufacturing cost: £34."*
+   Components are described by function, not by reference designator or part number.
+
+2. **Component list with photos** — each component shown with:
+   - A representative product photograph (static, from component database or manufacturer)
+   - Plain-English name: *"WiFi Microcontroller"* not *"U1 — ESP32-WROOM-32"*
+   - One-line description of what it does
+
+3. **KiCad 3D render** — generated in Stage 6A alongside the placement SVG (see Stage 9 post-processing for render export). Shown as a static image. The customer is looking at what the physical board will roughly look like — they can understand this without any engineering knowledge.
+
+4. **Validation warnings in plain English** — if any warnings exist, shown as a simple list:
+   - ❌ *"One component may be hard to source — we'll use an equivalent substitute"* (not "component stock warning: U3 MOQ exceeded")
+   - ⚠️ *"This board is more complex than average — routing may take a few extra minutes"*
+   - No reference to DRC, ERC, nets, or layers
+
+5. **"Looks wrong? Tell us"** — a text box below the summary: *"Describe anything you'd like to change (e.g. 'I need a second LED' or 'make the board smaller')."* This feeds directly into the revision loop (`POST /api/jobs/:id/revise`) — see Revision Loop section. Submitting a revision request cancels the current job and starts a new one from the appropriate stage.
+
+6. **"Approve & Continue"** button — triggers routing. Timer shows 24-hour auto-approve countdown.
+
+**Technical:**
+- Browser polls status, detects `awaiting_placement_approval`
+- `GET /api/jobs/:id/review-summary` returns the plain-English summary JSON and 3D render URL
+- Position adjustments (`adjust-placement`) remain available but are hidden behind an *Advanced* disclosure — most users will never see them
+- Timeout: if customer does not respond within 24 hours, placement is auto-approved and routing proceeds
+
+### Stage 7 — Netlist Generation (Python)
+- Same as previous spec
+
+### Stage 8 — Schematic Generation (Python — NEW)
+- `schematic.py` generates a KiCad schematic (`.kicad_sch`) from the netlist
+- Each component placed on the schematic sheet with:
+  - Correct symbol from KiCad standard library
+  - Power rails (VCC_3V3, VCC_5V, GND) as power symbols
+  - Net labels on all connections
+  - Hierarchical sheets for functional blocks (power block, MCU block, sensor block) on complex boards
+- Schematic does not attempt to be aesthetically perfect — functional correctness is the goal
+- Included in customer ZIP alongside the PCB file
+- This gives customers a complete design package, not just a routed board
+
+### Stage 9 — KiCad PCB File Generation (Python)
+- Same as previous spec
+
+### Stage 10 — Specctra DSN Export (Python)
+- Same as previous spec
+- Differential pairs identified in validation stage are flagged in DSN as paired nets
+
+### Stage 11 — FreeRouting (Java subprocess)
+- Same as previous spec
+
+### Stage 12 — Post-Processing + DRC (Python — UPDATED)
+- Import `.ses` routing back into KiCad PCB
+- Generate BOM CSV
+- Export Gerber files (all layers, RS-274X)
+- Export pick & place CSV
+- **Run KiCad DRC programmatically via pcbnew**:
+  - DRC checks: clearance violations, unrouted nets, silkscreen overlap, pad/hole issues
+  - Results written to `drc_report.json`: `{ pass: bool, violations: [{rule, severity, description, location}] }`
+  - If DRC finds errors: include clear `DRC_FAILED.txt` in ZIP explaining each violation
+  - DRC errors do not block delivery — customer receives files with full report
+- Package customer ZIP: KiCad PCB + schematic + BOM + Gerbers + P&P + DRC report + validation warnings
+- Update job status to `files_ready`
+
+### Stage 13 — Fab Quoting (Node.js)
+- Same as previous spec, now includes assembly quotes
+- Assembly quote requested if customer indicated assembly requirement
+- JLCPCB assembly: check BOM against JLCPCB parts library, flag parts not in library
+
+### Stage 14 — Delivery (Node.js)
+- Same as previous spec (ZIP + quotes delivered together at `complete`)
+- Notification email sent: "Your PCB design is ready — [download link] — valid for 24 hours"
+- If logged in: design saved to account history with thumbnail of placement preview SVG
+- Job folder cleaned up after 24 hours
+
+### Stage 2 — Component Resolution (Python)
+- Load all selected components from `components.json`
+- Resolve quantities (e.g. 3× capacitor = 3 separate placements with unique ref designators)
+- Assign reference designators: U1, U2... for ICs; C1, C2... for caps; R1, R2... for resistors; J1... for connectors
+- Flag any missing component data as warnings
+
+### Stage 3 — Rule-Based Initial Placement (Python)
+Apply in strict priority order:
+1. RF/antenna modules → top edge, antenna overhanging or in keep-out zone
+2. Connectors → perimeter (bottom edge default, USB/power left edge)
+3. MCU → board centre
+4. Power management block → left side near power input
+5. Motor drivers → bottom-right (high current, away from MCU)
+6. Sensors → centre-right
+7. Decoupling caps → immediately adjacent to their parent IC's VCC pin
+8. Remaining passives → fill available space with clearance
+
+### Stage 4 — Simulated Annealing Optimisation (Python / scipy)
+- **Score function:** sum of (estimated wire lengths) + (crossing penalties) + (rule violation penalties)
+- **Moves:** swap two components, rotate 90°, nudge 1mm, swap functional blocks
+- **Temperature schedule:** start high (accept worse moves freely), cool over ~5000 iterations
+- **Time cap:** 10 seconds — more complex boards get more iterations within the cap
+- **Output:** optimised position/rotation dict, improvement % vs initial placement logged
+
+### Stage 4B — Test Point Placement (Python — NEW)
+
+Runs after SA optimisation and before netlist generation, so test point pads are included in the netlist as first-class nodes and appear in the DSN file for FreeRouting.
+
+**What test points are:** Small exposed copper SMD pads on the bottom layer connected to a net, providing physical probe access for flying probe testing at the fab and ICT bed-of-nails in volume production. No component is mounted — they are copper pads only, solder mask opened.
+
+**Why include them:** All fabs used (JLCPCB, Eurocircuits, PCBWay) use flying probe testing for prototype quantities. Dedicated test points improve probe contact reliability and coverage. If the customer scales to volume production, ICT fixtures require proper test points — generating them at design time avoids a costly board respin later. It's also a genuine differentiator — most auto-layout tools don't do this automatically.
+
+**Note on standards:** IPC-A-610 is an assembly *acceptability* standard (solder joints, cleanliness) and does not define test point layout rules. The rules below follow IPC-2221 generic design guidelines and established DFT (Design for Test) industry practice.
+
+**Physical rules (from IPC-2221 / DFT guidelines):**
+
+| Parameter | Recommended | Minimum |
+|---|---|---|
+| Pad diameter | 50 mil (1.27mm) | 40 mil (1.0mm) |
+| Centre-to-centre spacing | 100 mil (2.54mm) | 50 mil (1.27mm) |
+| Clearance from component courtyard edge | 100 mil (2.54mm) | 50 mil (1.27mm) |
+| Distance from board edge (pad edge) | 125 mil (3.175mm) | 100 mil (2.54mm) |
+
+**Placement logic (`python/testpoints.py`):**
+
+```python
+def place_test_points(netlist, placed_components, board_config):
+    test_points = []
+    
+    for net in netlist.nets:
+        # Check if net already has an accessible probe point
+        # (exposed pad or via on bottom layer not within component courtyard)
+        if net_has_accessible_probe_point(net, placed_components):
+            continue
+        
+        # Find candidate locations satisfying all spacing rules
+        candidates = find_candidate_locations(
+            board_config,
+            placed_components,
+            existing_test_points=test_points,
+            min_pad_diameter_mm=1.27,
+            min_component_clearance_mm=2.54,
+            min_board_edge_mm=3.175,
+            min_tp_spacing_mm=2.54
+        )
+        
+        if candidates:
+            # Prefer bottom side — top-side ICT fixtures cost 60–80% more
+            bottom_candidates = [c for c in candidates if c.side == 'bottom']
+            location = pick_best_location(bottom_candidates or candidates, net, placed_components)
+            test_points.append(TestPoint(ref=next_tp_ref(), net=net.name, location=location))
+    
+    # GND: ensure even distribution — target ~1 per 10cm² of board area
+    ensure_gnd_coverage(test_points, netlist, board_config, placed_components)
+    
+    return test_points
+```
+
+**Net prioritisation (which nets get test points first):**
+1. GND — multiple, distributed evenly across board area
+2. All power rails (VCC_3V3, VCC_5V, VBAT, etc.)
+3. Reset lines, enable pins, interrupt lines
+4. Communication buses (SPI_CLK, SPI_MOSI, SPI_MISO, I2C_SCL, I2C_SDA, UART_TX, UART_RX)
+5. CAN_H/CAN_L, USB_D+/USB_D- (but do NOT place test points mid-trace on differential pairs — place at source/destination only)
+6. Analogue signals (ADC inputs, DAC outputs)
+7. All remaining signal nets — one each
+
+**Test point constraints:**
+- Never place within 2mm of an IC body, BGA, or connector housing — probe can't reach under components
+- Never place under tall components (>3mm height) on the probe side
+- Distribute evenly across the board — clustering creates uneven pressure that can crack solder joints under the test fixture
+- Vias are acceptable as test points but SMD pads preferred — OSP surface finish + wave solder can contaminate via barrels, causing poor probe contact
+- Differential pairs (USB D+/D-, CAN H/L): place test points at the driver end only, never mid-trace — probing mid-trace disturbs impedance
+
+**KiCad footprint:** Use `TestPoint:TestPoint_Pad_1.0x1.0mm` (1mm = ~40mil) or `TestPoint:TestPoint_Pad_1.27x1.27mm` (50mil preferred). These are in the standard KiCad library, no custom footprint needed. Layer: `B.Cu` (bottom copper) with solder mask opening.
+
+**Output — `test_points.csv` (included in customer ZIP):**
+
+```
+Ref,Net,PosX,PosY,Side,Diameter_mm
+TP1,GND,12.50,8.30,bottom,1.27
+TP2,GND,45.00,52.10,bottom,1.27
+TP3,GND,78.30,8.30,bottom,1.27
+TP4,VCC_3V3,45.00,22.10,bottom,1.27
+TP5,VCC_5V,15.20,22.10,bottom,1.27
+TP6,SPI_CLK,38.20,15.60,bottom,1.27
+TP7,SPI_MOSI,38.20,18.10,bottom,1.27
+TP8,I2C_SCL,55.30,12.40,bottom,1.27
+TP9,UART_TX,62.10,35.80,bottom,1.27
+TP10,RESET,28.40,41.20,bottom,1.27
+```
+
+This CSV gives the customer everything needed to generate flying probe programmes or ICT fixture files without further design work. Format compatible with IPC-D-356 test data conventions.
+
+**Test points in the BOM:** Listed as zero-cost line items with value `TP` and footprint `TestPoint_Pad_1.27x1.27mm`. The fab's assembly team needs to see them as intentional features, not errors.
+
+**Validation rule added to `validator.py`:** After test point placement, check that every net has at least one test point. If coverage is incomplete (board too dense to place for some nets), add a warning — not an error — listing uncovered nets. The customer can decide if those nets are critical.
+
+### Stage 5 — Netlist Generation (Python)
+- Build net list from component pin definitions in `components.json`
+- Match pins by interface type (e.g. all SPI_CLK pins on the same net)
+- Generate power nets: VCC_3V3, VCC_5V, GND
+- Output: internal netlist object + `board.net` KiCad netlist file
+
+### Stage 6 — KiCad PCB File Generation (Python / pcbnew)
+
+Creates the board file with JLCPCB DFM-compliant design rules baked in at generation time, so FreeRouting routes within safe limits from the start.
+
+**Board setup:**
+- Create board outline on `Edge.Cuts` layer from calculated `dimensions_mm`
+- Add at least two tooling/mounting holes in opposite corners, asymmetrically placed (prevents incorrect fixture orientation)
+- Place fiducial marks on the copper layer (min. 3, standard positions: three board corners) — required by automated pick-and-place machines for positional alignment. Use `Fiducial:Fiducial_1mm_Mask2mm` from KiCad library.
+
+**Net classes — set before FreeRouting receives the DSN:**
+
+| Net class | Traces | Clearance | Via drill | Via annular ring | Notes |
+|---|---|---|---|---|---|
+| Default | 0.2mm (8mil) | 0.2mm (8mil) | 0.3mm | 0.15mm min | Signal nets, passives |
+| Power | 0.5mm (20mil) | 0.3mm | 0.4mm | 0.15mm min | VCC_*, GND busses |
+| HighCurrent | Per trace-width table (see below) | 0.5mm | 0.6mm | 0.15mm min | Motor, LED, >1A nets |
+| USB_DP | 0.2mm | 0.2mm | — | — | USB D+/D- differential pair, 90Ω target |
+| USB_DM | 0.2mm | 0.2mm | — | — | Pair with USB_DP |
+| DiffPair | 0.15mm | 0.15mm | — | — | Other differential pairs |
+
+**JLCPCB DFM baseline rules (from capabilities page + best-practices guide):**
+
+| Rule | Value | Notes |
+|---|---|---|
+| Minimum trace width | 0.127mm (5mil) | Absolute fab minimum — use 0.2mm for standard signals |
+| Minimum trace-to-trace clearance | 0.127mm (5mil) | Absolute fab minimum — use 0.2mm default |
+| Minimum drill size | 0.3mm | 0.2mm possible at extra cost — avoid |
+| Minimum annular ring | 0.15mm | Ring of copper remaining around drill hole |
+| Solder mask expansion | 0.05mm each side | Standard; prevents pad coverage by mask |
+| Board edge clearance | 0.3mm min | Copper and components must not be closer |
+| Trace angle | 45° only | Never 90° — impedance discontinuity + acid trap risk |
+
+**Trace width for current-carrying nets (1oz copper, 10°C rise, JLCPCB reference):**
+
+| Current | External trace width | Notes |
+|---|---|---|
+| 0.5A | 0.127mm (5mil) min, use 0.2mm | Signal-level power |
+| 1.0A | 0.254mm (10mil) | Typical MCU VCC |
+| 2.0A | 0.762mm (30mil) | Motor logic supply |
+| 3.0A | 1.27mm (50mil) | Motor drive output |
+| 5.0A | 2.54mm (100mil) | High-current power rail |
+
+Internal traces run hotter (less heat dissipation) — increase width by ~50% for inner layer power traces on 4-layer boards.
+
+**Ground plane rules:**
+- On 2-layer boards: flood fill GND on `B.Cu` (bottom copper), connect all GND pads via short stubs
+- On 4-layer boards: L2 is a solid, unbroken GND plane. Never route any trace on L2 — it exists purely as a reference plane. **Never split the ground plane** — a split forces signal return current into a large loop, causing EMI and SI failure.
+- High-speed traces (SPI, I2C, UART, USB) must route directly over the solid GND plane (L1 on top, L2 reference below) — never route them over a gap or plane split
+
+**Differential pair rules (USB D+/D-, CAN H/L):**
+- Route as matched pair: identical length, parallel traces, constant small gap (matched to 90Ω differential impedance for USB)
+- Never break parallelism — route together around obstacles rather than splitting
+- Minimise vias on differential pairs — each via changes impedance and must be applied symmetrically to both traces
+- Do not place test points mid-trace — probe contact disturbs impedance. Place at driver end only.
+- Length matching: skew between D+ and D- must be <150ps (≈ <25mm at FR4 propagation velocity) for USB FS/HS
+
+**3W rule (crosstalk prevention):**
+- For parallel signal traces, centre-to-centre spacing must be ≥ 3× the trace width
+- Example: 0.2mm traces → 0.6mm centre-to-centre minimum spacing
+- Applied automatically by FreeRouting clearance rules if net class clearance is set correctly
+- PCB Wizard validation check: flag if two parallel traces of length >10mm violate the 3W rule post-routing
+
+**Decoupling capacitors (set during Stage 3 placement, enforced here):**
+- Every IC with a VCC pin must have:
+  - 100nF ceramic capacitor within 0.5mm of the VCC pin (high-frequency decoupling)
+  - 10µF electrolytic or tantalum within 5mm (bulk decoupling)
+- Via from decoupling cap GND pad to GND plane must be as short as possible — inductance defeats the purpose
+- KiCad `board.kicad_pcb` generation must verify these placement constraints and log a warning if violated
+
+**DFA rules (Design for Assembly — automated pick-and-place):**
+- Polarised components (diodes, electrolytic caps, LEDs, ICs) must have consistent orientation where possible — reduces assembly error rate
+- SMT component clearance from board edge: 0.3mm minimum for solder paste printing
+- No SMT components within 5mm of a through-hole connector — wave solder shadow zone
+- Silkscreen must not overlap pads — covered pads hide solder joint issues
+
+**Place all the above as `SetupConstraints` in the KiCad `board.kicad_pro` project file so the DRC in Stage 12 validates against them.**
+
+- Place each footprint at calculated position/rotation from Stage 3/4
+- Place test point pads from Stage 4B on `B.Cu` with solder mask opening
+- Assign ref designators and values
+- Add ratsnest connections from netlist
+- Write `board.kicad_pcb` and `board.kicad_pro`
+
+### Stage 7 — Specctra DSN Export (Python)
+- Convert `board.kicad_pcb` to `board.dsn` (Specctra format)
+- Use KiCad's built-in DSN exporter via pcbnew API or standalone Python converter
+- Verify DSN file is valid before passing to FreeRouting
+
+### Stage 8 — FreeRouting Autorouting (Java subprocess)
+```bash
+java -jar freerouting/freerouting.jar -de board.dsn -do board.ses -mp 100
+```
+- `-mp 100` = max 100 routing passes
+- Timeout: 60 seconds
+- On partial completion: return what's routed, flag unrouted nets to user
+- Log completion percentage
+
+### Stage 9A — Schematic Generation (Python)
+
+Runs after FreeRouting completes and the routed `.ses` is available. Generates `board.kicad_sch` — a full KiCad schematic file that opens natively in KiCad alongside the PCB.
+
+**Why this matters:** Without a schematic the delivery is just a routed board. With a schematic it's a complete design package — the customer can use it for firmware development, review the circuit, modify it, or hand it to a contract manufacturer. It also gives the customer something to study and learn from.
+
+**What it produces:** A `.kicad_sch` (S-expression format) with:
+- All components placed on the sheet with correct KiCad library symbols
+- Functional block grouping: Power block (top-left), MCU block (centre), Sensor block (right), Output block (bottom-right), RF block (top-right)
+- Each block bounded by a dashed box with a text label
+- Power nets (VCC_3V3, VCC_5V, GND) connected via KiCad power symbols — not drawn as wires. Keeps the schematic clean on boards with many power connections.
+- **`PWR_FLAG` symbols on every power net** — KiCad ERC requires one per power net to confirm the net has a driver. Without them, ERC throws "power pin not driven" on every VCC and GND net. Place alongside the power symbols.
+- Signal nets with ≤3 pins: drawn as Manhattan-routed wires (horizontal then vertical, junctions auto-added at crossings)
+- Signal nets with >3 pins: net labels used instead of wires — avoids a spider's web
+- **No-connect markers (`X`)** on every IC pin that is not connected to any net. KiCad ERC treats unconnected pins as errors unless explicitly marked no-connect. Without this, every generated schematic will fail ERC with potentially dozens of "pin unconnected" violations. For each component, diff `component.all_pins` against `netlist.pins_in_use` and place a `no_connect` at every unmatched pin.
+- **Signal flow orientation** — inputs on the left side of each symbol, outputs on the right. When calling `layout_blocks()`, the block positions must respect this: power flows left-to-right across the sheet (power block feeds MCU feeds outputs). Individual IC symbols in KiCad have a defined pin side — use the library symbol's native orientation, don't mirror it.
+- **Layout annotation notes** — auto-generated KiCad text on the schematic sheet for placement-critical constraints already known from earlier stages. Generated from `components.json` `layout_notes` fields and routing constraints:
+  - For each decoupling capacitor: *"Place within 0.5mm of [parent IC] VCC pin"*
+  - For differential pairs: *"Route as matched diff pair, 90Ω, length match within 25mm"*
+  - For antenna/RF modules: *"Antenna must overhang board edge — maintain keep-out zone"*
+  - These notes appear as small text near the relevant component on the schematic sheet
+- Title block: auto-populated with project name, date, revision 1
+
+**Symbol lookup:** Each component in `components.json` has a `kicad_symbol` field mapping to a KiCad standard library symbol (e.g. `"MCU_Espressif:ESP32-WROOM-32"`). If a symbol is missing, a generic rectangle with pin labels is used. Missing symbols are logged as warnings — never crash the pipeline.
+
+**Implementation stub:**
+```python
+# python/schematic.py
+
+def generate_schematic(netlist, components, output_path):
+    blocks = assign_functional_blocks(components)   # power / mcu / sensor / output / rf
+    positions = layout_blocks(blocks)               # inputs-left/outputs-right, L→R signal flow
+    
+    sch = KicadSchematic()
+    
+    for comp in components:
+        symbol = lookup_kicad_symbol(comp) or make_generic_symbol(comp)
+        sch.add_component(symbol, positions[comp.ref], comp.ref, comp.value)
+        
+        # No-connect markers on every unconnected pin
+        connected_pins = {p.pin_number for p in netlist.get_pins_for_ref(comp.ref)}
+        for pin in symbol.all_pins:
+            if pin.number not in connected_pins:
+                sch.add_no_connect(comp.ref, pin.number, positions[comp.ref])
+    
+    for net in netlist.nets:
+        if len(net.pins) <= 3:
+            sch.add_wires(route_manhattan(net.pins, positions))
+        else:
+            sch.add_net_labels(net.name, net.pins, positions)
+    
+    # Power symbols + PWR_FLAG on every power net
+    for power_net in ['VCC_3V3', 'VCC_5V', 'GND']:
+        sch.add_power_symbol(power_net)
+        sch.add_pwr_flag(power_net)       # required — suppresses ERC "power pin not driven"
+    
+    # Auto-generated layout annotation notes
+    sch.add_layout_annotations(components, netlist)
+    
+    sch.add_title_block(project_name=netlist.name, revision='1')
+    sch.write(output_path)   # writes board.kicad_sch
+    
+    # Run ERC and write report
+    return run_erc(output_path)   # returns list of ERC violations (may be empty)
+```
+
+**ERC as a quality gate:** After writing `board.kicad_sch`, run KiCad's ERC programmatically. This is the schematic equivalent of the PCB DRC in Stage 12. ERC violations do not block delivery — the customer always receives their files — but they are logged and included in `ERC_REPORT.txt` in the ZIP. The most common violations from auto-generated schematics are:
+- **Unconnected pins** — fixed by no-connect markers above. If any remain, they're genuine missing connections.
+- **Power pin not driven** — fixed by `PWR_FLAG` above.
+- **Pin type conflicts** — e.g. two outputs connected together. These indicate a real netlist error and should be elevated to a warning visible in the UI.
+
+The ERC report follows the same format as the DRC report — plain-English descriptions, coordinates, severity. A clean ERC (zero violations) means the schematic is fully correct and will open in KiCad without any warnings.
+
+**Part of the KiCad project:** `board.kicad_sch` and `board.kicad_pcb` must both be referenced in `board.kicad_pro` so that opening the project in KiCad shows both files linked together. The schematic netlist and the PCB netlist are the same source — they are consistent by construction.
+
+**Quality caveat:** Auto-generated schematics will not have the aesthetic quality of a hand-drawn one. Set this expectation in the UI: *"Auto-generated schematic — correct and complete, suitable for firmware reference and documentation. Component arrangement is functional, not hand-optimised."*
+
+**Job status:** Worker sets job status to `generating_schematic` when this stage starts. On completion, advances to `packaging` (which is Stage 9 post-processing).
+
+**See also:** Full implementation detail in the [Schematic Generation](#schematic-generation) section below.
+
+### Stage 9 — Post-Processing (Python)
+- Import `board.ses` routing back into `board.kicad_pcb` via pcbnew
+- Generate `bom.csv` with ref designators, MPNs, DigiKey PNs (customer reference), and approximate unit cost from `components.json`
+- Generate `board.kicad_pro` with final design rules
+- **Export Gerber files** to `gerbers/` subfolder — all layers in RS-274X format (GTL, GBL, GTS, GBS, GTO, GBO, GM1, DRL, plus inner layers if >2 layers)
+- **Export pick & place / centroid CSV** with ref, value, footprint, X/Y/rotation/side for every SMT component
+- **Export `test_points.csv`** — ref, net, X/Y, side, diameter for all test point pads (see Stage 4B). Included in ZIP for flying probe programme generation.
+- **Export 3D render** — `board_render.png` (1200×800px, isometric view, top-left lighting). Used in the placement review screen and in the final delivery. Generated via KiCad's `pcbnew.Render3D()` Python API. If render fails (missing 3D models for some components), fall back to a board-outline SVG — do not block the pipeline. The render is also saved to `jobs/{uuid}/render3d.png` for the review endpoint.
+- Package customer ZIP: KiCad project (`board.kicad_pcb` + `board.kicad_sch` + `board.kicad_pro`) + BOM + Gerbers + P&P file + `test_points.csv` + `ERC_REPORT.txt` (if violations found) + `board_render.png`
+- Update job status to `files_ready` in Redis (distinct from `complete` — quoting still in progress)
+
+### Stage 10 — Fab Quoting (Node.js, parallel)
+- Triggered by worker when job reaches `files_ready`
+- `fabquoter.js` fires all four fab adapters in parallel via `Promise.allSettled`
+- Each adapter receives the Gerber ZIP, BOM, and board spec
+- Results collected, margin applied: `customer_price = raw * 1.26` for new designs, `* 1.13` for reorders
+- Both raw and customer prices written to `fab_quotes.json` (raw price never exposed via API)
+- FX rates fetched from Redis (updated daily by cron)
+- Quoting timeout: 30 seconds — if all adapters have responded or timed out, proceed
+- If all adapters fail: job status → `quoting_failed`, ZIP still delivered with fallback message
+- Job status updated to `complete` when quoting finishes (or times out)
+- ZIP download and quotes are delivered together at `complete` — do not split delivery
+
+### Stage 11 — Delivery (Node.js)
+- Browser polls `GET /api/jobs/{uuid}/status` every 2 seconds
+- On `complete` (quotes ready): trigger ZIP download AND show quote panel simultaneously
+- Single unified delivery moment — customer gets files and quotes together
+- If quoting times out after 30 seconds: deliver ZIP with a "quotes unavailable" message and a link to each fab's calculator
+- Job folders cleaned up after 24 hours via cron
+
+---
+
+## Revision Loop
+
+Allows a customer to request a design change after the placement review or after delivery. The key insight is that different change types require restarting the pipeline at different stages — not always from the beginning.
+
+### Change Classification
+
+When `POST /api/jobs/:id/revise` is called with `{ revision_text: string }`, a Claude API call classifies the request:
+
+```javascript
+// node/revision.js
+
+async function classify_revision(revision_text, current_spec) {
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 500,
+    system: `You classify PCB design revision requests into one of four types.
+    
+    Types:
+    - "component": Adding, removing, or changing a component or capability 
+      (e.g. "add a second LED", "use an STM32 instead", "remove the Bluetooth")
+      → restart_stage: 2 (component resolution)
+    
+    - "dimension": Changing board size or shape
+      (e.g. "make it smaller", "I need it to be 50mm wide", "circular board")  
+      → restart_stage: 3 (board dimension calculation)
+    
+    - "placement": Changing where something is positioned on the board
+      (e.g. "move the USB connector to the other end", "put the LEDs along the top edge")
+      → restart_stage: 4 (SA placement)
+    
+    - "order_param": A manufacturing or order parameter, not a design change
+      (e.g. "change the colour to black", "I want 10 boards not 5")
+      → restart_stage: null (no pipeline re-run needed)
+    
+    Return JSON only: { "type": string, "restart_stage": number|null, "summary": string }`,
+    messages: [{ 
+      role: 'user', 
+      content: `Current spec: ${JSON.stringify(current_spec)}\nRevision request: "${revision_text}"` 
+    }]
+  });
+  
+  return JSON.parse(response.content[0].text);
+}
+```
+
+### Revision Pricing
+
+- First revision per job: free
+- Subsequent revisions: £5 each, charged via Stripe before the revision pipeline runs
+- Order parameter changes (colour, quantity): always free — no pipeline re-run required
+- Revision fee shown in the UI before the customer submits
+
+### Revision Pipeline
+
+```javascript
+async function handle_revision(job_id, revision_text, customer) {
+  const original_job = await get_job(job_id);
+  const classification = await classify_revision(revision_text, original_job.spec);
+  
+  // Order param changes — no re-run
+  if (classification.restart_stage === null) {
+    await apply_order_param_change(original_job, revision_text);
+    return { changed: true, re_ran_pipeline: false };
+  }
+  
+  // Charge revision fee if not first revision
+  const revision_count = await get_revision_count(job_id);
+  if (revision_count > 0) {
+    await charge_revision_fee(customer, job_id);  // £5 Stripe charge
+  }
+  
+  // Create revision job, inheriting original spec
+  const revision_spec = await apply_revision_to_spec(original_job.spec, revision_text, classification);
+  const revision_job = await create_job({
+    parent_job_id: job_id,
+    spec: revision_spec,
+    revision_summary: classification.summary,
+    restart_stage: classification.restart_stage
+  });
+  
+  // Enqueue at the right stage — not from scratch
+  await enqueue_pipeline(revision_job.id, { start_from: classification.restart_stage });
+  
+  return { revision_job_id: revision_job.id, restart_stage: classification.restart_stage };
+}
+```
+
+**Restart stage → pipeline cost:**
+
+| Change type | Restart at | Stages re-run |
+|---|---|---|
+| Component change | Stage 2 | Component resolution → all stages to delivery |
+| Dimension change | Stage 3 | Dimension calc → all stages to delivery |
+| Placement change | Stage 4 | SA placement → all stages to delivery |
+| Order param | — | None |
+
+### Revision UX
+
+After `POST /api/jobs/:id/revise` returns:
+- Show a confirmation: *"Got it — [classification.summary]. Redesigning your board from [stage name]."*
+- Progress screen re-appears starting from the relevant stage label
+- After completion: show a side-by-side comparison — old 3D render on the left, new render on the right
+- *"What changed:"* bullet list derived from `classification.summary`
+
+---
+
+## Reorder
+
+Allows a customer to re-manufacture a previously completed design without re-running the design pipeline. Common case: prototype worked, now want 10 boards.
+
+```javascript
+// POST /api/jobs/:id/reorder
+
+async function handle_reorder(job_id, customer, quantity, fab_choice) {
+  const original_job = await get_job(job_id);
+  
+  if (original_job.status !== 'complete') {
+    throw new Error('Can only reorder completed jobs');
+  }
+  
+  // Re-quote at new quantity (fast — just calls fab adapters with existing Gerber ZIP)
+  const quotes = await requote(original_job.gerber_zip_path, original_job.board_spec, quantity);
+  const selected_quote = quotes.find(q => q.fab === fab_choice);
+  
+  // Stripe payment for manufacturing cost
+  const session = await stripe.checkout.sessions.create({
+    line_items: [{ price_data: {
+      currency: 'gbp',
+      unit_amount: Math.round(selected_quote.customer_price * 100),
+      product_data: { name: `${quantity}× ${original_job.spec.name} (reorder)` }
+    }, quantity: 1 }],
+    // ... shipping, metadata
+  });
+  
+  return { checkout_url: session.url };
+}
+
+// On Stripe webhook for reorder payment:
+async function place_reorder(order_metadata) {
+  const original_job = await get_job(order_metadata.original_job_id);
+  
+  // Phase 1 (manual): email notification to operator with order details
+  // Phase 2 (automated): call fab adapter place_order() directly
+  
+  await notify_operator_reorder(original_job, order_metadata);
+  await update_reorder_status(order_metadata.reorder_id, 'order_placed');
+}
+```
+
+**Account history reorder flow:**
+- Every completed design in *My Designs* shows a **"Reorder"** button
+- Clicking opens a panel: quantity selector + live re-quote (prices update as quantity changes)
+- One-click payment → order confirmed → tracking number emailed
+- No design review, no placement approval, no waiting for routing — just manufacturing
+
+---
+
+## UX Vocabulary Reference
+
+Every customer-facing string must use the non-engineer column. Engineer terms never appear in the default UI — only in the Advanced disclosure areas accessible to users who explicitly opt in.
+
+| Engineer term | Customer-facing term |
+|---|---|
+| PCB / printed circuit board | Circuit board |
+| Gerber files | Manufacturing files |
+| Bill of Materials / BOM | Parts list |
+| Schematic | Circuit diagram |
+| Routed / routing | Designed / designing |
+| DRC / ERC | Quality check |
+| Net / connection | Connection |
+| Via | (never mentioned) |
+| Silkscreen | (never mentioned) |
+| Layer stackup | (never mentioned) |
+| Annular ring | (never mentioned) |
+| Ref designator | (never mentioned — use function name) |
+| Part number / MPN | (never shown — use product name) |
+| Placement | Arrangement |
+| Netlist | (never mentioned) |
+| Footprint | (never mentioned) |
+| Design rule check | Quality check |
+| KiCad | Referenced only in file download note as "compatible with KiCad" |
+
+This table is the single source of truth for copy. Any UI element using engineer vocabulary is a bug.
+
+---
+
+
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/parse-intent` | NL description → capability selections (Claude API) |
+| POST | `/api/resolve` | Capabilities → component list + stock status + design price |
+| GET | `/api/capabilities` | List all capabilities |
+| POST | `/api/checkout` | Create Stripe Checkout session for design fee |
+| POST | `/api/webhook` | Stripe webhook — design fee + manufacturing order |
+| GET | `/api/jobs/:id/status` | Poll job status |
+| GET | `/api/jobs/:id/review-summary` | Plain-English summary + 3D render URL for placement review screen |
+| GET | `/api/jobs/:id/render3d` | 3D render image (PNG) for completed or in-review job |
+| GET | `/api/jobs/:id/placement` | Raw placement SVG (advanced users only — not shown in default UI) |
+| POST | `/api/jobs/:id/adjust-placement` | Submit component position adjustment (advanced) |
+| POST | `/api/jobs/:id/approve-placement` | Approve placement, trigger routing |
+| POST | `/api/jobs/:id/revise` | Request a design change — classifies change type and re-runs from appropriate stage (see Revision Loop section) |
+| GET | `/api/jobs/:id/download` | Download output ZIP |
+| GET | `/api/jobs/:id/quotes` | Get fab quotes (customer prices only) |
+| GET | `/api/jobs/:id/drc` | Get DRC report for completed job |
+| GET | `/api/jobs/:id/erc` | Get ERC report for completed job |
+| POST | `/api/jobs/:id/reorder` | Re-place the manufacturing order for a completed job without re-running the design pipeline (see Reorder section) |
+| POST | `/api/manufacturing-checkout` | Create Stripe session for manufacturing order |
+| GET | `/api/account/designs` | List past designs for logged-in user |
+| GET | `/api/account/designs/:id` | Get specific past design config |
+| POST | `/api/account/designs/:id/fork` | Create new job from past design |
+| GET | `/api/account/credits` | Get credit balance |
+| GET | `/api/components` | List all components |
+| GET | `/api/components/:id` | Get component detail |
+| GET | `/api/health` | Health check |
+
+
+**Job status values:** `queued` → `validating` → `placing` → `awaiting_placement_approval` → `routing` → `generating_schematic` → `packaging` → `files_ready` → `quoting` → `complete` | `failed` | `quoting_failed`
+
+**Revision job status values:** `revision_requested` → `classifying_revision` → *(rejoins main pipeline at appropriate stage)* → `complete`
+
+---
+
+## Frontend UI Flow
+
+The frontend has two entry points — natural language and guided questionnaire — converging at the resolve preview step. Logged-in users get design history and credits throughout.
+
+**Header / Nav**  
+Login/signup link. If logged in: account name, credit balance, "My Designs" link.
+
+**Step 0 — Project Description (NEW)**  
+A single large text area: "Describe your project in plain English." Optional — customer can skip and go straight to Step 1 checkboxes. If they type a description and click "Parse", calls `POST /api/parse-intent`. A brief spinner (1–2s), then the Step 1 checkboxes pre-fill with the parsed capability selections. Customer reviews and adjusts. A `confidence_notes` banner shows any assumptions Claude made ("Assumed USB power — tap to change").
+
+**Step 1 — Capabilities**  
+Grouped checkbox interface. Pre-filled if NL parsed, or blank for direct entry. Follow-up questions appear contextually (motor count, battery capacity estimate, etc.).
+
+**Step 2 — Board Constraints**  
+Shape, dimensions, layer count, copper weight, surface finish preference.
+
+**Step 3 — Resolved Design Preview**  
+Calls `POST /api/resolve` live (debounced). Shows:
+- Resolved components with display names and stock status badges (green/amber/red)
+- Out-of-stock warnings with suggested alternatives
+- Auto-added supporting components with reasons
+- Validation pre-warnings (e.g. "USB D+/D- will be treated as differential pair")
+- Power budget bar
+- Design price badge ("Tier 2 — £599") showing the resolved MCU tier and design fee
+- Credits available banner if logged in (e.g. "You have 2 credits — this design is free")
+- Advanced mode toggle
+
+**Step 4 — Review & Pay**  
+Component list, board spec, all warnings. "Pay £X.XX & Generate" or "Use 1 Credit" button. Stripe Checkout for payment.
+
+**Step 5 — Design Review**
+After payment, when status reaches `awaiting_placement_approval`. The customer is not an engineer — this screen must be understandable with zero PCB knowledge.
+
+Layout: two columns. Left: 3D render of the board (fetched from `GET /api/jobs/:id/render3d`). Right: summary card and component list.
+
+Summary card (plain English, auto-generated):
+> *"Your circuit board has a WiFi-enabled microcontroller, a temperature sensor, and a USB charging port. It measures 62mm × 44mm."*
+
+Component list — each entry shows:
+- Representative product photo (from component database)
+- Plain-English function name (*"WiFi Microcontroller"*, not *"U1 — ESP32-WROOM-32"*)
+- One-line description of what it does on this board
+
+Validation warnings — shown only if present, in plain English:
+- ❌ / ⚠️ icon + human sentence. No EDA terminology.
+
+**"Looks wrong? Tell us"** text box below the summary:
+- Placeholder: *"e.g. 'I need a second LED' or 'make the board a bit smaller' or 'use a different microcontroller'"*
+- Submit button: **"Request a Change"** → calls `POST /api/jobs/:id/revise`, cancels current job, starts revision pipeline
+- First revision is free. Subsequent revisions: £5 each (shown in the UI before submission)
+
+**"Approve & Continue"** button — large, primary CTA. Triggers routing.
+
+Auto-approve countdown shown as a subtle note below the button (*"Will continue automatically in 23 hours if no action taken"*) — not as an aggressive timer.
+
+Advanced disclosure (collapsed by default): *"View technical layout"* — reveals the placement SVG viewer with component adjustment controls for users who want them.
+
+**Step 6 — Processing**  
+Progress bar with human-readable stage labels (not EDA terms): *Checking design → Arranging components → Routing connections → Generating circuit diagram → Preparing files → Getting manufacturing quotes.* Each label appears as it completes. If a revision was requested, a note shows: *"Applying your changes — starting from [stage name]."*
+
+**Step 7 — Download & Results**  
+Unified delivery: ZIP download + quality check summary + manufacturing quote panel.
+
+3D render shown prominently at the top — the customer's first view of their finished board.
+
+Quality check summary (not "DRC Report"):
+- ✅ *"Design passed all quality checks"* — or —
+- List of plain-English issues if any exist. Hide severity codes and coordinate references.
+
+Quote panel:
+- Headline: *"Ready to order? We'll handle everything."*
+- Side-by-side fab comparison with quantity selector (1 / 5 / 10 / 25)
+- Assembly toggle
+- Lead time per fab in working days (*"5–7 working days"* not *"5–7 days (standard)"*)
+- Method badge shown only if needed (e.g. *"estimate"* if rate card)
+- **"Order via PCB Wizard — we handle it"** button per fab row (primary CTA — not just a link)
+
+ZIP download section:
+- Primary button: *"Download your files"*
+- Note: *"Includes your circuit board files, parts list, and manufacturing files. Compatible with KiCad."*
+- No mention of Gerbers, netlists, or file formats in the primary UI.
+
+**Reorder panel** (shown for completed jobs in account history):
+- *"Want another batch of this board?"*
+- Quantity selector
+- Live price re-quote (calls fab adapters with same Gerber ZIP, new quantity)
+- **"Reorder"** button → `POST /api/jobs/:id/reorder` — re-places manufacturing order without re-running the design pipeline
+
+**Request a change** link at bottom of results: *"Something not right? Request a design change."* — opens the same revision text box. Revision fee applies (£5 after first free revision per job).
+
+If logged in: design auto-saved to account history with 3D render thumbnail and plain-English description.
+
+---
+
+## Key Libraries & Dependencies
+
+**Node.js (`package.json`):**
+```json
+{
+  "express": "^4.18",
+  "bullmq": "^4.x",
+  "ioredis": "^5.x",
+  "uuid": "^9.x",
+  "axios": "^1.x",
+  "cors": "^2.x",
+  "dotenv": "^16.x",
+  "stripe": "^14.x",
+  "better-sqlite3": "^9.x",
+  "nodemailer": "^6.x",
+  "@anthropic-ai/sdk": "^0.x"
+}
+```
+
+**Python (`requirements.txt`):**
+```
+pcbnew          # Comes with KiCad — do not pip install, use KiCad's Python
+scipy           # Simulated annealing optimisation
+numpy           # Array operations for placement scoring
+```
+
+**System dependencies (server):**
+- KiCad 7.x (for pcbnew Python API — pin to specific version)
+- Java 11+ (for FreeRouting)
+- Redis (for BullMQ job queue)
+- Node.js 18+
+- Python 3.11+
+
+---
+
+## Environment Variables (`.env`)
+
+```
+PORT=3000
+REDIS_URL=redis://localhost:6379
+# DIGIKEY_CLIENT_ID=your_client_id    # deferred to v2
+# DIGIKEY_CLIENT_SECRET=your_client_secret
+STRIPE_SECRET_KEY=sk_live_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+STRIPE_PUBLISHABLE_KEY=pk_live_xxx
+BASE_URL=https://yourdomain.com
+JLCPCB_APP_ID=your_app_id
+JLCPCB_ACCESS_KEY=your_access_key
+JLCPCB_SECRET_KEY=your_secret_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
+SMTP_HOST=smtp.youremail.com
+SMTP_PORT=587
+SMTP_USER=noreply@yourdomain.com
+SMTP_PASS=your_smtp_password
+JOBS_DIR=./jobs
+DB_PATH=./db/pcbwizard.sqlite
+FREEROUTING_JAR=./freerouting/freerouting.jar
+KICAD_PYTHON=/usr/bin/python3
+JOB_TTL_HOURS=24
+MAX_CONCURRENT_JOBS=2
+MARGIN_RATE=0.26
+REORDER_MARGIN_RATE=0.13
+PROMO_DESIGN_FEE=299
+REPEAT_DISCOUNT_RATE=0.10
+PLACEMENT_APPROVAL_TIMEOUT_HOURS=24
+FX_UPDATE_CRON=0 6 * * *
+FX_API_URL=https://open.er-api.com/v6/latest/GBP
+```
+
+---
+
+## Build Order (Recommended Session Sequence)
+
+Build and test each stage independently before wiring together. Sessions 1–8 are the core pipeline foundations. Sessions 9–17 build the PCB generation pipeline and enhancements. Sessions 18–20 are integration, frontend, and deployment.
+
+**Session 1 — Capability Taxonomy + Component Database**  
+Build `data/capabilities.json` and `data/components.json` with all fields. Write validation script. Do not proceed until validated.
+
+**Session 2 — Capability Resolver + Pricing + Credits**  
+Build `server/resolver.js` with unit tests. Build `server/pricing.js` with design price tiers, credits, and volume discount logic.
+
+**Session 3 — Fab Rate Cards**  
+Build `data/fab_rates/pcbtrain.json`, `pcbway.json`, and initial `eurocircuits.json`. Validate rate cards against each fab's online calculator at several board sizes. DigiKey PNs in `components.json` are for BOM reference only — no live API in v1.
+
+**Session 4 — User Accounts (SQLite)**  
+Build `server/accounts.js`. Schema: `users`, `designs`, `credits`, `orders`. Implement register/login (email + password, bcrypt hashed). Session tokens stored in Redis. Test full CRUD.
+
+**Session 5 — Natural Language Parser**  
+Build `server/nlparser.js`. Iterate system prompt until parsing accuracy is reliable across 20+ varied descriptions. Test edge cases: ambiguous inputs, conflicting requirements, unknown terms.
+
+**Session 6 — Design Validator**  
+Build `python/validator.py` and `data/validation_rules.json`. Unit test every check with known-good and known-bad component combinations.
+
+**Session 7 — Stripe Integration (Both Payment Flows)**  
+Build `server/stripe.js` for design fee and manufacturing checkout. Test all scenarios: cancellation, refund, duplicate webhook, expired quote.
+
+**Session 8 — Node.js API Skeleton**  
+Wire all server modules. All endpoints working end-to-end with stubs. Smoke test full status lifecycle with a dummy job.
+
+**Session 9 — Python Placement Engine + SVG Preview**  
+Build `placement.py` and `svg_preview.py`. Verify SA improvement. Verify SVG renders correctly with validation overlays.
+
+**Session 10 — KiCad PCB + Schematic Generation**  
+Build pcbnew PCB integration and `python/schematic.py`. Open both outputs in KiCad. Verify schematic has correct components and nets.
+
+**Session 11 — DSN Export + FreeRouting + DRC**  
+Wire DSN export, FreeRouting subprocess, and pcbnew DRC. Verify `.ses` imports cleanly. Verify DRC report JSON schema is correct.
+
+**Session 12 — Post-Processing: Gerbers + P&P + ZIP**  
+Build full `postprocess.py`. Open Gerbers in viewer. Verify P&P CSV. Verify ZIP contents complete and correctly structured.
+
+**Session 13 — Email Notifications**  
+Build `server/notifier.js`. Test all notification types using Mailtrap. Verify links in emails resolve correctly.
+
+**Session 14 — Eurocircuits Rate Card + All Rate Card Adapters**
+Build `data/fab_rates/eurocircuits.json` with area-based pooling pricing (test against their online calculator at several board sizes and quantities to calibrate). Build `eurocircuits.js` adapter using rate card model. Build PCBWay and PCBTrain rate card adapters. Test all three against manual calculations from each fab's website. If Eurocircuits API access is confirmed before this session, upgrade the adapter to live API instead.
+
+**Session 15 — JLCPCB Adapter**
+Start with `jlcpcb-signer.js` — implement and test request signing by reverse-engineering the Java SDK core package before writing any business logic. A 401 means signing is wrong. Once signing is verified, build the full JLCPCB adapter: upload Gerbers → pre-review (cross-check parsed dimensions vs board spec) → quote → store `gerber_file_id`. Test live quotes against their online calculator for matching board specs. Log and verify `J-Trace-ID` on every call. Build graceful degradation to rate card on API failure.
+
+**Session 16 — Fab Quoter + Manufacturing Order Flow**  
+Build `server/fabquoter.js` and `server/ordermanager.js`. Verify margin applied correctly. Test full order flow end-to-end in sandbox.
+
+**Session 17 — Full End-to-End Pipeline Test**  
+NL input → parse → resolve → design payment → validate → placement review → approve → route → schematic → DRC → Gerbers → quotes → download → manufacturing order. Stripe test mode throughout.
+
+**Session 18 — Frontend Build**  
+NL input field, capability questionnaire, resolver preview with stock badges, placement SVG viewer with adjustment UI, progress bar with all stages, download screen with DRC panel + quote table + order buttons, account pages.
+
+**Session 19 — Account Features + Credits Frontend**  
+Design history page, re-order from history, fork design, credit balance display, purchase credits flow.
+
+**Session 20 — Server Deployment**  
+Hetzner CX32, systemd, nginx, SSL, webhook registration, FX cron, DB backup cron, job cleanup cron. Full smoke test on production.
+
+---
+
+## Enhancement Specifications
+
+### 1. Natural Language Input
+
+**Goal:** Allow users to describe their project in plain English and have the system parse it into capability selections automatically, removing the need to understand what "WiFi" or "I2C sensor" means as a technical choice.
+
+**Implementation: `server/nlparser.js`**
+
+The parser calls the Claude API synchronously and returns a structured JSON object. The call is made server-side (never from the browser) so the Anthropic API key is never exposed.
+
+```javascript
+// server/nlparser.js
+const Anthropic = require('@anthropic-ai/sdk');
+const { CAPABILITIES_LIST } = require('../data/capabilities.json');
+
+async function parseIntent(description) {
+  const client = new Anthropic();
+  
+  const systemPrompt = `You are a PCB requirements parser for a circuit board design tool.
+Given a plain English project description, return ONLY a valid JSON object.
+No explanation, no markdown fences, no preamble — raw JSON only.
+
+Available capability IDs (use ONLY these exact strings):
+${JSON.stringify(CAPABILITIES_LIST.map(c => c.id))}
+
+Return this exact schema:
+{
+  "capabilities": ["capability_id_1", "capability_id_2"],
+  "suggested_board": {
+    "layers": 2,
+    "dimensions_mm": [80, 60],
+    "power_source": "power_usb"
+  },
+  "confidence_notes": [
+    "Assumed USB power — change if battery needed"
+  ]
+}
+
+Rules:
+- Only include capabilities that are clearly needed or strongly implied
+- If processing power is not mentioned, default to processing_standard
+- If power source is ambiguous, pick the most likely and note it in confidence_notes
+- For "sends data to phone" → include bluetooth or wifi (pick based on context)
+- For "runs for weeks/months" → include low_power_sleep
+- dimensions_mm: estimate based on component count and type, keep realistic (50×50 to 150×100)
+- layers: 2 unless RF + sensors + motor drivers together suggest 4`;
+
+  const response = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 1024,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: description }]
+  });
+
+  const raw = response.content[0].text.trim();
+  
+  try {
+    const parsed = JSON.parse(raw);
+    // Validate that all capability IDs exist in taxonomy
+    const validIds = new Set(CAPABILITIES_LIST.map(c => c.id));
+    parsed.capabilities = parsed.capabilities.filter(id => validIds.has(id));
+    return { success: true, result: parsed };
+  } catch (e) {
+    return { success: false, error: 'Parse failed', raw };
+  }
+}
+```
+
+**Endpoint:** `POST /api/parse-intent`  
+Request: `{ "description": "I want to build a plant watering monitor..." }`  
+Response: `{ capabilities: [...], suggested_board: {...}, confidence_notes: [...] }`  
+Error handling: if Claude API is unavailable or parse fails, return `{ success: false }` — the frontend falls back to showing an empty questionnaire, never blocking the user.
+
+**Prompt quality test cases** (run before Session 5 sign-off):
+
+| Input | Expected key capabilities |
+|---|---|
+| "soil moisture sensor, battery, sends to phone" | sense_temperature, power_lipo, bluetooth |
+| "motor controller for 3 stepper motors, USB powered" | motor_stepper ×3, power_usb, processing_standard |
+| "GPS tracker that runs for months" | gps, power_lipo, low_power_sleep, processing_standard |
+| "temperature and humidity logger with SD card" | sense_temperature, sense_humidity, storage_sd |
+| "smart home relay controller, mains powered" | relay, power_mains, wifi |
+| "wearable heart rate monitor" | sense_adc_external, power_lipo, low_power_sleep, bluetooth |
+
+**UI behaviour:**
+- Text area with placeholder: *"Describe your project — e.g. 'A weather station that runs on solar power and sends readings to my phone every hour'"*
+- "Parse my description →" button triggers the API call
+- 1–2 second spinner while parsing
+- On success: capability checkboxes pre-fill, confidence notes appear as dismissible blue banners
+- On failure: friendly message "Couldn't parse that — please select capabilities manually" and checkboxes remain empty
+- User can edit any pre-filled selections before proceeding
+
+---
+
+### 2. User Accounts & Design History
+
+**Goal:** Let returning customers retrieve past designs, re-order manufacturing, fork a design with modifications, and accumulate credits.
+
+**Database schema (`db/pcbwizard.sqlite`):**
+
+```sql
+CREATE TABLE users (
+  id          TEXT PRIMARY KEY,       -- uuid
+  email       TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,        -- bcrypt
+  created_at  INTEGER NOT NULL,
+  last_login  INTEGER
+);
+
+CREATE TABLE sessions (
+  token       TEXT PRIMARY KEY,
+  user_id     TEXT NOT NULL,
+  expires_at  INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE designs (
+  id            TEXT PRIMARY KEY,     -- job uuid
+  user_id       TEXT,                 -- null for anonymous designs
+  created_at    INTEGER NOT NULL,
+  title         TEXT,                 -- auto-generated from capabilities, editable
+  capabilities  TEXT NOT NULL,        -- JSON array of capability IDs
+  board_config  TEXT NOT NULL,        -- JSON board constraints
+  resolved_json TEXT NOT NULL,        -- full resolver output
+  status        TEXT NOT NULL,
+  thumbnail_png TEXT,                  -- base64 3D render thumbnail (small version)
+  drc_passed    INTEGER,              -- 0/1/null
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE credits (
+  id          TEXT PRIMARY KEY,
+  user_id     TEXT NOT NULL,
+  delta       INTEGER NOT NULL,       -- positive = earned, negative = spent
+  reason      TEXT NOT NULL,          -- 'purchase', 'spent_design', 'referral', 'volume_bonus'
+  created_at  INTEGER NOT NULL,
+  stripe_payment_id TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE orders (
+  id              TEXT PRIMARY KEY,
+  user_id         TEXT,
+  design_id       TEXT NOT NULL,
+  fab             TEXT NOT NULL,
+  quantity        INTEGER NOT NULL,
+  assembly        INTEGER NOT NULL,   -- 0/1
+  customer_price  REAL NOT NULL,      -- what customer paid (inc margin)
+  raw_fab_price   REAL NOT NULL,      -- internal record
+  currency        TEXT NOT NULL,
+  status          TEXT NOT NULL,      -- pending/placed/shipped/delivered
+  fab_order_ref   TEXT,
+  tracking_ref    TEXT,
+  created_at      INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (design_id) REFERENCES designs(id)
+);
+```
+
+**Auth flow:** Email + password registration. Password hashed with bcrypt (cost factor 12). Session token (UUID) stored in Redis with 30-day TTL. Token sent as `HttpOnly` cookie — never in JS-accessible storage. Login returns cookie, subsequent requests authenticated by reading the cookie and looking up the session in Redis.
+
+**Anonymous designs:** Jobs created without a logged-in session are stored with `user_id = null`. If the user registers or logs in within 24 hours of creating a job, the job is claimed by calling `POST /api/account/claim-design` with the job ID.
+
+**Design history page (`/account`):**
+- Grid of past designs, each showing: thumbnail SVG, auto-title, date, status badge, DRC pass/fail indicator
+- "Download" button (re-fetches ZIP if within 24h, or shows "expired — re-run for £X.XX")
+- "Re-order Manufacturing" button (re-triggers fab quoting with fresh quotes, then goes to order flow)
+- "Fork & Edit" button (loads resolved component list into the questionnaire as a starting point for a new design — user pays for a new job)
+
+**Auto-title generation:** When a design is saved, generate a short human-readable title from the top 3 capabilities: "WiFi + Temperature + Battery" or "3× Stepper + USB". Stored in `designs.title`, editable by the user.
+
+---
+
+### 3. Design Validation (Pre-Routing Checks)
+
+**Goal:** Catch common PCB design mistakes automatically before routing locks them in, reducing board respins and building customer trust.
+
+**Implementation: `python/validator.py` + `data/validation_rules.json`**
+
+The validator runs after component resolution and before placement. It takes the resolved component list and netlist as input and returns a list of findings with severity levels.
+
+```python
+# python/validator.py
+
+def run_all_checks(components, netlist, board_config):
+    findings = []
+    
+    findings += check_decoupling_caps(components)
+    findings += check_power_budget(components, board_config)
+    findings += check_usb_differential_pair(components, netlist)
+    findings += check_i2c_pullups(components)
+    findings += check_uart_crossover(components, netlist)
+    findings += check_antenna_keepout(components)
+    findings += check_lora_wifi_conflict(components)
+    findings += check_board_density(components, board_config)
+    findings += check_assembly_side(components)
+    findings += check_motor_flyback(components)
+    findings += check_regulator_output_cap(components)
+    findings += check_mounting_holes(components, board_config)
+    
+    return {
+        "findings": findings,
+        "error_count": sum(1 for f in findings if f["severity"] == "error"),
+        "warning_count": sum(1 for f in findings if f["severity"] == "warning"),
+    }
+```
+
+**Finding schema:**
+```json
+{
+  "id": "missing_decoupling_u1",
+  "severity": "warning",
+  "rule": "decoupling_cap_required",
+  "title": "Missing decoupling capacitor near U1 (ESP32)",
+  "description": "The ESP32 requires a 100nF bypass capacitor within 2mm of each VCC pin. None detected in the resolved component list. A 100nF 0402 capacitor has been auto-added.",
+  "affected_components": ["U1"],
+  "auto_resolved": true,
+  "resolution": "auto_added_C4"
+}
+```
+
+**Full rule catalogue:**
+
+*Power integrity checks:*
+
+`decoupling_cap_required` — For every IC with `requires_decoupling: true` in the component database, verify at least one capacitor with value 100nF or 10uF is present. If missing, auto-add with explanation rather than just warning. Severity: warning if auto-added, error if auto-add fails.
+
+`ldo_output_cap` — LDOs (AMS1117, MCP1700, etc.) require specific output capacitors for stability. Check BOM against each regulator's datasheet `required_output_cap` field. Severity: error if missing.
+
+`power_budget_exceeded` — Sum all component `power_consumption_ma` values. If total exceeds power source limit (USB: 500mA, LiPo 1000mAh: 1000mA at 3.3V), raise error with specific numbers: "Total draw: 620mA. USB limit: 500mA. Consider adding a powered hub or switching to LiPo." Severity: error.
+
+`reverse_polarity_missing` — Battery-powered designs without a TVS diode or P-channel MOSFET reverse polarity protection. Severity: info (recommendation, not blocking).
+
+*Signal integrity checks:*
+
+`usb_differential_pair` — If USB D+ and D- are present in the netlist, flag them for FreeRouting differential pair routing and warn if they are currently on different net classes. Auto-assign to `USB_DP` diff pair net class. Severity: info.
+
+`i2c_pullup_missing` — If any I2C device is in the BOM, check for pull-up resistors on SDA and SCL nets. Typical value: 4.7kΩ for 100kHz, 2.2kΩ for 400kHz. If missing, auto-add with explanation. Severity: warning if auto-added.
+
+`uart_rx_tx_cross` — Check that the TX pin of one UART device connects to the RX pin of another (and vice versa). Straight connections (TX→TX) are a common mistake. Severity: error.
+
+`spi_shared_cs` — If multiple SPI devices share a CS line, raise error. Each SPI peripheral requires its own dedicated CS line. Severity: error.
+
+*RF and antenna checks:*
+
+`antenna_keepout_violation` — If a component is placed within the keep-out radius of an RF module's antenna (defined in component database as `antenna_keepout_radius_mm`), flag it. At validation time this is a pre-warning since placement hasn't happened yet — flagged as a constraint for the placement engine. Severity: warning.
+
+`lora_wifi_simultaneous` — LoRa and WiFi present together: warn that simultaneous transmission may cause interference and that the firmware must implement time-division multiplexing. Severity: warning.
+
+`rf_no_antenna` — RF module (LoRa, WiFi module without integrated antenna, etc.) with no antenna component in BOM. Severity: error.
+
+*Mechanical checks:*
+
+`board_density_high` — Estimate total component footprint area vs board area. If >75%, warn that placement may be very tight and manual adjustments will likely be needed. Severity: warning.
+
+`no_mounting_holes` — Board larger than 50×50mm with no mounting holes in component list. Severity: info.
+
+`fine_pitch_assembly` — Any component with pitch <0.5mm (QFN, BGA) or passive smaller than 0201: warn that this requires precision SMT assembly and reflow, not hand soldering. Severity: info.
+
+*Assembly checks:*
+
+`mixed_assembly_sides` — SMT components on both top and bottom sides detected. Warn that this increases assembly cost significantly — most low-cost assembly services default to single-side. Severity: warning.
+
+`motor_flyback_missing` — DC motor driver or relay in BOM without flyback diodes. Severity: error (will damage the driver IC without protection).
+
+**`data/validation_rules.json` schema:**
+```json
+[
+  {
+    "id": "decoupling_cap_required",
+    "name": "Decoupling capacitor required",
+    "category": "power_integrity",
+    "enabled": true,
+    "auto_resolve": true,
+    "default_severity": "warning"
+  }
+]
+```
+Rules can be disabled per-job in advanced mode.
+
+---
+
+### 4. Interactive Placement Review
+
+**Goal:** Let the customer see where components will be placed before routing locks them in, and make adjustments if something looks wrong.
+
+**SVG preview format (`python/svg_preview.py`):**
+
+The preview SVG is a scaled top-down view of the board. It does not need to be pixel-perfect — it needs to be clear and informative.
+
+```python
+# Colour coding by component category
+CATEGORY_COLORS = {
+    'mcu': '#4A90D9',
+    'power': '#E8A838',
+    'rf': '#7ED321',
+    'sensor': '#9B59B6',
+    'connector': '#E74C3C',
+    'passive': '#BDC3C7',
+    'motor_driver': '#E67E22',
+    'display': '#1ABC9C',
+    'storage': '#95A5A6',
+}
+```
+
+Each component is drawn as a rectangle proportional to its real footprint dimensions, with:
+- Ref designator (U1, C3, etc.) centred in the rectangle
+- Display name below the ref (small text, truncated if needed)
+- Category colour fill, 70% opacity
+- 1px border
+- Validation warning glow (orange 3px border) if the component has an associated finding
+
+Board outline drawn as a 2px black rectangle. Ratsnest shown as thin grey lines between component centroids (not individual pins — too cluttered at this scale).
+
+SVG is generated at 10px per mm — so an 80×60mm board becomes an 800×600px SVG. Saved to `jobs/{uuid}/placement_preview.svg`.
+
+**Placement adjustment API:**
+
+```javascript
+// POST /api/jobs/:id/adjust-placement
+// Body: { adjustments: [{ ref: "U1", x_mm: 45.0, y_mm: 35.0, rotation_deg: 0 }] }
+// Returns: { ok: true, updated_svg_url: "/api/jobs/:id/placement" }
+```
+
+When adjustments are submitted, `placement.py` re-generates the SVG with the overridden positions (no re-running SA — just apply the overrides and re-render). The customer can submit multiple rounds of adjustments before approving.
+
+**Auto-approve mechanism:**
+
+A BullMQ delayed job is created when placement SVG is ready, set to fire after `PLACEMENT_APPROVAL_TIMEOUT_HOURS`. If the customer has not approved by then, the delayed job auto-approves and routing continues. This prevents jobs from stalling indefinitely.
+
+```javascript
+// In worker.js, after SVG generation:
+await queue.add('auto-approve-placement', { jobId }, {
+  delay: parseInt(process.env.PLACEMENT_APPROVAL_TIMEOUT_HOURS) * 3600 * 1000,
+  jobId: `auto-approve-${jobId}` // deduplication key — cancelled if customer approves first
+});
+```
+
+When the customer clicks "Approve & Route", the delayed job is removed before it fires:
+```javascript
+// In approve-placement handler:
+await queue.remove(`auto-approve-${jobId}`);
+await advanceJobToRouting(jobId);
+```
+
+---
+
+### 5. Schematic Generation
+
+**Goal:** Deliver a complete KiCad design package including a schematic, not just a routed PCB. This makes the output genuinely useful for firmware development, documentation, and future modifications.
+
+**Implementation: `python/schematic.py`**
+
+KiCad schematics are defined in `.kicad_sch` format (S-expression based). The schematic is generated from the netlist after FreeRouting completes (Stage 9A).
+
+**Approach:** Functional block layout with inputs-left / outputs-right signal flow convention. Components are grouped into logical blocks on the schematic sheet:
+- **Power block** (top-left): voltage regulators, power connectors, bulk capacitors, protection diodes
+- **MCU block** (centre): MCU with all its connections emanating from it
+- **Sensor block** (right): all sensing components grouped near their interface bus
+- **Output block** (bottom-right): motor drivers, relay, LED drivers, display
+- **RF block** (top-right): RF modules with antenna symbol
+
+Signal flows left-to-right across the sheet: power block feeds MCU feeds outputs. Individual IC symbols use their native KiCad orientation (don't mirror them) — KiCad library symbols already follow the inputs-left convention.
+
+Each block is separated by a dashed bounding box with a label. Power nets (VCC_3V3, VCC_5V, GND) are connected via power symbols, not drawn as wires — this keeps the schematic readable.
+
+**Five correctness requirements (all must be implemented — each is a source of ERC failures if missed):**
+
+**1. PWR_FLAG on every power net.** KiCad ERC requires a `PWR_FLAG` symbol on each power net to confirm it has a driver. Without it, ERC throws "power pin not driven" on every VCC and GND net. Place one `PWR_FLAG` per power net alongside the power symbol.
+
+**2. No-connect markers on every unused pin.** For each IC, diff `component.all_pins` against `netlist.pins_in_use(comp.ref)` and place a KiCad `no_connect` marker (the X symbol) at every unmatched pin. Without these, ERC throws "pin unconnected" for every unused pin on every IC — potentially dozens of false errors on a complex board.
+
+**3. Net labels for high-fanout nets.** For nets with >3 connections, use net labels instead of drawn wires. Drawn wires on a 10-way VCC net produce an unreadable spider's web.
+
+**4. Layout annotation notes.** Auto-generate KiCad text notes near placement-critical components, drawn from constraints already known in the pipeline:
+- Decoupling caps: *"Place within 0.5mm of [parent IC] VCC pin"*
+- Differential pairs: *"Route as matched diff pair — 90Ω, length match ≤25mm"*
+- RF/antenna modules: *"Antenna must overhang board edge — maintain keep-out zone"*
+
+**5. ERC after writing the file.** Run KiCad ERC programmatically after `sch.write()`. Results go to `ERC_REPORT.txt` in the customer ZIP. ERC violations never block delivery. The three classes of auto-generated schematic ERC violations and their fixes:
+- *Pin unconnected* → fixed by no-connect markers (item 2 above). Any remaining are genuine.
+- *Power pin not driven* → fixed by PWR_FLAG (item 1 above). Any remaining are genuine.
+- *Pin type conflict* (e.g. two outputs shorted together) → genuine netlist error, escalate to UI warning.
+
+**Symbol lookup:** Each component in `components.json` has a `kicad_symbol` field mapping to a KiCad standard library symbol (e.g. `"MCU_Espressif:ESP32-WROOM-32"`). If a symbol is missing, a generic rectangle with pin labels is drawn instead. Missing symbols logged as warnings — never crash the pipeline.
+
+**Auto-routing of schematic wires:** Simple Manhattan routing (horizontal then vertical) between component pins. Junctions added automatically where wires cross.
+
+```python
+# python/schematic.py
+
+def generate_schematic(netlist, components, output_path):
+    blocks = assign_functional_blocks(components)
+    positions = layout_blocks(blocks)    # inputs-left/outputs-right, L→R signal flow
+    
+    sch = KicadSchematic()
+    
+    for comp in components:
+        symbol = lookup_kicad_symbol(comp) or make_generic_symbol(comp)
+        sch.add_component(symbol, positions[comp.ref], comp.ref, comp.value)
+        
+        # No-connect markers on every unconnected pin (requirement 2)
+        connected_pins = {p.pin_number for p in netlist.get_pins_for_ref(comp.ref)}
+        for pin in symbol.all_pins:
+            if pin.number not in connected_pins:
+                sch.add_no_connect(comp.ref, pin.number, positions[comp.ref])
+    
+    for net in netlist.nets:
+        if len(net.pins) <= 3:
+            sch.add_wires(route_manhattan(net.pins, positions))
+        else:
+            sch.add_net_labels(net.name, net.pins, positions)  # requirement 3
+    
+    # Power symbols + PWR_FLAG on every power net (requirements 1)
+    for power_net in ['VCC_3V3', 'VCC_5V', 'GND']:
+        sch.add_power_symbol(power_net)
+        sch.add_pwr_flag(power_net)
+    
+    # Auto-generated layout annotations (requirement 4)
+    sch.add_layout_annotations(components, netlist)
+    
+    sch.add_title_block(project_name=netlist.name, revision='1')
+    sch.write(output_path)
+    
+    # ERC quality gate (requirement 5)
+    erc_violations = run_erc(output_path)
+    write_erc_report(erc_violations, output_path.parent / 'ERC_REPORT.txt')
+    return erc_violations
+```
+
+The schematic is included in the customer ZIP as `board.kicad_sch`. It opens directly in KiCad alongside the PCB file — both are part of the same KiCad project (`board.kicad_pro`).
+
+**API endpoint addition:** `GET /api/jobs/:id/erc` — returns the ERC report for a completed job, same pattern as the DRC endpoint.
+
+---
+
+### 6. Component Stock Checking
+
+**Status: Deferred to v2.**
+
+DigiKey API integration has been descoped from v1 to reduce credentials and integration complexity at launch. The BOM CSV includes DigiKey part numbers so customers can verify stock on digikey.co.uk before ordering.
+
+**Variable cost impact:** Removes £0.20/job API cost from v1 model.
+
+**When to add:** Once the core pipeline is stable. Integration point: `POST /api/resolve` returns stock status alongside component list.
+
+### 7. DRC After Routing
+
+**Goal:** Run KiCad's built-in Design Rule Check programmatically after FreeRouting completes, include the results in the delivery, and surface any violations clearly to the customer.
+
+**Implementation: in `python/postprocess.py`**
+
+```python
+import pcbnew
+
+def run_drc(board_path):
+    board = pcbnew.LoadBoard(board_path)
+    
+    drc = pcbnew.DRC_ENGINE()
+    drc.InitEngine(board)
+    drc.RunTests()
+    
+    markers = board.GetDesignSettings().m_DRCEngine.GetViolations()
+    
+    violations = []
+    for marker in board.GetDesignSettings().GetDRCResults():
+        violations.append({
+            "rule": marker.GetErrorCode(),
+            "severity": "error" if marker.IsError() else "warning",
+            "description": marker.GetErrorText(),
+            "location_mm": {
+                "x": pcbnew.ToMM(marker.GetPosition().x),
+                "y": pcbnew.ToMM(marker.GetPosition().y)
+            },
+            "affected_items": [str(item) for item in marker.GetItems()]
+        })
+    
+    return {
+        "pass": len([v for v in violations if v["severity"] == "error"]) == 0,
+        "error_count": len([v for v in violations if v["severity"] == "error"]),
+        "warning_count": len([v for v in violations if v["severity"] == "warning"]),
+        "violations": violations,
+        "checked_at": datetime.utcnow().isoformat()
+    }
+```
+
+**DRC rules checked:**
+- Copper clearance violations (trace-to-trace, trace-to-pad, trace-to-edge)
+- Unconnected nets (ratsnest errors — FreeRouting didn't complete all routes)
+- Minimum track width violations
+- Minimum via drill size
+- Silkscreen overlap with pads
+- Board edge clearance
+- Courtyard overlap between components
+
+**Delivery format:**
+
+`drc_report.json` is included in the customer ZIP. If DRC fails, `DRC_REPORT.txt` is also included — a plain-English summary of each violation with coordinates, written for someone who may not be familiar with EDA terminology:
+
+```
+DRC Check Results — 2 errors, 1 warning
+========================================
+
+ERROR 1: Copper clearance violation
+Track near R3 (position 45.2mm, 32.1mm) is 0.1mm from the track on net GND.
+Minimum clearance is 0.15mm.
+→ This may cause a short circuit. Open board.kicad_pcb in KiCad to inspect.
+
+ERROR 2: Unconnected net
+Net VCC_3V3 is not fully routed — 1 connection is missing between C4 and U1 pin 14.
+→ This component will not receive power. Open board.kicad_pcb to manually complete this route.
+
+WARNING 1: Silkscreen overlap
+The silkscreen label for C4 overlaps the pad of R1.
+→ This may obscure the reference designator during assembly. Not a functional issue.
+```
+
+**UI display:**
+
+The DRC panel on the download screen uses clear visual indicators:
+- Large green checkmark + "DRC Passed — no violations" if clean
+- Red "X errors" / amber "X warnings" counters with expandable violation list
+- Each violation shows: type, plain English description, coordinates
+- Note: "Open board.kicad_pcb in KiCad 7 to view highlighted violations"
+
+**DRC failures do not block delivery** — the customer always receives their files. The DRC report helps them understand what needs fixing if they want to modify the design.
+
+---
+
+### 8. Assembly Service Integration
+
+**Goal:** Allow customers to order fully assembled PCBs (components soldered, not just bare boards) through PCB Wizard, with the same 26% margin applied (13% for reorder assembly).
+
+**Where assembly is available:**
+
+| Fab | Assembly Service | Notes |
+|---|---|---|
+| JLCPCB | Yes — SMT assembly | Largest parts library (800,000+ parts). Economic SMT assembly. Must check all BOM parts against their library. |
+| Eurocircuits | Yes — SMT + THT | Higher quality, EU-manufactured. Price per unique component setup fee + placement fee. |
+| PCBWay | Yes — SMT + THT | Good mid-range option. Custom quoting for complex boards. |
+| PCBTrain | No (PCB only) | Rate card only, no assembly service in scope. |
+
+**BOM validation for JLCPCB assembly:**
+
+JLCPCB's assembly service uses only components in their LCSC parts library. Before quoting assembly, check each BOM component against their library:
+
+```javascript
+// server/fabadapters/jlcpcb.js
+
+async function checkPartsLibrary(bom) {
+  const results = await Promise.all(
+    bom.map(async (item) => {
+      const res = await jlcpcbApi.get(`/parts/${item.lcsc_pn}`);
+      return {
+        ref: item.ref,
+        mpn: item.mpn,
+        lcsc_pn: item.lcsc_pn,
+        in_library: res.status === 200,
+        basic_part: res.data?.category === 'Basic', // Basic parts have no setup fee
+        extended_part: res.data?.category === 'Extended' // Extended parts add ~$3 setup fee
+      };
+    })
+  );
+  
+  const missing = results.filter(r => !r.in_library);
+  return { results, missing, assembleable: missing.length === 0 };
+}
+```
+
+Components not in JLCPCB's library are flagged in the UI: "3 components not available for JLCPCB assembly: [list]. These would need to be sourced and fitted manually, or replaced with compatible parts."
+
+`components.json` should include an `lcsc_pn` field for each component where available (LCSC is JLCPCB's component supplier).
+
+**Assembly quote structure** added to `fab_quotes.json`:
+
+```json
+{
+  "fab": "JLCPCB",
+  "qty_5": {
+    "pcb_only": { "raw_gbp": 2.53, "customer_gbp": 3.04 },
+    "with_assembly": {
+      "raw_gbp": 28.40,
+      "customer_gbp": 34.08,
+      "parts_cost_gbp": 18.50,
+      "assembly_fee_gbp": 9.90,
+      "parts_not_in_library": ["U3_custom_sensor"],
+      "assembleable": true
+    }
+  }
+}
+```
+
+**Pick & place file requirements for assembly:**
+
+The existing P&P CSV format already satisfies most fabs. JLCPCB additionally requires:
+- Column header names matching their template exactly (Ref, Val, Package, PosX, PosY, Rot, Side)
+- Rotation normalised to JLCPCB convention (some footprints have 180° offset vs their library)
+
+Add a `jlcpcb_pnp.csv` variant to the ZIP with JLCPCB-specific formatting when assembly is requested.
+
+**UI changes for assembly:**
+
+Step 3 (Resolved Design Preview) adds an "Include SMT Assembly" toggle. When enabled:
+- BOM is checked against JLCPCB library
+- Any missing parts flagged immediately
+- Assembly estimate added to the preview (rough figure from component count)
+
+Step 7 (Download) quote panel shows PCB Only / With Assembly as a toggle, updating all prices.
+
+---
+
+### 9. Email Notifications
+
+**Goal:** Send customers timely emails at key pipeline moments, so they don't need to leave a browser tab open.
+
+**Implementation: `server/notifier.js`** using Nodemailer with SMTP (transactional email — Mailgun, Postmark, or AWS SES recommended for production; Mailtrap for development).
+
+**Email triggers and content:**
+
+**1. Job Created** (sent immediately after Stripe webhook creates the job)
+```
+Subject: Your PCB design is being generated — PCB Wizard
+Body: Hi [name or "there"],
+Your design job has started. We'll email you when it's ready (usually 2–5 minutes).
+Job reference: [uuid short form]
+```
+
+**2. Placement Ready for Review** (sent when status reaches `awaiting_placement_approval`)
+```
+Subject: Review your component layout — action needed
+Body: Your component placement is ready to review.
+[View placement →] [button linking to /jobs/{uuid}]
+If you don't review within 24 hours, we'll approve it automatically and continue routing.
+```
+
+**3. Design Complete** (sent when status reaches `complete`)
+```
+Subject: Your PCB design is ready to download
+Body: Your design is complete. Your files are ready and manufacturing quotes are waiting.
+[Download files →] [button]
+[View manufacturing quotes →] [button]
+Files expire in 24 hours. Log in to your account to save them permanently.
+```
+
+**4. Order Placed** (sent after manufacturing Stripe payment webhook)
+```
+Subject: Manufacturing order confirmed — [fab name]
+Body: We've placed your order with [fab].
+Quantity: [n] boards [+ assembly if applicable]
+Estimated delivery: [lead_days + shipping estimate] working days
+Order reference: [fab_order_ref if available]
+We'll email you again when it ships.
+```
+
+**5. Out of Stock Alert** (sent at resolve time if any critical component is out of stock)
+```
+Subject: Stock alert for your PCB design
+Body: One component in your design is currently out of stock:
+[Component name] — [status] — [lead time if available]
+[Suggested alternative name] is available and compatible. [Swap to alternative →]
+You can still proceed with the original component — just be aware of availability before ordering.
+```
+
+**Email template system:**
+
+All emails use a simple HTML template with inline CSS (no external resources — email clients block them). Template variables: `{{name}}`, `{{job_id}}`, `{{base_url}}`. Plain text fallback included for every email.
+
+```javascript
+// server/notifier.js
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT),
+  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+});
+
+async function send(to, templateName, vars) {
+  const { subject, html, text } = renderTemplate(templateName, vars);
+  await transporter.sendMail({
+    from: `PCB Wizard <${process.env.SMTP_USER}>`,
+    to, subject, html, text
+  });
+}
+```
+
+Emails are sent from the Node.js worker (not the API server) to avoid blocking API responses. Failed sends are logged but do not fail the job — email is best-effort.
+
+---
+
+### 10. Credits & Volume Pricing
+
+**Goal:** Reward repeat customers and incentivise bulk manufacturing orders through a credit system and tiered margin discounts.
+
+**Credits system:**
+
+Credits are an integer currency — 1 credit = 1 design job at any tier. Credits can be purchased, earned, or awarded.
+
+```javascript
+// server/pricing.js
+
+const CREDIT_PACKS = [
+  { id: 'pack_5',  credits: 5,  price_gbp: 18.99, bonus: 0,  label: '5 designs' },
+  { id: 'pack_10', credits: 10, price_gbp: 34.99, bonus: 1,  label: '10 designs + 1 free' },
+  { id: 'pack_25', credits: 25, price_gbp: 79.99, bonus: 5,  label: '25 designs + 5 free' },
+];
+
+// Credits earned automatically
+const CREDIT_REWARDS = {
+  first_design: 0,          // no freebie — too easy to abuse
+  referral_signup: 1,       // when someone signs up with your referral link
+  referral_first_order: 2,  // when your referee places their first manufacturing order
+};
+```
+
+**Using credits:** At Step 4 (Review & Pay), if the user has credits, "Use 1 Credit (X remaining)" appears alongside the "Pay £X.XX" button. Using a credit skips the Stripe design fee checkout and creates the job directly via a `POST /api/jobs/redeem-credit` endpoint.
+
+**Volume manufacturing discounts:**
+
+The 26% margin is the base rate for new design manufacturing orders. For larger orders, the margin reduces — reaching 13% at 100+ units (matching the reorder rate):
+
+```javascript
+// server/pricing.js
+
+function getManufacturingMargin(jobType, quantity) {
+  if (jobType === 'reorder') return 0.13; // flat reorder rate — no design work
+  // New design manufacturing margin by quantity
+  if (quantity >= 100) return 0.13; // matches reorder rate at volume
+  if (quantity >= 50)  return 0.18;
+  if (quantity >= 20)  return 0.22;
+  return 0.26;                      // 26% default (1-19 boards)
+}
+```
+
+This is applied automatically in `fabquoter.js` when computing customer prices. The discount is visible to the customer as lower prices at higher quantities — not as a percentage breakdown.
+
+**Credit purchase flow:** Stripe Checkout used for credit pack purchase. On payment success, `credits` table updated via webhook. Credits never expire.
+
+**Credit balance display:** Shown in the nav header when logged in: "✦ 3 credits". Clicking links to `/account/credits` showing balance, transaction history, and option to purchase more.
+
+**Referral system:** Each user gets a unique referral link (`/ref/{user_id_short}`). Visiting the link sets a cookie. If the visitor registers and places their first order, both the referrer and referee earn credits as per `CREDIT_REWARDS`. Tracked via a `referral_source` column on the `users` table.
+
+---
+
+## Known Constraints & Gotchas
+
+**Payments & Security**
+- Jobs must only be created from the Stripe webhook — never from the success URL redirect. The redirect can be spoofed; the webhook signature cannot.
+- The Stripe webhook endpoint must receive the raw request body. Use `express.raw({ type: 'application/json' })` for that route only — all other routes use `express.json()`.
+- Raw fab prices must never be exposed via the API. Audit every `/quotes` response before launch.
+- `MARGIN_RATE` (0.26) and `REORDER_MARGIN_RATE` (0.13) must be read from `.env` everywhere — never hardcode margin values in the codebase. Three separate margin rates exist: new design (0.26), reorder (0.13), and promotional (design fee only, no manufacturing discount).
+- Quote expiry must be enforced at manufacturing checkout. Reject quotes older than 24 hours.
+- Credit redemption endpoint must deduct the credit atomically before creating the job — use a SQLite transaction to prevent double-spend.
+- Three separate Stripe Checkout flows exist: design fee, credit pack purchase, manufacturing order. Never conflate them. Each has its own webhook handler identified by `metadata.type`.
+
+**Natural Language Parser**
+- The Claude API system prompt must inject the full capability taxonomy at call time. If the taxonomy changes, re-test the prompt against all test cases before deploying.
+- Always validate returned capability IDs against the taxonomy before using them — never trust the parser output blindly.
+- If `ANTHROPIC_API_KEY` is missing or the call fails, return a friendly error and let the user proceed with the manual questionnaire. The NL parser is enhancement, not critical path.
+
+**User Accounts**
+- Passwords hashed with bcrypt at cost factor ≥ 12. Never store plaintext.
+- Session tokens as `HttpOnly` cookies only — never in `localStorage` or `sessionStorage`.
+- Anonymous designs (`user_id = null`) must not be accessible to other logged-in users except via the explicit claim endpoint.
+- The SQLite database is the only persistent store for accounts, credits, and orders. Include it in daily automated backups — without this, data loss is unrecoverable.
+
+**Design Validation**
+- Validation findings must never block delivery. The customer has paid — always deliver the best possible result with findings attached.
+- Auto-added components (e.g. missing I2C pull-ups, decoupling caps) must appear in the final BOM and be included in assembly quotes. They affect cost and the customer should know about them.
+- Differential pair identification from the validator must be written to `input.json` before DSN export so FreeRouting can route them as pairs.
+
+**Placement Review**
+- The auto-approve BullMQ delayed job must be cancelled when the customer approves manually. A missed cancellation triggers a duplicate routing run.
+- Placement adjustments are position overrides only — never re-run SA on an already-optimised placement. Re-running would likely degrade the result.
+- SVG preview must render in under 5 seconds for 40+ component boards. Profile `svg_preview.py` before Session 10 sign-off.
+
+**Schematic Generation**
+- Every component in `components.json` needs a `kicad_symbol` field. Missing symbols must fall back to a generic rectangle — never crash the pipeline.
+- The generated schematic will not be as clean as a hand-drawn one. Set this expectation clearly in the UI ("auto-generated schematic — suitable for documentation and firmware reference").
+
+**DRC**
+- DRC result format is KiCad version-specific. Pin 7.0.x and test DRC output schema before deployment.
+- DRC errors never block delivery — always package and send the ZIP.
+- `DRC_REPORT.txt` plain-English descriptions must be written for customers who don't know EDA terminology. Review all violation descriptions with a non-expert.
+
+**Stock Checking**
+- Deferred to v2. BOM CSV includes DigiKey PNs for customer reference — no live check in v1.
+- `lcsc_pn` must be populated in `components.json` for all SMT components to support JLCPCB assembly library checks.
+
+**Assembly**
+- JLCPCB's P&P rotation convention differs from KiCad's for some footprint families. Test with a real assembled board and add rotation correction offsets to `components.json` entries where needed.
+- Assembly quotes include parts cost separately from assembly fee — present both to the customer so they understand the breakdown.
+- Assembly library check only runs when the customer has toggled assembly on — not on every resolve call.
+
+**Email**
+- Email sends are best-effort — a failed send must never fail the pipeline job.
+- Always include a plain text fallback in every email.
+- Use an authenticated transactional SMTP service (Postmark, Mailgun, AWS SES) in production — generic SMTP is spam-filtered.
+- All email links use `BASE_URL` from `.env` — never hardcode the domain.
+
+**Credits**
+- Credits stored as a ledger of delta rows, never as a single balance column. Calculate balance by summing deltas — this is auditable and prevents balance corruption bugs.
+- The referral cookie must be set with `SameSite=Lax` and a 30-day expiry.
+
+**PCB Design Rules (JLCPCB DFM baseline — applies to all boards)**
+- **5mil/5mil is the absolute minimum** for trace width and clearance (0.127mm). Default to 8mil (0.2mm) for all signal traces — 5mil is only used when space is critically constrained.
+- **No 90° trace corners — ever.** KiCad and FreeRouting must be configured to route with 45° angles only. 90° corners cause impedance discontinuities on high-speed signals and create acid traps in older etching processes.
+- **3W rule for parallel traces:** Centre-to-centre spacing between parallel traces must be ≥ 3× the trace width to prevent crosstalk. FreeRouting's clearance rules partially enforce this — add a post-routing validator check for long parallel runs.
+- **Solid, unbroken ground plane is mandatory.** Never split a ground plane. Never route any signal across a plane split. A broken return path creates an inductive loop that radiates EMI and degrades signal integrity.
+- **Decoupling caps must be immediately adjacent to the IC VCC pin** — not just "near the IC." The via from the cap GND pad to the GND plane must be as short as possible; inductance defeats the decoupling function.
+- **Fiducial marks are required for assembly.** Three fiducials minimum, in board corners, on the assembly layer. Without them, pick-and-place machines can't align. Generate these automatically in Stage 6 for any board with SMT components.
+- **Polarised component orientation:** Align polarised components (diodes, LEDs, electrolytic caps, ICs) in the same direction as much as possible. Stage 3 placement should enforce a consistent orientation policy — reduces assembly error rate and simplifies inspection against IPC-A-610.
+- **Differential pairs (USB D+/D-, CAN H/L):** Must be length-matched within 25mm, parallel, constant gap, symmetric vias. Never probe mid-trace. Route on same layer throughout — never transition layers within the pair unless absolutely necessary, and if so do both traces symmetrically.
+- **Annular ring ≥ 0.15mm** around all drill holes. Smaller rings fail during drilling — the pad separates from the copper.
+- **Board edge copper clearance ≥ 0.3mm.** PCB routing machines cut slightly inaccurately — copper too close to the edge gets sheared.
+- Free DFM tool available at **jlcdfm.com** — run Gerbers through this before release if adding new board configurations to the test suite.
+
+
+- **JLCPCB uses three credentials** (`appId`, `accessKey`, `secretKey`) not a single API key. All three in `.env` as `JLCPCB_APP_ID`, `JLCPCB_ACCESS_KEY`, `JLCPCB_SECRET_KEY`. ✓ Access approved and ready.
+- JLCPCB API terms prohibit using their trademark in your domain or branding. Read before launch.
+- **The JLCPCB SDK is Java-only.** The Node.js adapter must implement request signing manually by reverse-engineering the signing logic from the Java SDK core package. This is the primary complexity of the JLCPCB adapter — build and test `jlcpcb-signer.js` in isolation before building any business logic on top of it. A 401 response means signing is wrong.
+- **JLCPCB HTTP 200 does not mean success** — always check `response.data.code` in the body. A 200 with a non-zero code is a business-level failure.
+- **JLCPCB uses GMT+8 for all date fields**, format `yyyy-MM-dd HH:mm:ss`. Never pass ISO 8601 or UTC.
+- **Log every JLCPCB `J-Trace-ID` response header** alongside job ID. Required to get support for any failed request.
+- JLCPCB standard requests use `Content-Type: application/json`; file uploads use `Content-Type: multipart/form-data`.
+- **The `gerber_file_id` returned from upload is the linking key** across pre-review → quote → order. Store it in `fab_quotes.json` so `ordermanager.js` reuses it at order time without re-uploading.
+- **Always run the pre-review step before quoting.** Cross-check returned dimensions against our board spec. A mismatch means Gerber export has an issue.
+- **JLCPCB component library uses C-numbers (LCSC part numbers).** Populate `lcsc_pn` in `components.json` for all SMT components — required for assembly BOM validation.
+- **Eurocircuits has no confirmed public API.** Use rate card model permanently until direct contact confirms otherwise. Do not assume API access exists — previous brief versions incorrectly stated this. If API access is granted, update `eurocircuits.js` and the brief at that time.
+- Gerbers must be RS-274X format.
+- Pick & place coordinates must be mm, not mils.
+- pcbnew API is KiCad version-specific — pin 7.0.x.
+- FreeRouting may partially route complex boards — handle gracefully, auto-refund on complete failure.
+- Redis must be running before Node.js — add startup health check.
+- FX rates cached in Redis, updated by daily cron — the cron is mandatory.
+- Capability IDs in `components.json` must exactly match `capabilities.json` — validation script enforces this.
+- One component can satisfy multiple capabilities — mark resolved after MCU selection to avoid double-adding.
+- Auto-added components need a `reason` string shown in the UI.
+- Anthropic, JLCPCB, Stripe credentials in `.env` only — never in source code.
+- Job folders and SQLite DB both need automated cleanup/backup cron jobs.
+
+---
+
+## References
+
+**PCB Design Rules & DFM**
+- JLCPCB Design Rules & Best Practices: https://jlcpcb.com/blog/pcb-design-rules-best-practices
+- JLCPCB Capabilities (exact DFM values): https://jlcpcb.com/capabilities/pcb-capabilities
+- JLCPCB Free DFM Check Tool: https://jlcdfm.com
+- JLCPCB Impedance Calculator: https://jlcpcb.com/pcb-impedance-calculator
+- IPC-2221 Generic PCB Design Standard (test point sizing, design rules): https://www.ipc.org/ipc-2221
+- DFT Guidelines (test points, flying probe): https://www.testcoach.com/wp-content/uploads/2016/04/In-Circuit_DFT.pdf
+
+**Routing reference reading — read before/during autorouter implementation (Session 15)**
+
+*Tier 1 — read before writing any routing code:*
+- Differential Pairs: routing, impedance, signal integrity (Feb 2026): https://jlcpcb.com/blog/differential-pairs-pcb-practices
+- Length matching and tuning for diff pairs and single tracks: https://jlcpcb.com/blog/length-matching-and-tuning
+- Impact of vias on high-speed routing (inductance, impedance): https://jlcpcb.com/blog/the-impact-of-vias-on-high-speed-pcb-design
+- Layer stackup design for controlled impedance: https://jlcpcb.com/blog/layer-stackup-design-high-speed-pcbs
+- Solving routing and stackup problems (case studies): https://jlcpcb.com/blog/solving-routing-stackup-problems
+
+*Tier 2 — read during implementation for specific net types:*
+- Impedance matching for high-speed PCB designs: https://jlcpcb.com/blog/understanding-impedance-matching-for-high-speed-pcb-designs
+- Impedance targets per interface (USB=90Ω, Ethernet=100Ω, etc.): https://jlcpcb.com/blog/selecting-right-impedance-for-interfaces
+- 50Ω RF antenna trace with PI matching: https://jlcpcb.com/blog/50ohm-pcb-trace-pi-matching
+- EMI/EMC and signal integrity in HF design (clock routing, return paths): https://jlcpcb.com/blog/emi-emc-and-signal-integrity-issues-in-hf-pcb
+- Analog vs digital ground strategy for mixed-signal boards: https://jlcpcb.com/blog/understanding-analog-and-digital-ground-in-pcb-design
+- Track width vs current capacity (JLCPCB reference table): https://jlcpcb.com/blog/track-width-vs-current-capacity-pcb-layout-tips
+
+*Tier 3 — validator rules and post-routing DRC:*
+- 6 critical PCB design mistakes (from JLCPCB assembly line): https://jlcpcb.com/blog/pcb-design-mistakes-and-how-to-avoid-them
+- How to avoid pitfalls (holes, slots, trace width, copper pour): https://jlcpcb.com/blog/how-to-avoid-pitfalls-in-pcb-design
+- Via design best practices (sizing, annular ring, via-in-pad): https://jlcpcb.com/blog/pcb-via-design-best-practices
+- Ground plane implementation and stitching vias (Jan 2026): https://jlcpcb.com/blog/pcb-ground-plane-reduces-emi-noise
+- Decoupling capacitor frequency response (why 100nF + 10µF together): https://jlcpcb.com/blog/frequency-response-of-decoupling-capacitors
+
+**Schematic generation reference — read before/during schematic.py implementation (Stage 9A)**
+- Creating High-Quality Schematic Diagrams (workflow, block grouping, signal flow): https://jlcpcb.com/blog/creating-high-quality-schematic-diagram
+- Common Mistakes in Electrical Schematic Design (open circuits, missing bypasses, pin errors): https://jlcpcb.com/blog/electrical-schematic-design-mistakes
+- How to Read and Create PCB Schematics (ERC, net labels, modular blocks): https://jlcpcb.com/blog/how-to-read-and-create-pcb-schematics
+- Master PCB Circuit Diagrams (decoupling cap placement notes, USB routing tips): https://jlcpcb.com/blog/master-pcb-circuit-diagrams-guide
+- Process of Creating Schematics (ERC before layout, annotation, netlist export): https://jlcpcb.com/blog/process-of-creating-schematics-for-electronics-layout
+
+**Core pipeline**
+- FreeRouting: https://github.com/freerouting/freerouting
+- KiCad Python Scripting: https://docs.kicad.org/7.0/en/python_scripting_reference/
+- KiCad Schematic Format: https://dev-docs.kicad.org/en/file-formats/sexpr-schematic/
+- Specctra DSN format: available in FreeRouting repo docs
+
+**APIs**
+- DigiKey API v4 (v2 reference, deferred): https://developer.digikey.com/products/product-information/v4/
+- Anthropic API: https://docs.anthropic.com/en/api/getting-started
+- Stripe Checkout: https://stripe.com/docs/payments/checkout
+- Stripe Webhooks: https://stripe.com/docs/webhooks
+- Stripe CLI: https://stripe.com/docs/stripe-cli
+- Stripe Tax (VAT): https://stripe.com/docs/tax
+- Stripe Shipping: https://stripe.com/docs/payment-links/shipping
+- Open Exchange Rates (FX cron): https://open.er-api.com
+
+**Fabricators**
+- JLCPCB: https://jlcpcb.com/quote
+- JLCPCB API: https://jlcpcb.com/help/article/jlcpcb-online-api-available-now
+- JLCPCB LCSC Parts: https://jlcpcb.com/parts
+- PCBTrain: https://www.pcbtrain.co.uk/quote
+- PCBWay: https://www.pcbway.com/orderonline.aspx
+- Eurocircuits: https://www.eurocircuits.com
+- Eurocircuits Pricing Logic: https://www.eurocircuits.com/online-smart-tools-services-products/the-logic-behind-our-new-pcb-calculator/
+- PCBShopper (multi-fab comparison reference): https://pcbshopper.com
+
+**Dev tools**
+- Mailtrap (dev SMTP): https://mailtrap.io
+- better-sqlite3: https://github.com/WiseLibs/better-sqlite3
+- BullMQ: https://docs.bullmq.io
+
+**Legacy**
+- Existing v1 project: `pcb-wizard-vscode.zip` (from previous Claude session)
+
+---
+
+*This brief should be kept up to date as architectural decisions are made. Update the "Current State" section as stages are completed.*

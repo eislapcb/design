@@ -1,0 +1,370 @@
+{
+  "_description": "Comprehensive mains safety rules for PCB Wizard resolver. Triggered when hlk_pm01 or any mains-connected component is selected. These rules define physical layout constraints, protection components, silkscreen markings, and DRC rules that the schematic/layout generator MUST enforce.",
+  "_version": "1.0",
+  "_standard_references": [
+    "IEC 62368-1:2023 (Audio/video, IT and communication technology equipment — Safety)",
+    "IEC 60950-1 (legacy, superseded by 62368-1)",
+    "IEC 61010-1 (Measurement/control equipment safety)",
+    "UL 60950-1 / UL 62368-1 (North America)",
+    "EN 62368-1 (EU harmonised standard)"
+  ],
+
+  "trigger_components": ["hlk_pm01"],
+  "trigger_capabilities": ["power_mains"],
+
+  "board_zoning": {
+    "description": "The PCB must be physically divided into two zones: MAINS and SELV (Safety Extra-Low Voltage). These zones must never share copper, traces, components, or ground planes.",
+    "zones": {
+      "MAINS_ZONE": {
+        "description": "Contains all mains-voltage conductors and components",
+        "components_in_zone": ["hlk_pm01", "fuse_holder_5x20", "mov_varistor", "mains_terminal"],
+        "ground_net": "MAINS_GND",
+        "note": "This zone has NO connection to the SELV ground plane. The HLK-PM01 provides galvanic isolation internally."
+      },
+      "SELV_ZONE": {
+        "description": "Contains all low-voltage circuits (5V, 3.3V, VBAT, sensors, MCU, etc.)",
+        "ground_net": "GND",
+        "note": "Standard low-voltage ground. All non-mains components live here."
+      }
+    },
+    "isolation_boundary": {
+      "description": "The physical boundary between MAINS and SELV zones on the PCB",
+      "board_slot": {
+        "required": true,
+        "width_mm": 2.0,
+        "length_mm": "Full width of PCB minus 3mm each end for structural integrity",
+        "position": "Between HLK-PM01 pins 1-2 (AC input) and pins 3-4 (DC output)",
+        "note": "A routed slot in the PCB physically prevents surface tracking between mains and SELV zones. Most PCB fabricators support routed slots — specify as board outline cutout in KiCad Edge.Cuts layer."
+      },
+      "no_copper_zone": {
+        "width_mm": 8,
+        "description": "No copper (traces, pours, vias) allowed within 8mm of the isolation boundary on either side",
+        "implementation": "KiCad keepout zone on all copper layers, 8mm wide, centered on board slot"
+      },
+      "no_component_zone": {
+        "width_mm": 6,
+        "description": "No components (SMD or THT) within 6mm of the isolation boundary",
+        "implementation": "KiCad keepout zone on F.Courtyard and B.Courtyard layers"
+      }
+    }
+  },
+
+  "creepage_and_clearance": {
+    "description": "Minimum distances between mains-connected conductors and SELV conductors, as per IEC 62368-1 for 250VAC working voltage, Pollution Degree 2, Material Group IIIb (FR-4)",
+    "values": {
+      "creepage_mm": 6.0,
+      "clearance_mm": 3.0,
+      "through_board_mm": 1.5,
+      "note_creepage": "Creepage = shortest path along a surface between two conductors. Board slot effectively 'breaks' the surface path, dramatically increasing effective creepage.",
+      "note_clearance": "Clearance = shortest distance through air. Board slot helps here too.",
+      "note_through_board": "Through 1.6mm FR-4 — no vias allowed in the isolation zone"
+    },
+    "drc_rules_kicad": {
+      "description": "Custom DRC rules to add to KiCad project",
+      "rules": [
+        {
+          "name": "mains_creepage",
+          "condition": "Net class MAINS to net class SELV",
+          "min_clearance_mm": 6.0,
+          "note": "Applies to all copper layers"
+        },
+        {
+          "name": "mains_clearance",
+          "condition": "Net class MAINS to net class SELV (through air)",
+          "min_clearance_mm": 3.0
+        },
+        {
+          "name": "mains_trace_to_edge",
+          "condition": "Any MAINS net to board edge",
+          "min_clearance_mm": 3.0,
+          "note": "Mains traces must not be near board edges where they could be touched"
+        },
+        {
+          "name": "mains_via_exclusion",
+          "condition": "No vias in isolation boundary zone",
+          "zone": "8mm band around board slot"
+        }
+      ],
+      "net_classes": {
+        "MAINS": {
+          "nets": ["MAINS_LIVE", "MAINS_NEUTRAL", "MAINS_FUSED", "MAINS_GND"],
+          "trace_width_mm": 1.0,
+          "clearance_mm": 6.0,
+          "via_size_mm": 0,
+          "note": "No vias on mains nets — single-layer routing only"
+        },
+        "SELV": {
+          "nets": ["5V", "3V3", "GND", "VBAT"],
+          "trace_width_mm": 0.25,
+          "clearance_mm": 0.2,
+          "note": "Standard low-voltage DRC"
+        }
+      }
+    }
+  },
+
+  "protection_components": {
+    "description": "Required and recommended protection components for mains input, auto-added when HLK-PM01 is selected",
+    
+    "required": [
+      {
+        "component": "fuse_holder_5x20",
+        "position": "In series with MAINS_LIVE, BEFORE HLK-PM01 AC_L input",
+        "fuse_rating": {
+          "type": "Glass or ceramic, fast-blow",
+          "current_A": 0.5,
+          "voltage_V": 250,
+          "breaking_capacity_A": 1500,
+          "size_mm": "5x20mm",
+          "recommended_fuse": "Littelfuse 0217.500 or equivalent",
+          "sizing_note": "HLK-PM01 max output is 600mA @ 5V = 3W. At 230VAC input, max input current ≈ 3W/230V × 1.5 (inefficiency) ≈ 20mA. 500mA fuse provides generous margin for inrush while protecting against short circuit."
+        },
+        "wiring": {
+          "net_in": "MAINS_LIVE",
+          "net_out": "MAINS_FUSED",
+          "schematic": "MAINS_LIVE → Fuse_P1 | Fuse_P2 → MAINS_FUSED → HLK-PM01_AC_L"
+        }
+      },
+      {
+        "component": "mains_screw_terminal",
+        "description": "2-position or 3-position screw terminal for mains input (L, N, and optionally PE)",
+        "position": "Board edge, MAINS zone",
+        "requirements": [
+          "Minimum 5.08mm pitch for mains voltage",
+          "Rated for 250VAC, 10A minimum",
+          "Clearly labelled L, N (and PE if present)"
+        ],
+        "component_id": "screw_terminal_2pin",
+        "note": "Existing screw_terminal_2pin component. For mains use, must verify 250VAC rating on specific LCSC part."
+      }
+    ],
+
+    "recommended": [
+      {
+        "component": "mov_varistor",
+        "description": "Metal Oxide Varistor for surge/transient protection on mains input",
+        "position": "Across MAINS_LIVE and MAINS_NEUTRAL, after fuse",
+        "spec": {
+          "clamping_voltage_V": 470,
+          "max_surge_A": 2500,
+          "energy_J": 56,
+          "package": "Radial 10mm",
+          "recommended_part": "EPCOS B72210S0271K101 (275VAC)",
+          "lcsc_part_number": "C397306",
+          "lcsc_confidence": "needs_verify"
+        },
+        "wiring": {
+          "schematic": "MAINS_FUSED ←→ MOV ←→ MAINS_NEUTRAL",
+          "note": "MOV clamps voltage spikes. Place after fuse so sustained overvoltage blows fuse rather than destroying MOV."
+        },
+        "auto_add": true,
+        "auto_add_note": "Strongly recommended for any mains-connected board. Protects against lightning-induced surges and transients."
+      },
+      {
+        "component": "x_capacitor",
+        "description": "Class X2 safety capacitor across mains for EMI filtering",
+        "position": "Across MAINS_FUSED and MAINS_NEUTRAL, near HLK-PM01",
+        "spec": {
+          "capacitance_nF": 100,
+          "voltage_rating_VAC": 275,
+          "class": "X2",
+          "package": "Radial 10mm",
+          "recommended_part": "KEMET R46KI31000001K",
+          "lcsc_part_number": "C106065",
+          "lcsc_confidence": "needs_verify"
+        },
+        "note": "X2 caps are safety-rated to fail open (not short). Standard ceramic caps MUST NOT be used across mains.",
+        "auto_add": false,
+        "auto_add_note": "Optional — HLK-PM01 has internal EMI filtering. Add if EMC testing shows conducted emissions issues."
+      },
+      {
+        "component": "discharge_resistor",
+        "description": "Bleeder resistor to discharge X capacitor when unplugged",
+        "position": "In parallel with X capacitor",
+        "spec": {
+          "resistance_MOhm": 1,
+          "power_rating_W": 0.5,
+          "note": "Ensures X cap discharges within 1 second of disconnection (IEC 60384-14 requirement)"
+        },
+        "condition": "Only needed if X capacitor is added"
+      }
+    ]
+  },
+
+  "silkscreen_markings": {
+    "description": "Required safety markings on the PCB silkscreen. Resolver MUST add these to the board design.",
+    
+    "mains_zone_boundary": {
+      "type": "line",
+      "style": "Dashed line with triangles",
+      "layer": "F.Silkscreen",
+      "position": "Along the isolation boundary / board slot",
+      "text_along_line": "⚡ DANGER — MAINS VOLTAGE — DO NOT CROSS ⚡",
+      "font_size_mm": 1.2,
+      "line_width_mm": 0.3,
+      "note": "Draw on both sides of the board slot"
+    },
+
+    "mains_zone_label": {
+      "type": "text",
+      "position": "Center of MAINS zone area",
+      "text": "⚡ MAINS 230VAC ⚡\nDANGER — LETHAL VOLTAGE",
+      "font_size_mm": 1.5,
+      "layer": "F.Silkscreen"
+    },
+
+    "selv_zone_label": {
+      "type": "text",
+      "position": "Near HLK-PM01 output pins, SELV side",
+      "text": "SELV — LOW VOLTAGE",
+      "font_size_mm": 1.0,
+      "layer": "F.Silkscreen"
+    },
+
+    "fuse_marking": {
+      "type": "text",
+      "position": "Adjacent to fuse holder",
+      "text": "F1: T500mA 250V",
+      "font_size_mm": 1.0,
+      "layer": "F.Silkscreen",
+      "note": "T = time-delay/slow-blow. F = fast-blow. Match to actual fuse spec."
+    },
+
+    "live_neutral_labels": {
+      "type": "text",
+      "position": "Next to mains screw terminal pads",
+      "texts": ["L (LIVE)", "N (NEUTRAL)"],
+      "font_size_mm": 1.0,
+      "layer": "F.Silkscreen"
+    },
+
+    "warning_box": {
+      "type": "text_box",
+      "position": "Bottom of PCB, MAINS zone or near board edge",
+      "layer": "B.Silkscreen",
+      "border": true,
+      "text": [
+        "WARNING: MAINS VOLTAGE PRESENT",
+        "Risk of electric shock and fire",
+        "Install in enclosed housing only",
+        "Mains wiring by qualified person only",
+        "Disconnect mains before servicing",
+        "Replace fuse with same type and rating only"
+      ],
+      "font_size_mm": 0.8
+    },
+
+    "high_voltage_symbol": {
+      "type": "symbol",
+      "position": "Near each mains trace entry/exit point",
+      "symbol": "IEC 60417-5036 (lightning bolt in triangle)",
+      "size_mm": 5,
+      "layer": "F.Silkscreen",
+      "note": "Standard high-voltage warning triangle. Place near mains terminal and fuse."
+    }
+  },
+
+  "copper_pour_rules": {
+    "mains_zone": {
+      "ground_pour": false,
+      "note": "NO ground pour in the mains zone. Mains traces are routed explicitly as individual traces. Ground pour would reduce creepage distances.",
+      "exception": "A small local copper pour under HLK-PM01 is acceptable if it only connects to the module's own pins and maintains 6mm creepage to SELV copper."
+    },
+    "selv_zone": {
+      "ground_pour": true,
+      "note": "Standard ground pour on all layers in SELV zone. Normal low-voltage DRC rules apply."
+    },
+    "isolation_gap": {
+      "no_pour_zone": true,
+      "width_mm": 8,
+      "note": "No copper pour of any kind crosses the isolation boundary. This zone must be bare FR-4."
+    }
+  },
+
+  "layout_placement_rules": {
+    "hlk_pm01": {
+      "position": "Board edge, corner preferred. Mains pins (1,2) on the outermost edge.",
+      "orientation": "AC input pins facing board edge / mains terminal. DC output pins facing inward toward SELV zone.",
+      "keep_out_around_module": {
+        "mains_side_mm": 8,
+        "selv_side_mm": 3,
+        "note": "8mm clear on mains side (creepage). 3mm on SELV side (module isolation handles the rest)."
+      },
+      "mounting": "Through-hole. Ensure pads are large enough for hand soldering if needed.",
+      "thermal": "Module generates ~0.5W heat. Adequate ventilation in enclosure required."
+    },
+    "fuse_holder": {
+      "position": "MAINS zone, between mains terminal and HLK-PM01",
+      "orientation": "Accessible for fuse replacement — consider enclosure access panel",
+      "trace_to_fuse": {
+        "width_mm": 1.0,
+        "net": "MAINS_LIVE → fuse_in, fuse_out → MAINS_FUSED"
+      }
+    },
+    "mov_varistor": {
+      "position": "MAINS zone, close to mains terminal, after fuse",
+      "note": "Place near point of entry to clamp surges before they reach HLK-PM01"
+    },
+    "mains_screw_terminal": {
+      "position": "Board edge, MAINS zone corner",
+      "orientation": "Wire entry facing away from board / off-board edge",
+      "clearance_to_selv_mm": 8
+    }
+  },
+
+  "ground_plane_management": {
+    "description": "Critical: The mains zone and SELV zone must have completely separate ground planes with NO electrical connection.",
+    "mains_ground": {
+      "net": "MAINS_GND",
+      "note": "This net does NOT exist in a standard HLK-PM01 circuit — the module's AC side ground is internal. But if a mains earth (PE) connection is added for an enclosure, it connects to MAINS_GND, NOT to GND.",
+      "connection_to_selv": "NEVER. Zero ohm, no ferrite bead, no capacitor — absolute galvanic isolation."
+    },
+    "selv_ground": {
+      "net": "GND",
+      "note": "Standard low-voltage ground. HLK-PM01 VO- (pin 4) connects to this net. The module provides internal isolation."
+    },
+    "safety_earth": {
+      "net": "PE",
+      "note": "Protective Earth. Only relevant if the enclosure has a metal chassis. PE connects to the chassis via a ring terminal, NOT to MAINS_GND or GND. If no metal enclosure, PE is not needed.",
+      "when_required": "Metal enclosure, Class I equipment",
+      "when_not_required": "Plastic enclosure, Class II equipment (double-insulated)"
+    }
+  },
+
+  "auto_add_chain": {
+    "description": "When HLK-PM01 is selected, the resolver auto-adds these components and constraints",
+    "components_added": [
+      { "id": "fuse_holder_5x20", "quantity": 1, "required": true },
+      { "id": "mov_varistor", "quantity": 1, "required": false, "default": true, "note": "Recommended, user can opt out" },
+      { "id": "screw_terminal_2pin", "quantity": 1, "required": true, "note": "Mains input terminal, 5.08mm pitch" }
+    ],
+    "constraints_added": [
+      "Board slot between mains and SELV zones",
+      "8mm keepout zone on all copper layers at isolation boundary",
+      "6mm keepout zone for components at isolation boundary",
+      "MAINS net class with 6mm clearance DRC",
+      "1mm minimum trace width on all MAINS nets",
+      "No vias on MAINS nets",
+      "No ground pour in MAINS zone",
+      "All silkscreen markings from silkscreen_markings section",
+      "Safety disclaimer triggered in build notes / BOM output"
+    ],
+    "user_prompts": [
+      "⚡ MAINS VOLTAGE: Your design includes the HLK-PM01 AC-DC converter. This introduces lethal voltages onto the PCB.",
+      "The board will be divided into MAINS and SELV zones with a routed slot for isolation.",
+      "A fuse holder and MOV surge protector will be added automatically.",
+      "The final product MUST be installed in a fully enclosed housing.",
+      "Mains wiring must be performed by a qualified electrician.",
+      "This design has NOT been certified to IEC 62368-1 or any safety standard."
+    ]
+  },
+
+  "missing_components_to_add": {
+    "description": "Components that need to be added to components.json to support full mains safety",
+    "mov_varistor": {
+      "needed": true,
+      "display_name": "MOV Varistor 275VAC",
+      "note": "Not yet in components.json — add as part of this update"
+    }
+  }
+}

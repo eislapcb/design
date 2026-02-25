@@ -1,0 +1,83 @@
+{
+  "_description": "TEMPLATE — Copy this file to add a new component. Fill in every field. Fields marked REQUIRED will cause validation errors if missing. Fields marked AUTO can be derived from other fields but should be set explicitly for clarity.",
+  "_instructions": [
+    "1. Copy this entire object as a new entry in components.json",
+    "2. Set the object key to the component id (lowercase_snake_case)",
+    "3. Fill in every field following the type and notes",
+    "4. Run: node validate.js — fix any errors",
+    "5. Check the new component appears in the validation report count",
+    "6. If the component adds a new capability, add it to capabilities.json too"
+  ],
+
+  "id":                       { "_type": "string",  "_required": true,  "_note": "Unique key, lowercase_snake_case. Must match the object key in components.json.", "_example": "bme680" },
+  "display_name":             { "_type": "string",  "_required": true,  "_note": "Human-readable name shown to user.", "_example": "BME680 Environmental Sensor" },
+  "category":                 { "_type": "string",  "_required": true,  "_note": "One of: mcu, power, sensor, comms, display, motor_driver, passive, connector", "_example": "sensor" },
+  "subcategory":              { "_type": "string",  "_required": true,  "_note": "Specific type within category. Used for ref designator prefix lookup.", "_example": "sensor_env" },
+  "ref_designator_prefix":    { "_type": "string",  "_required": true,  "_note": "IEC 60617 prefix. See silkscreen_rules.json reference_designators.prefixes.", "_example": "U" },
+
+  "manufacturer":             { "_type": "string",  "_required": false, "_note": "Component manufacturer.", "_example": "Bosch Sensortec" },
+  "mpn":                      { "_type": "string",  "_required": true,  "_note": "Manufacturer part number. Must be orderable.", "_example": "BME680" },
+  "datasheet_url":            { "_type": "string",  "_required": true,  "_note": "URL to official datasheet PDF. Empty string if unavailable.", "_example": "https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme680-ds001.pdf" },
+
+  "package":                  { "_type": "string",  "_required": false, "_note": "Package description for human reference.", "_example": "LGA-8 3×3mm" },
+  "kicad_footprint":          { "_type": "string",  "_required": true,  "_note": "Full KiCad footprint library:name path. Must exist in KiCad 7+ standard libraries.", "_example": "Package_LGA:Bosch_LGA-8_3x3mm_P0.8mm_ClockwisePinNumbering" },
+  "kicad_symbol":             { "_type": "string",  "_required": true,  "_note": "Full KiCad symbol library:name path.", "_example": "Sensor:BME680" },
+  "dimensions_mm":            { "_type": "object",  "_required": true,  "_note": "Physical size. {length, width, height} in mm.", "_example": { "length": 3.0, "width": 3.0, "height": 0.93 } },
+
+  "courtyard_clearance_mm":   { "_type": "number",  "_required": true,  "_note": "Minimum clearance to other components. ICs: 0.25, passives: 0.15, connectors: 0.5, RF modules: 1.0", "_example": 0.25 },
+  "placement_zone":           { "_type": "string",  "_required": true,  "_note": "One of: centre, edge_top, edge_bottom, edge_left, edge_right, any, corner. Where on the board this component prefers to be.", "_example": "any" },
+  "placement_priority":       { "_type": "number",  "_required": true,  "_note": "1-10. Higher = placed first. MCUs: 1, regulators: 2, ICs: 3-5, passives: 8-10.", "_example": 5 },
+  "antenna_keepout_mm":       { "_type": "number",  "_required": true,  "_note": "Antenna keep-out zone radius. 0 for non-RF components.", "_example": 0 },
+  "min_layers":               { "_type": "number",  "_required": true,  "_note": "Always 4. All PCB Wizard boards are 4-layer.", "_example": 4 },
+
+  "cost_gbp":                 { "_type": "number",  "_required": false, "_note": "Indicative unit cost in GBP.", "_example": 2.50 },
+  "cost_gbp_unit":            { "_type": "number",  "_required": true,  "_note": "Unit cost in GBP for BOM costing.", "_example": 2.50 },
+
+  "lcsc_part_number":         { "_type": "string",  "_required": true,  "_note": "LCSC C-number (e.g., C88291). Primary procurement source.", "_example": "C88291" },
+  "lcsc_pn":                  { "_type": "string",  "_required": true,  "_note": "Same as lcsc_part_number. Legacy field, keep in sync.", "_example": "C88291" },
+  "jlcpcb_basic":             { "_type": "boolean", "_required": true,  "_note": "true if JLCPCB basic part (no loading fee). false for extended.", "_example": false },
+  "lcsc_confidence":          { "_type": "string",  "_required": false, "_note": "One of: verified, high, needs_verify, module, footprint_only.", "_example": "high" },
+  "digikey_pn":               { "_type": "string",  "_required": false, "_note": "Digi-Key part number. Empty string if unknown.", "_example": "" },
+
+  "capabilities":             { "_type": "array<string>", "_required": true,  "_note": "List of capability IDs this component provides. Must exist in capabilities.json.", "_example": ["temperature", "humidity", "pressure", "gas_resistance"] },
+  "capability_score":         { "_type": "object",  "_required": true,  "_note": "Map of capability_id → score (1-10). Higher = better at that capability.", "_example": { "temperature": 8, "humidity": 8, "pressure": 7, "gas_resistance": 10 } },
+  "satisfies_processing":     { "_type": "boolean", "_required": true,  "_note": "true only for MCUs that can run user firmware. false for everything else.", "_example": false },
+
+  "supply_voltage":           { "_type": "string",  "_required": true,  "_note": "Operating voltage. One of: 3.3V, 5V, 3.3V-5V, N/A (passives).", "_example": "3.3V" },
+  "power_consumption_ma":     { "_type": "number",  "_required": true,  "_note": "Typical active current draw in mA. Used for power budget.", "_example": 12 },
+  "power_draw_ma":            { "_type": "number",  "_required": false, "_note": "Same as power_consumption_ma. Legacy field.", "_example": 12 },
+  "power_modes":              { "_type": "object",  "_required": "for active ICs", "_note": "Power states from datasheet. See structure below.", "_example": {
+    "active":           { "current_ma": 12, "note": "Gas heater on, all sensors measuring" },
+    "sleep":            { "current_ma": 0.0015, "note": "Sleep mode" },
+    "peak":             { "current_ma": 12, "note": "Same as active for low-power sensors" },
+    "typical_active_ma": 12,
+    "peak_current_ma":   12
+  }},
+
+  "interfaces":               { "_type": "array<string>", "_required": true,  "_note": "List of interface types: SPI, I2C, UART, GPIO, ADC, PWM, OneWire, etc.", "_example": ["I2C", "SPI"] },
+
+  "requires_decoupling":      { "_type": "boolean", "_required": true,  "_note": "true for all active ICs. false for passives, connectors, crystals.", "_example": true },
+  "decoupling_caps":          { "_type": "array<object>", "_required": true,  "_note": "Decoupling cap specs. Empty array [] for passives/connectors.", "_example": [
+    { "value": "100nF", "package": "0402", "pin": "VDD", "max_distance_mm": 3 }
+  ]},
+
+  "ipc610_notes":             { "_type": "string",  "_required": false, "_note": "Assembly/inspection notes per IPC-A-610. Empty string if none.", "_example": "QFN exposed pad must be soldered for thermal and electrical connection." },
+
+  "auto_add_rule":            { "_type": "string",  "_required": false, "_note": "If this component is auto-added by the resolver, which rule triggers it. See validate.js knownRules.", "_example": "resolver_auto_add_i2c" },
+  "auto_add_components":      { "_type": "array<string>", "_required": false, "_note": "Component IDs that are auto-added when THIS component is selected.", "_example": ["res_4k7_0402", "cap_100nf_0402"] },
+  "auto_add_note":            { "_type": "string",  "_required": false, "_note": "Explanation of auto-add behavior.", "_example": "Pull-up resistors for I2C bus, decoupling cap." },
+
+  "pins": {
+    "_type": "object", "_required": true, "_note": "Complete pinout verified against datasheet.",
+    "_structure": {
+      "count":      { "_type": "number", "_note": "Total pin count including exposed pad if present." },
+      "package":    { "_type": "string", "_note": "Package description." },
+      "power":      { "_type": "array<object>", "_note": "Power pins: [{pin, name, net, note}]" },
+      "gpio":       { "_type": "array<object>", "_note": "General-purpose pins if applicable." },
+      "interfaces": { "_type": "object", "_note": "Bus interfaces: {I2C: {sda: {pin, name}, scl: {pin, name}, address: '0xNN'}, SPI: {...}, etc.}" },
+      "notes":      { "_type": "string", "_note": "Important pin-level notes (e.g., exposed pad connection, address configuration)." }
+    }
+  },
+
+  "layout_constraints":       { "_type": "object",  "_required": false, "_note": "Special layout rules (crystal ground plane, antenna keepout, thermal). Only for components with non-standard layout needs." }
+}

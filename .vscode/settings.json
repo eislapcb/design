@@ -1,0 +1,24 @@
+{
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.wordWrap": "on",
+  "files.associations": {
+    "*.json": "json",
+    "*.kicad_sch": "plaintext"
+  },
+  "json.schemas": [
+    {
+      "fileMatch": ["data/components.json"],
+      "url": "./data/component_template.json"
+    }
+  ],
+  "search.exclude": {
+    "node_modules": true,
+    "*.zip": true
+  },
+  "python.defaultInterpreterPath": "python3",
+  "[python]": {
+    "editor.tabSize": 4
+  },
+  "liveServer.settings.port": 5500
+}

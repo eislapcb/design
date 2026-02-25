@@ -1,0 +1,276 @@
+{
+  "_description": "Thermal design rules and constraints for PCB Wizard resolver",
+  "_version": "1.0",
+  "thermal_classes": {
+    "class_A_critical": {
+      "description": "Components that WILL overheat or fail without thermal management",
+      "max_temp_rise_above_ambient": 40,
+      "requires": [
+        "copper_pour",
+        "thermal_vias"
+      ],
+      "components": [
+        {
+          "id": "drv8825",
+          "power_dissipation_W": 2.5,
+          "condition": "2A motor current, low-speed microstepping",
+          "thermal_pad": true,
+          "thermal_pad_area_mm2": 15.2,
+          "requirements": [
+            "Exposed pad MUST be soldered to ground copper pour",
+            "Minimum 6 thermal vias (0.3mm) under pad to bottom copper",
+            "Bottom copper pour minimum 15x15mm",
+            "At full current, consider airflow or heatsink"
+          ],
+          "junction_to_ambient_C_per_W": 40,
+          "max_junction_temp_C": 150
+        },
+        {
+          "id": "drv8833",
+          "power_dissipation_W": 1.8,
+          "condition": "1.5A per channel, both channels active",
+          "thermal_pad": true,
+          "requirements": [
+            "Exposed pad soldered to ground pour",
+            "Minimum 4 thermal vias under pad",
+            "Ground copper pour minimum 12x12mm"
+          ],
+          "junction_to_ambient_C_per_W": 45,
+          "max_junction_temp_C": 150
+        },
+        {
+          "id": "stm32h743vit6",
+          "power_dissipation_W": 1,
+          "condition": "480MHz, all peripherals active",
+          "thermal_pad": true,
+          "thermal_pad_area_mm2": 42,
+          "requirements": [
+            "Exposed pad to ground pour with minimum 9 thermal vias",
+            "4-layer board strongly recommended for thermal spreading",
+            "Ground pour on layer 2 acts as heat spreader"
+          ],
+          "junction_to_ambient_C_per_W": 25,
+          "max_junction_temp_C": 105
+        }
+      ]
+    },
+    "class_B_moderate": {
+      "description": "Components that generate noticeable heat and need copper pour but won't fail catastrophically",
+      "max_temp_rise_above_ambient": 30,
+      "requires": [
+        "copper_pour"
+      ],
+      "components": [
+        {
+          "id": "ams1117_3v3",
+          "power_dissipation_formula": "(VIN - 3.3) × I_load",
+          "worst_case_W": 1.7,
+          "condition": "5V input, 1A load → (5-3.3)×1 = 1.7W",
+          "thermal_pad": "SOT-223 tab",
+          "requirements": [
+            "SOT-223 tab pad connected to wide copper pour",
+            "Minimum 10x10mm copper on tab side",
+            "At >500mA load from 5V input, consider switching regulator (MP2359) instead",
+            "At >800mA, AMS1117 WILL overheat without significant copper area"
+          ],
+          "junction_to_ambient_C_per_W": 50,
+          "max_junction_temp_C": 125,
+          "derating_note": "Power dissipation is (VIN-VOUT)*I. Higher VIN = more heat. From 12V → 3.3V at 500mA = 4.35W = IMPOSSIBLE without heatsink. Use buck converter."
+        },
+        {
+          "id": "esp32_wroom_32",
+          "power_dissipation_W": 0.8,
+          "condition": "WiFi TX active, continuous",
+          "requirements": [
+            "Ground pour under module recommended",
+            "No components under ESP32 module (keep-out zone for antenna)",
+            "Module already has internal ground plane"
+          ]
+        },
+        {
+          "id": "sim7080g",
+          "power_dissipation_W": 1.5,
+          "condition": "Cellular TX burst",
+          "requirements": [
+            "Large ground pour under module",
+            "100µF bulk cap within 5mm of power pins",
+            "Peak current 2A — ensure power path can handle it"
+          ]
+        },
+        {
+          "id": "w5500",
+          "power_dissipation_W": 0.5,
+          "condition": "Active Ethernet",
+          "requirements": [
+            "Ground pour under IC",
+            "Thermal vias on exposed pad if present"
+          ]
+        },
+        {
+          "id": "tp4056",
+          "power_dissipation_formula": "(VUSB - VBAT) × I_charge",
+          "worst_case_W": 0.8,
+          "condition": "5V USB, 3.0V discharged battery, 500mA charge → (5-3)×0.5 = 1W",
+          "requirements": [
+            "Ground pour under and around IC",
+            "Charge current set by RPROG — lower current = less heat",
+            "2kΩ RPROG = 500mA charge. 10kΩ = 100mA."
+          ]
+        },
+        {
+          "id": "mp2359",
+          "power_dissipation_W": 0.3,
+          "condition": "Switching losses at 1A load",
+          "requirements": [
+            "Compact layout — minimize SW node trace area (EMI)",
+            "Ground pour under IC",
+            "Input cap within 3mm of VIN pin"
+          ]
+        },
+        {
+          "id": "tps63001",
+          "power_dissipation_W": 0.4,
+          "condition": "Buck-boost transition region",
+          "requirements": [
+            "Follow TI reference layout",
+            "Ground pour under IC",
+            "Inductor close to SW pins"
+          ]
+        }
+      ]
+    },
+    "class_C_low": {
+      "description": "Components with minimal heat generation — standard copper connections sufficient",
+      "components_include": "All sensors, logic ICs, passive components, low-power MCUs (RP2040, nRF52840, ATmega328P)",
+      "requirements": [
+        "Standard pad connections",
+        "100nF decoupling cap near VDD pin"
+      ]
+    }
+  },
+  "mains_safety": {
+    "_note": "Comprehensive mains safety rules are in mains_safety_rules.json. This section contains only a summary reference.",
+    "applies_to": [
+      "hlk_pm01"
+    ],
+    "full_rules_file": "mains_safety_rules.json",
+    "summary": [
+      "6mm creepage / 3mm clearance between MAINS and SELV zones",
+      "2mm board slot for physical isolation",
+      "8mm copper-free zone at isolation boundary",
+      "Fuse + MOV varistor auto-added",
+      "Silkscreen warnings and high-voltage symbols required",
+      "Separate ground planes — no connection between MAINS_GND and GND",
+      "All mains traces minimum 1mm width, no vias"
+    ]
+  },
+  "trace_width_guidelines": {
+    "signal_traces": {
+      "default_mm": 0.2,
+      "note": "Standard digital signals, I2C, SPI, UART"
+    },
+    "power_traces": {
+      "1A_mm": 0.5,
+      "2A_mm": 1,
+      "3A_mm": 1.5,
+      "note": "For 1oz copper (35µm), outer layer. Internal layers need ~2× width.",
+      "calculator_formula": "Use IPC-2152. Rule of thumb: 0.5mm per amp for outer layers."
+    },
+    "motor_traces": {
+      "drv8825_mm": 1,
+      "drv8833_mm": 0.8,
+      "note": "Motor output traces carry full motor current"
+    },
+    "usb_differential": {
+      "width_mm": 0.3,
+      "spacing_mm": 0.15,
+      "impedance_ohm": 90,
+      "note": "USB 2.0 differential pair, 90Ω impedance. Keep traces matched length."
+    },
+    "antenna_keep_out": {
+      "esp32_mm": 15,
+      "nrf52840_mm": 10,
+      "rfm95w_mm": 10,
+      "note": "No copper pour, traces, or components in antenna keep-out zone"
+    }
+  },
+  "thermal_via_spec": {
+    "diameter_mm": 0.3,
+    "drill_mm": 0.15,
+    "grid_spacing_mm": 1,
+    "minimum_count": 4,
+    "note": "Place in grid pattern under thermal pad. Connect to ground pour on opposite layer."
+  },
+  "resolver_behavior": {
+    "on_component_selected": [
+      "1. Look up component in thermal_classes",
+      "2. If class_A: add thermal requirements to layout constraints, warn user in build notes",
+      "3. If class_B: add copper pour requirement to layout, note in build notes",
+      "4. If HLK-PM01 selected: enforce ALL mains_safety requirements, add safety disclaimer",
+      "5. If AMS1117 with estimated load >500mA from >5V input: suggest MP2359 buck converter instead",
+      "6. Calculate total power budget and flag if regulator capacity exceeded"
+    ]
+  },
+  "board_stackup": {
+    "layers": 4,
+    "stackup": {
+      "L1": {
+        "name": "F.Cu",
+        "type": "Signal + Components",
+        "copper_weight_oz": 1,
+        "thickness_um": 35
+      },
+      "prepreg_1": {
+        "material": "FR-4",
+        "thickness_mm": 0.2
+      },
+      "L2": {
+        "name": "In1.Cu",
+        "type": "Ground Plane",
+        "copper_weight_oz": 1,
+        "thickness_um": 35,
+        "note": "Continuous ground pour. No splits except crystal keepout (32kHz only) and mains isolation slot."
+      },
+      "core": {
+        "material": "FR-4",
+        "thickness_mm": 0.8
+      },
+      "L3": {
+        "name": "In2.Cu",
+        "type": "Power Plane",
+        "copper_weight_oz": 1,
+        "thickness_um": 35,
+        "note": "Split between 3V3, 5V, VMOT as needed. No splits under crystals or sensitive analog."
+      },
+      "prepreg_2": {
+        "material": "FR-4",
+        "thickness_mm": 0.2
+      },
+      "L4": {
+        "name": "B.Cu",
+        "type": "Signal + Components",
+        "copper_weight_oz": 1,
+        "thickness_um": 35
+      }
+    },
+    "total_thickness_mm": 1.6,
+    "benefits_over_2_layer": [
+      "Continuous ground plane on L2 — dramatically reduces EMI and ground bounce",
+      "Proper return current paths for all signal traces",
+      "Power plane on L3 — low-impedance power distribution, reduced decoupling requirements",
+      "Better thermal spreading — inner copper layers conduct heat across board",
+      "Required for STM32H743 (480MHz clock needs solid ground reference)",
+      "Required for USB 2.0 impedance control (90Ω differential)",
+      "Required for proper crystal oscillator shielding",
+      "Enables controlled impedance for RF antenna feeds (ESP32, nRF52840, RFM95W)"
+    ],
+    "routing_rules": {
+      "L1": "Horizontal signal preference. All components on this layer when possible.",
+      "L2": "Ground plane ONLY. No signal routing. Minimal cuts/slots.",
+      "L3": "Power plane. Route power as fills/pours, not traces. Splits for different voltages.",
+      "L4": "Vertical signal preference. Secondary components if double-sided assembly needed."
+    },
+    "compatible_fabs": "Standard 4-layer 1.6mm stackup — compatible with all major PCB fabricators",
+    "cost_note": "4-layer adds approximately £3-5 to base PCB cost at prototype quantities (5-10 boards). Negligible compared to component cost."
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "id": "pic32ck_sg01_64",
+  "mpn": "PIC32CK2051SG01064",
+  "name": "PIC32CK2051SG01064",
+  "display_name": "PIC32CK SG01 MCU (64-pin)",
+  "description": "ARM Cortex-M33 120MHz, 2MB Flash, 512KB SRAM, HSM + TrustZone",
+  "manufacturer": "Microchip Technology",
+  "category": "mcu",
+  "icon": "\ud83e\udde0",
+  "specs": {
+    "core": "ARM Cortex-M33",
+    "clock_mhz": 120,
+    "flash_kb": 2048,
+    "sram_kb": 512,
+    "vdd_min": 1.62,
+    "vdd_max": 3.63,
+    "io_count": 50,
+    "has_hsm": true,
+    "has_trustzone": true,
+    "peripherals": [
+      "Ethernet",
+      "CAN FD",
+      "USB HS",
+      "USB FS",
+      "I2S",
+      "I2C",
+      "SPI",
+      "UART"
+    ],
+    "adc_channels": 12,
+    "adc_bits": 12
+  },
+  "package": {
+    "type": "VQFN",
+    "pins": 64,
+    "size_mm": "9x9",
+    "pitch_mm": 0.5,
+    "thermal_pad": true,
+    "kicad_footprint": "Package_DFN_QFN:QFN-64-1EP_9x9mm_P0.5mm_EP5.15x5.15mm"
+  },
+  "layout": {
+    "layers_min": 4,
+    "power_watts": 0.5,
+    "decoupling": [
+      "100nF x4",
+      "10uF x1",
+      "1uF x2"
+    ],
+    "placement_zone": "center",
+    "notes": [
+      "100nF caps within 3mm of VDD pins",
+      "Thermal pad \u2192 ground plane with min 9 vias",
+      "SWD/JTAG header for programming"
+    ]
+  },
+  "sourcing": {
+    "jlcpcb": {
+      "available": false,
+      "lcsc_pn": null,
+      "stock": 0,
+      "category": "not_stocked"
+    },
+    "lcsc": {
+      "available": false,
+      "lcsc_pn": null,
+      "stock": 0
+    },
+    "consignment_required": true,
+    "alternatives": [],
+    "digikey_mpn": "PIC32CK2051SG01064-I/TL",
+    "mouser_mpn": "PIC32CK2051SG01064-I/TL"
+  },
+  "pricing_gbp": {
+    "p1": 8.5,
+    "p10": 7.2,
+    "p100": 5.85,
+    "source": "estimate"
+  }
+}

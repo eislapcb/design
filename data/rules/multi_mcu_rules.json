@@ -1,0 +1,156 @@
+{
+  "_description": "Rules for handling multi-MCU designs where more than one microcontroller is on the same PCB",
+  "_version": "1.0",
+
+  "detection": {
+    "mcu_component_ids": ["atmega328p_au", "esp32_wroom_32", "rp2040", "nrf52840_qiaa", "stm32h743vit6"],
+    "trigger": "User selects 2+ components from mcu_component_ids"
+  },
+
+  "architecture_patterns": [
+    {
+      "id": "primary_secondary",
+      "description": "One MCU is the primary controller, others are coprocessors or dedicated controllers",
+      "example": "ESP32 as main controller + ATmega328P as motor controller",
+      "rules": {
+        "primary_selection": "MCU with highest capability set OR most connected peripherals",
+        "primary_priority_order": ["stm32h743vit6", "esp32_wroom_32", "nrf52840_qiaa", "rp2040", "atmega328p_au"],
+        "interconnect": "Primary and secondary communicate via UART, I2C (secondary as slave), or SPI"
+      }
+    },
+    {
+      "id": "domain_isolation",
+      "description": "Each MCU owns a specific domain (e.g., one for connectivity, one for real-time control)",
+      "example": "ESP32 for WiFi/BLE + RP2040 for PIO/motor control",
+      "rules": {
+        "each_mcu_gets": "Own crystal, own decoupling, own reset circuit, own programming header",
+        "shared_resources": "Only I2C/SPI/UART bus interconnect. Never share GPIO directly."
+      }
+    }
+  ],
+
+  "resource_ownership": {
+    "usb_port": {
+      "rule": "Only ONE MCU connects to the USB-C connector for programming/debug",
+      "priority_order": ["esp32_wroom_32", "rp2040", "stm32h743vit6", "nrf52840_qiaa", "atmega328p_au"],
+      "secondary_programming": "Secondary MCU programmed via UART from primary, or via dedicated ISP/SWD header",
+      "note": "CP2102N USB-UART bridge serves one MCU only. Additional MCUs need UART headers or SWD."
+    },
+
+    "i2c_bus": {
+      "rule": "One MCU is I2C master. Secondary MCUs either: (a) act as I2C slaves, or (b) get their own I2C bus to dedicated peripherals",
+      "master_selection": "Primary MCU is I2C master",
+      "slave_mode_support": {
+        "esp32_wroom_32": true,
+        "rp2040": true,
+        "stm32h743vit6": true,
+        "nrf52840_qiaa": true,
+        "atmega328p_au": true
+      },
+      "conflict_avoidance": "If both MCUs need I2C sensors, split sensors between MCU I2C buses — don't share a single bus with two masters"
+    },
+
+    "spi_bus": {
+      "rule": "SPI can be shared if each device has unique CS line. But two MCUs should NOT share a SPI bus as masters.",
+      "per_mcu": "Each MCU gets its own SPI bus with its own peripherals",
+      "exception": "SPI flash/SD can be shared if only one MCU accesses at a time (mutex via GPIO handshake)"
+    },
+
+    "uart_interconnect": {
+      "rule": "Primary-to-secondary communication typically uses UART",
+      "wiring": "Primary TX → Secondary RX, Primary RX → Secondary TX",
+      "baud_rate": "115200 default, configurable",
+      "protocol_suggestion": "Simple framed packets: [START_BYTE][LENGTH][CMD][PAYLOAD][CRC]",
+      "voltage_matching": "If MCUs are different voltages (e.g., 5V ATmega + 3.3V ESP32), add level shifter on UART lines"
+    },
+
+    "power_rails": {
+      "rule": "Each MCU may need different supply voltages",
+      "scenarios": [
+        {
+          "mcus": ["esp32_wroom_32", "rp2040"],
+          "both_3v3": true,
+          "action": "Share 3.3V rail. Ensure regulator can supply combined current."
+        },
+        {
+          "mcus": ["atmega328p_au", "esp32_wroom_32"],
+          "mixed_voltage": true,
+          "action": "ATmega needs 5V, ESP32 needs 3.3V. Need both rails. Level shift all interconnects."
+        },
+        {
+          "mcus": ["stm32h743vit6", "rp2040"],
+          "both_3v3": true,
+          "action": "Share 3.3V rail but STM32H7 draws up to 280mA — ensure regulator headroom."
+        }
+      ]
+    },
+
+    "reset_circuit": {
+      "rule": "Each MCU gets its own reset button and RC circuit",
+      "shared_reset": "NOT recommended — resetting one MCU mid-operation could corrupt comms with the other",
+      "exception": "A master reset (supervisor IC) can reset all MCUs simultaneously for system-level recovery"
+    },
+
+    "programming_headers": {
+      "rule": "Each MCU needs its own programming interface",
+      "atmega328p_au": "AVR-ISP 6-pin OR UART via bootloader",
+      "esp32_wroom_32": "USB-UART (CP2102N) with auto-reset circuit (DTR/RTS)",
+      "rp2040": "USB (native) OR SWD 3-pin",
+      "nrf52840_qiaa": "SWD 10-pin (Cortex Debug)",
+      "stm32h743vit6": "SWD 10-pin OR UART DFU bootloader"
+    }
+  },
+
+  "inter_mcu_communication_options": [
+    {
+      "method": "UART",
+      "pins_required": 2,
+      "bidirectional": true,
+      "speed": "Up to 921600 baud",
+      "pros": "Simple, all MCUs support it, minimal pins",
+      "cons": "Point-to-point only, no multi-drop",
+      "best_for": "Primary-secondary command/response"
+    },
+    {
+      "method": "SPI",
+      "pins_required": 4,
+      "bidirectional": true,
+      "speed": "Up to 10MHz+",
+      "pros": "Fast, good for bulk data transfer",
+      "cons": "One master only, more pins, no standard framing",
+      "best_for": "High-speed data transfer (audio, sensor streaming)"
+    },
+    {
+      "method": "I2C_slave",
+      "pins_required": 2,
+      "bidirectional": true,
+      "speed": "100-400kHz",
+      "pros": "Shared bus with other I2C devices, only 2 pins",
+      "cons": "Slower, secondary must implement slave register model",
+      "best_for": "Lightweight status/command exchange"
+    },
+    {
+      "method": "GPIO_handshake",
+      "pins_required": "1-4",
+      "bidirectional": true,
+      "speed": "Microsecond-level signaling",
+      "pros": "Dead simple, guaranteed timing",
+      "cons": "Very low bandwidth, only for flags/triggers",
+      "best_for": "Interrupt/ready signals between MCUs"
+    }
+  ],
+
+  "resolver_behavior": {
+    "on_second_mcu_selected": [
+      "1. Prompt user: 'You've selected two microcontrollers. Which is the primary?'",
+      "2. If user doesn't specify, use primary_priority_order",
+      "3. Assign USB/programming to primary MCU",
+      "4. Add UART interconnect between MCUs (default)",
+      "5. Split I2C sensors: sensors belonging to primary's capabilities stay on primary's bus",
+      "6. Add separate reset circuits for each MCU",
+      "7. Add separate programming headers for each MCU",
+      "8. Check voltage compatibility — add level shifters if mixed 3.3V/5V",
+      "9. Verify total power budget — combined MCU draw may exceed single regulator"
+    ]
+  }
+}

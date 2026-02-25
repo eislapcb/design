@@ -1,0 +1,425 @@
+{
+  "_description": "Input protection, reverse polarity, ESD, overcurrent, and reliability rules for PCB Wizard resolver. These complement mains_safety_rules.json (which covers AC mains) — this file covers DC-side and signal-level protection.",
+  "_version": "1.0",
+
+  "reverse_polarity_protection": {
+    "description": "Prevents damage when external DC power is connected backwards. Critical for any user-accessible power input.",
+    "applies_to": ["dc_barrel_jack", "screw_terminal_2pin", "jst_ph_2pin_power"],
+    "strategies": [
+      {
+        "id": "p_fet_reverse",
+        "description": "P-channel MOSFET in high-side. Near-zero voltage drop when correct polarity, blocks current when reversed.",
+        "component": "dmg2305ux",
+        "wiring": {
+          "source": "VIN (from connector)",
+          "gate": "GND",
+          "drain": "VIN_PROT (to regulator)",
+          "note": "Gate tied to GND via 10kΩ. When VIN is positive, VGS is negative → FET turns on. When reversed, VGS is positive → FET blocks."
+        },
+        "voltage_drop_mV": 50,
+        "max_current_A": 4.2,
+        "best_for": "Barrel jack and screw terminal inputs where efficiency matters",
+        "auto_add_rule": "resolver_auto_add_barrel_jack"
+      },
+      {
+        "id": "schottky_series",
+        "description": "Schottky diode in series with power input. Simple but drops 300-500mV.",
+        "component": "schottky_ss34",
+        "wiring": {
+          "anode": "VIN (from connector)",
+          "cathode": "VIN_PROT (to regulator)"
+        },
+        "voltage_drop_mV": 400,
+        "max_current_A": 3,
+        "best_for": "Low-current applications or where simplicity > efficiency",
+        "auto_add_rule": "resolver_auto_add_barrel_jack"
+      }
+    ],
+    "default_strategy": "p_fet_reverse",
+    "resolver_behavior": [
+      "When dc_barrel_jack OR power screw terminal is selected, auto-add P-FET reverse polarity protection",
+      "Insert between connector output and first regulator input",
+      "Net naming: VIN (raw from connector) → VIN_PROT (after protection, to regulator)",
+      "Add 10kΩ gate pull-down resistor"
+    ]
+  },
+
+  "inductive_load_protection": {
+    "description": "Protection against voltage spikes from inductive loads (motors, relays, solenoids). Motor drivers have internal protection but the supply rail needs external protection.",
+    
+    "motor_supply_protection": {
+      "applies_to": ["drv8825", "drv8833"],
+      "requirements": [
+        {
+          "component": "Bulk electrolytic capacitor",
+          "value": "100µF minimum, 470µF recommended",
+          "voltage_rating": "2× VMOT minimum",
+          "placement": "Within 10mm of motor driver VMOT pin",
+          "component_id": "cap_100uf_vmot",
+          "note": "Absorbs back-EMF energy from motor deceleration and supplies inrush current during acceleration. Without this, VMOT spikes can exceed absolute max rating and destroy driver."
+        },
+        {
+          "component": "TVS diode on VMOT",
+          "description": "Transient voltage suppressor clamps spikes above VMOT maximum",
+          "spec": {
+            "standoff_voltage_V": "VMOT × 1.1",
+            "clamping_voltage_V": "VMOT × 1.4",
+            "peak_current_A": 10
+          },
+          "component_id": "tvs_vmot",
+          "note": "For 12V VMOT: use 15V standoff TVS. For 24V: use 28V standoff. Catches spikes that bulk cap cannot absorb fast enough."
+        }
+      ],
+      "auto_add": true,
+      "auto_add_note": "When any motor driver is selected, add bulk cap + TVS on VMOT rail"
+    },
+
+    "relay_flyback": {
+      "applies_to": ["relay_srd05vdc"],
+      "requirements": [
+        {
+          "component": "diode_1n4148w",
+          "position": "Reverse-biased across relay coil (cathode to VCC, anode to drive transistor collector)",
+          "note": "Already in auto-add chain for relay. Clamps flyback spike to ~0.7V above VCC."
+        },
+        {
+          "component": "RC snubber across contacts",
+          "values": { "R_ohm": 100, "C_nF": 10 },
+          "note": "Already in auto-add chain (cap_10nf_relay_snubber + res_100r_0805). Reduces arcing on contact opening."
+        }
+      ],
+      "existing_coverage": true
+    },
+
+    "solenoid_servo": {
+      "applies_to": ["servo_connector_3pin"],
+      "requirements": [
+        {
+          "component": "100µF bulk cap on servo power rail",
+          "note": "Servo motors draw 500mA+ stall current in short bursts. Without bulk cap, supply sags and resets MCU."
+        },
+        {
+          "component": "Series Schottky diode on servo power",
+          "note": "Prevents servo back-feeding voltage into MCU supply when servo is externally powered"
+        }
+      ]
+    }
+  },
+
+  "adc_input_protection": {
+    "description": "Protects MCU analog input pins from overvoltage. Any exposed analog input that connects to external sensors or user-accessible terminals needs clamping.",
+    "applies_to_pins": ["AIN_SOIL", "AIN_CT", "AOUT_010V", "any ADC pin connected to external connector"],
+    
+    "protection_circuit": {
+      "description": "Series resistor + clamping diodes + filter capacitor",
+      "schematic": "EXTERNAL_SIGNAL → R_series (10kΩ) → ADC_PIN ← Schottky to VDD, Schottky to GND ← C_filter (100nF to GND)",
+      "components": [
+        {
+          "role": "Series resistor",
+          "value": "10kΩ",
+          "component_id": "res_10k_0402",
+          "purpose": "Limits current into clamping diodes and MCU internal protection diodes. Also forms RC filter with cap."
+        },
+        {
+          "role": "Clamping diodes",
+          "description": "BAT54S (dual series Schottky) or MCU internal ESD diodes",
+          "component_id": "bat54s",
+          "purpose": "Clamps voltage to VDD+0.3V / GND-0.3V. The 10kΩ series resistor limits current to safe levels (<1mA at 10V overvoltage).",
+          "note": "Most MCUs have internal clamping diodes rated for ~1mA. The 10kΩ series resistor is often sufficient without external Schottky diodes. Add external BAT54S only if input may see >10V."
+        },
+        {
+          "role": "Filter capacitor",
+          "value": "100nF",
+          "component_id": "cap_100nf_0402",
+          "purpose": "RC low-pass filter with 10kΩ resistor. Cutoff ≈ 160Hz. Removes high-frequency noise from sensor wiring."
+        }
+      ]
+    },
+
+    "voltage_divider_inputs": {
+      "description": "For inputs expected to exceed MCU VDD (e.g., 0-10V industrial signals, battery voltage monitoring)",
+      "applies_to": ["output_0_10v_terminal", "ct_clamp_jack"],
+      "circuit": "High-impedance voltage divider to scale signal into ADC range, followed by clamping and filter",
+      "example_0_10v": {
+        "divider": "20kΩ top + 10kΩ bottom → 0-10V scaled to 0-3.3V",
+        "then": "10kΩ series → ADC pin with 100nF filter cap",
+        "note": "Already partially handled by res_20k_0402 in auto-add. Needs explicit clamping addition."
+      }
+    },
+
+    "auto_add_rule": "resolver_auto_add_adc_protection",
+    "resolver_behavior": [
+      "When any ADC-connected external connector is selected, add 10kΩ series resistor + 100nF filter cap",
+      "If input voltage range exceeds MCU VDD, add voltage divider and BAT54S clamping",
+      "Place protection components as close to the connector as possible, not near the MCU"
+    ]
+  },
+
+  "esd_protection_exposed_connectors": {
+    "description": "Every connector that a user can touch or that has cables running to external devices needs ESD protection. Cables act as antennas for ESD events.",
+    
+    "already_protected": {
+      "usb_c_connector": "USBLC6-2SC6 + ferrite bead + CMC",
+      "max485 / max490": "SM712 TVS",
+      "mcp2562 (CAN)": "PESD2CAN TVS",
+      "max3232 (RS-232)": "tvs_rs232"
+    },
+
+    "needs_protection": [
+      {
+        "connectors": ["header_4pin_i2c", "qwiic_connector", "grove_connector"],
+        "bus": "I2C",
+        "protection": "TPD4E05U06 (4-channel TVS array) on SDA, SCL, VCC, GND",
+        "component_id": "tpd4e05u06",
+        "note": "Already in data as resolver_auto_add_i2c but needs to be explicitly triggered for external I2C connectors, not just on-board I2C.",
+        "placement": "At the connector, not at the MCU"
+      },
+      {
+        "connectors": ["uart_header_4pin"],
+        "bus": "UART",
+        "protection": "TPD4E05U06 on TX, RX, VCC, GND",
+        "component_id": "tpd4e05u06",
+        "auto_add_rule": "resolver_auto_add_uart_needed"
+      },
+      {
+        "connectors": ["gpio_breakout_header"],
+        "bus": "GPIO",
+        "protection": "Series resistors (330Ω) on each GPIO line. Limits ESD current and short-circuit current.",
+        "component_id": "res_330r_0402",
+        "note": "One 330Ω resistor per GPIO pin. Limits short-circuit to ~10mA from 3.3V. Also provides basic ESD current limiting.",
+        "auto_add_rule": "resolver_auto_add_always"
+      },
+      {
+        "connectors": ["header_3pin_servo", "servo_connector_3pin"],
+        "bus": "Servo PWM",
+        "protection": "100Ω series on signal line. Servo cable acts as ESD antenna.",
+        "note": "Lower resistance than GPIO to avoid signal degradation at servo PWM frequencies"
+      },
+      {
+        "connectors": ["header_8pin_spi_display", "header_16pin_lcd"],
+        "bus": "SPI/Parallel",
+        "protection": "33Ω series on each signal line for impedance matching and basic ESD limiting",
+        "note": "SPI displays are typically on short ribbon cables — lower ESD risk but still needs basic protection"
+      },
+      {
+        "connectors": ["mmwave_header_5pin", "hcsr04_connector", "reed_switch_connector", "flow_sensor_connector", "soil_probe_connector"],
+        "bus": "Sensor",
+        "protection": "10kΩ series + 100nF filter on signal lines. Sensor cables can be long and act as ESD antennas.",
+        "note": "Combine with ADC protection where applicable"
+      }
+    ],
+
+    "resolver_behavior": [
+      "For every external-facing connector, check if ESD protection exists in the signal path",
+      "If not, add appropriate TVS array or series resistor based on bus type",
+      "Place protection components at the connector, not at the MCU — intercept ESD before it reaches the board"
+    ]
+  },
+
+  "brownout_and_power_sequencing": {
+    "description": "Prevents MCU from executing garbage code during power supply instability",
+
+    "brownout_detection": {
+      "description": "Most MCUs have internal Brown-Out Detector (BOD) — ensure it's enabled in firmware configuration",
+      "mcu_settings": {
+        "atmega328p_au": {
+          "bod_fuse": "BODLEVEL = 2.7V (EXTENDED fuse bits)",
+          "note": "Set via ISP programmer fuse bits. Default is BOD disabled — MUST enable."
+        },
+        "esp32_wroom_32": {
+          "bod": "Built-in, enabled by default at 2.43V",
+          "note": "No hardware action needed. Software: esp_brownout_init() in ESP-IDF."
+        },
+        "rp2040": {
+          "bod": "Built-in voltage detector on VREG, threshold ~0.85V (DVDD)",
+          "note": "Very low threshold. For robust operation, add external supervisor."
+        },
+        "nrf52840_qiaa": {
+          "bod": "POWER.POFCON register, configurable 1.7V-3.5V",
+          "note": "Enable Power Failure Comparator in firmware."
+        },
+        "stm32h743vit6": {
+          "bod": "Programmable BOR levels 0-3 (1.68V-2.70V)",
+          "note": "Set via option bytes. BOR Level 3 (2.70V) recommended for reliable operation."
+        }
+      }
+    },
+
+    "power_sequencing": {
+      "stm32h743vit6": {
+        "critical": true,
+        "sequence": [
+          "1. VDD (3.3V core) must ramp monotonically — no dips during ramp-up",
+          "2. VDDA (analog) can power up simultaneously with VDD but NOT before",
+          "3. VCAP pins need 4.7µF low-ESR caps (internal regulator output)",
+          "4. Boot pin must be stable before NRST rises"
+        ],
+        "concern": "If 3.3V rail sags during motor inrush and then recovers, STM32 may not reset cleanly. Use supervisor IC for critical applications."
+      },
+      "general": {
+        "rule": "Ensure MCU VDD rises monotonically and reaches minimum operating voltage before releasing reset",
+        "implementation": "100nF cap on RESET pin provides ~10ms delay. For critical applications, add MAX809 supervisor IC."
+      }
+    },
+
+    "motor_inrush_rail_sag": {
+      "description": "When a motor starts, it draws 5-10× running current for ~100ms. This can pull the 5V or 3.3V rail below MCU minimum operating voltage, causing reset.",
+      "solutions": [
+        "Separate VMOT power supply from MCU power supply (different regulator or direct battery)",
+        "Large bulk capacitor (470µF+) on MCU supply rail to ride through inrush",
+        "Soft-start on motor driver (DRV8825 has built-in current limiting during startup)",
+        "If single supply: add ferrite bead + bulk cap between motor power and MCU power to decouple"
+      ],
+      "auto_add_note": "When motor driver + MCU share a power source, add ferrite_bead_motor and cap_470uf on MCU 5V rail"
+    }
+  },
+
+  "hot_plug_protection": {
+    "description": "Connectors that may be plugged/unplugged while the board is powered need protection against ground bounce, inrush, and data line spikes.",
+    "applies_to": ["qwiic_connector", "grove_connector", "header_4pin_i2c", "header_3pin_servo", "uart_header_4pin"],
+    "risks": [
+      "Ground pin makes contact after power pin → momentary VCC on data lines via internal ESD diodes",
+      "Data pins make contact before ground → undefined voltage on bus, possible latchup",
+      "Capacitive load on power pin → inrush current spike"
+    ],
+    "mitigations": [
+      {
+        "measure": "Series resistors on all data lines",
+        "value": "22-100Ω depending on bus speed",
+        "purpose": "Limits current during contact bounce"
+      },
+      {
+        "measure": "TVS/ESD protection on all connector pins",
+        "purpose": "Clamps voltage spikes from contact bounce"
+      },
+      {
+        "measure": "Connector choice",
+        "purpose": "JST SH (Qwiic) has staggered pin lengths — GND makes first contact. Good. Generic pin headers have equal-length pins — no sequencing guarantee. Bad for hot-plug.",
+        "note": "Flag warning to user if generic pin headers are used on hot-pluggable interfaces"
+      },
+      {
+        "measure": "Current limiting on power pin",
+        "purpose": "PTC fuse or current-limit switch on connector VCC prevents inrush damage",
+        "note": "Overkill for most hobby projects but essential for commercial products"
+      }
+    ]
+  },
+
+  "output_short_circuit_protection": {
+    "description": "GPIO pins driving external loads can be shorted to GND or VCC accidentally.",
+    "applies_to": ["gpio_breakout_header", "led_strip_connector", "servo_connector_3pin"],
+    "max_gpio_current_ma": {
+      "atmega328p_au": 40,
+      "esp32_wroom_32": 40,
+      "rp2040": 12,
+      "nrf52840_qiaa": 15,
+      "stm32h743vit6": 20
+    },
+    "protection": {
+      "series_resistor": {
+        "value_ohm": 330,
+        "purpose": "Limits short-circuit current to 10mA from 3.3V. Prevents MCU pin damage.",
+        "component_id": "res_330r_0402",
+        "note": "For LED drive: 330Ω limits LED current to safe level AND protects GPIO. For servo/motor control signals: use lower value (33-100Ω) to maintain signal integrity."
+      }
+    },
+    "high_current_outputs": {
+      "description": "For driving loads >20mA (LEDs, relays, solenoids), use a MOSFET or darlington driver — never drive directly from GPIO",
+      "components": ["ao3400a_equiv (N-FET)", "si2302cds (N-FET)"],
+      "note": "FET gate driven from GPIO with 330Ω series resistor. FET drain drives load. FET source to GND."
+    }
+  },
+
+  "bulk_capacitance_requirements": {
+    "description": "Components with high transient current demands need adequate local energy storage",
+    "rules": [
+      {
+        "component": "sim7080g",
+        "peak_current_A": 2.0,
+        "duration_ms": 1.5,
+        "required_cap_uF": 100,
+        "note": "Already have cap_100uf_cellular in auto-add. Verify placement within 5mm of VBAT pin."
+      },
+      {
+        "component": "esp32_wroom_32",
+        "peak_current_A": 0.38,
+        "duration_ms": 5,
+        "required_cap_uF": 22,
+        "note": "WiFi TX bursts. 10µF already on 3V3 rail. Add 22µF bulk near module VCC."
+      },
+      {
+        "component": "rfm95w",
+        "peak_current_A": 0.12,
+        "duration_ms": 100,
+        "required_cap_uF": 10,
+        "note": "LoRa TX at +20dBm. Standard 10µF rail cap sufficient."
+      },
+      {
+        "components": ["drv8825", "drv8833"],
+        "peak_current_A": "Motor dependent, up to 2.5A",
+        "required_cap_uF": 470,
+        "note": "Stepper motor current transients. 100µF absolute minimum, 470µF recommended on VMOT."
+      }
+    ]
+  },
+
+  "manufacturing_testability": {
+    "description": "Test points and verification strategy for post-assembly board testing",
+    "required_test_points": [
+      { "net": "3V3", "purpose": "Verify 3.3V rail voltage and ripple" },
+      { "net": "5V", "purpose": "Verify 5V rail voltage" },
+      { "net": "GND", "purpose": "Ground reference for measurements" },
+      { "net": "VBAT", "purpose": "Battery voltage (if LiPo circuit present)" },
+      { "net": "VMOT", "purpose": "Motor supply (if motor driver present)" },
+      { "net": "SDA", "purpose": "I2C data line for bus verification" },
+      { "net": "SCL", "purpose": "I2C clock line for bus verification" },
+      { "net": "TX_DBG", "purpose": "UART TX for firmware upload verification" },
+      { "net": "nRST_MCU", "purpose": "MCU reset — verify RC time constant" }
+    ],
+    "test_sequence": [
+      "1. Visual inspection — verify all ICs oriented correctly (pin 1 dots)",
+      "2. Power-off continuity — check for shorts between 3V3/5V and GND (should be >1kΩ)",
+      "3. Apply 5V via USB — verify 3V3 rail is 3.30±0.10V",
+      "4. Measure quiescent current — should match power budget model (±20%)",
+      "5. Connect UART — verify MCU boots and outputs serial data",
+      "6. I2C scan — verify all expected sensors respond at correct addresses",
+      "7. Functional test — exercise each capability (GPIO toggle, ADC read, sensor read)"
+    ],
+    "existing_components": ["test_point_smd", "test_point_loop"],
+    "auto_add_note": "Test points are already in resolver_auto_add_always. Resolver should place one per critical net."
+  },
+
+  "reliability_rules": {
+    "capacitor_voltage_derating": {
+      "rule": "All ceramic capacitors must be rated at minimum 2× operating voltage",
+      "reason": "MLCC ceramics (especially X5R, X7R) lose 50-80% of rated capacitance at rated voltage due to DC bias effect",
+      "examples": [
+        "5V rail: use 10V or 16V rated caps (NOT 6.3V)",
+        "3.3V rail: use 10V rated caps (NOT 6.3V)",
+        "12V rail: use 25V rated caps",
+        "VMOT (24V): use 50V rated caps"
+      ],
+      "note": "Already handled in safety_disclaimer.json resolver_rules but worth emphasising in component selection"
+    },
+    "electrolytic_lifetime": {
+      "rule": "Electrolytic capacitors have finite lifetime. Rate at 50°C below max ambient.",
+      "note": "For motor driver bulk caps running warm: use 105°C rated electrolytics, not 85°C"
+    },
+    "connector_cycle_rating": {
+      "rule": "JST PH: 30 cycles. JST SH (Qwiic): 15 cycles. USB-C: 10,000 cycles. Screw terminals: unlimited.",
+      "note": "If a connector will be frequently plugged/unplugged, choose appropriate type"
+    },
+    "solder_joint_stress": {
+      "rule": "Large heavy components (electrolytic caps, relays, screw terminals) need mechanical anchoring",
+      "note": "THT components are inherently stronger. SMD connectors and heavy modules may need adhesive or mechanical clips on production boards"
+    }
+  },
+
+  "new_components_needed": {
+    "description": "Components to add to components.json to support these protection circuits",
+    "bat54s": "Dual series Schottky for ADC clamping",
+    "cap_470uf_vmot": "Bulk capacitor for motor supply rail",
+    "tvs_vmot_15v": "TVS diode for 12V motor supply protection",
+    "tvs_vmot_28v": "TVS diode for 24V motor supply protection"
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "_description": "I2C address conflict detection and resolution rules for the PCB Wizard resolver",
+  "_version": "1.0",
+  
+  "conflict_detection": {
+    "method": "Compare I2C addresses of all selected components on same bus",
+    "address_sources": ["pins.interfaces.I2C.address", "pins.interfaces.I2C_BACKPACK.address"],
+    "alt_address_sources": ["pins.interfaces.I2C.alt_address"],
+    "bus_identification": "Components sharing same MCU I2C peripheral are on same bus"
+  },
+
+  "resolution_strategies": [
+    {
+      "id": "alt_address",
+      "priority": 1,
+      "description": "Use alternate address if one or both devices support it",
+      "condition": "At least one conflicting device has alt_address field",
+      "action": "Reconfigure device with alt address (usually via ADDR pin to VCC instead of GND)",
+      "hardware_change": "Connect ADDR pin to VCC instead of GND",
+      "example": "BME680 default 0x76, set ADDR high → 0x77. BMP280 stays at 0x76."
+    },
+    {
+      "id": "i2c_mux",
+      "priority": 2,
+      "description": "Add TCA9548A I2C multiplexer to create separate buses",
+      "condition": "Both devices have fixed addresses OR >2 devices conflict",
+      "action": "Auto-add tca9548a component, route conflicting devices to separate channels",
+      "hardware_change": "Insert TCA9548A between MCU and sensors. Each channel gets own pull-ups.",
+      "component_id": "tca9548a",
+      "max_channels": 8,
+      "note": "Software must select channel before communicating with device"
+    },
+    {
+      "id": "second_i2c_bus",
+      "priority": 3,
+      "description": "Use MCU's second I2C peripheral if available",
+      "condition": "MCU has I2C2 peripheral available AND only 2 conflicting devices",
+      "action": "Route one device to I2C1, other to I2C2",
+      "mcu_support": {
+        "esp32_wroom_32": { "buses": 2, "i2c1_pins": "any GPIO", "i2c2_pins": "any GPIO" },
+        "rp2040": { "buses": 2, "i2c1_pins": "GP4/GP5 or GP8/GP9", "i2c2_pins": "GP6/GP7 or GP10/GP11" },
+        "stm32h743vit6": { "buses": 4, "note": "I2C1-I2C4 available" },
+        "nrf52840_qiaa": { "buses": 2, "note": "TWIM0, TWIM1" },
+        "atmega328p_au": { "buses": 1, "note": "Single I2C only — cannot use this strategy" }
+      }
+    },
+    {
+      "id": "block_combination",
+      "priority": 4,
+      "description": "Prevent incompatible combination and explain to user",
+      "condition": "No resolution available (single-bus MCU, fixed addresses, no mux desired)",
+      "action": "Show error: 'These components share I2C address 0xNN and cannot coexist on the same bus. Consider: [suggest alternatives]'"
+    }
+  ],
+
+  "known_conflicts": [
+    {
+      "devices": ["mcp23017", "pcf8574"],
+      "address": "0x20",
+      "resolution": "Both have configurable addresses via A0-A2 pins. MCP23017: 0x20-0x27, PCF8574: 0x20-0x27. Assign different addresses.",
+      "strategy": "alt_address"
+    },
+    {
+      "devices": ["vl53l0x", "tcs34725"],
+      "address": "0x29",
+      "resolution": "Both fixed at 0x29. Must use I2C mux or separate buses.",
+      "strategy": "i2c_mux"
+    },
+    {
+      "devices": ["ssd1306_oled", "sh1106_oled"],
+      "address": "0x3C",
+      "resolution": "SSD1306 can switch to 0x3D. SH1106 is fixed at 0x3C. Use alt address on SSD1306.",
+      "strategy": "alt_address"
+    },
+    {
+      "devices": ["si7021", "ina219"],
+      "address": "0x40",
+      "resolution": "Both fixed at 0x40. Must use I2C mux or separate buses.",
+      "strategy": "i2c_mux"
+    },
+    {
+      "devices": ["mpr121", "drv2605l"],
+      "address": "0x5A",
+      "resolution": "Both fixed. Must use I2C mux or separate buses.",
+      "strategy": "i2c_mux"
+    },
+    {
+      "devices": ["mpu6050", "ds3231"],
+      "address": "0x68",
+      "resolution": "MPU-6050 can switch to 0x69 (AD0 pin high). DS3231 is fixed at 0x68.",
+      "strategy": "alt_address"
+    },
+    {
+      "devices": ["bme680", "bmp280"],
+      "address": "0x76",
+      "resolution": "Both support 0x76/0x77 via SDO pin. Assign one to each.",
+      "strategy": "alt_address"
+    }
+  ],
+
+  "pull_up_rules": {
+    "per_bus": "One pair of 4.7kΩ pull-ups per I2C bus (SDA + SCL to VCC)",
+    "mux_downstream": "Each TCA9548A channel needs its own pull-up pair",
+    "voltage": "Pull-ups to the bus voltage (3.3V for 3.3V devices, 5V for 5V devices)",
+    "note": "Do NOT put pull-ups on both sides of a level shifter — only on each bus segment"
+  }
+}

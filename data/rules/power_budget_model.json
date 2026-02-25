@@ -1,0 +1,116 @@
+{
+  "description": "Power budget calculation model for the resolver. Given a BOM, calculates total current per rail, validates against source capacity, estimates battery life, and flags thermal issues.",
+  
+  "voltage_rails": {
+    "3V3": {
+      "description": "Main 3.3V logic rail",
+      "sources": ["ams1117_3v3", "tps63001"],
+      "consumers": "All 3.3V components (MCU, sensors, comms)",
+      "notes": "Most components run on this rail"
+    },
+    "5V_BOOST": {
+      "description": "Regulated 5V from boost converter (battery designs)",
+      "sources": ["mt3608"],
+      "consumers": "Servos, HC-SR04, WS2812B, mmWave, HD44780, motor drivers",
+      "notes": "Only present when battery + 5V peripherals. Not available from LDO."
+    },
+    "5V_USB": {
+      "description": "5V from USB VBUS (regulated by host/charger)",
+      "sources": ["usb_c_connector"],
+      "max_current_ma": 500,
+      "consumers": "TP4056 input or direct 5V peripherals when USB connected",
+      "notes": "500mA default, up to 1.5A/3A with CC advertisement"
+    },
+    "5V_MAINS": {
+      "description": "5V from AC-DC module",
+      "sources": ["hlk_pm01"],
+      "consumers": "Same as 5V_BOOST but mains powered",
+      "notes": "600mA max from HLK-PM01"
+    },
+    "VBAT": {
+      "description": "Battery voltage (3.0-4.2V for single LiPo)",
+      "sources": ["battery"],
+      "consumers": "TP4056 charges, TPS63001/MT3608 regulates down/up",
+      "notes": "Not a load rail — feeds into regulators"
+    },
+    "VIN_BARREL": {
+      "description": "DC barrel jack input (typically 7-12V)",
+      "sources": ["barrel_jack"],
+      "consumers": "LDO or buck regulator input",
+      "notes": "After Schottky + fuse"
+    }
+  },
+
+  "resolver_power_budget_algorithm": {
+    "step_1_identify_rails": "Map each component to its voltage rail based on supply_voltage field",
+    "step_2_sum_current_per_rail": {
+      "3V3_total_ma": "Sum of all 3.3V component power_consumption_ma (or typical_active_ma if power_modes exists)",
+      "5V_total_ma": "Sum of all 5V component power_consumption_ma",
+      "notes": "Use typical_active_ma for budget, peak_current_ma for regulator headroom check"
+    },
+    "step_3_check_source_capacity": {
+      "check": "rail_total_ma < source.max_output_current_ma",
+      "margin": "Recommend 20% headroom (total < 80% of max)",
+      "if_exceeded": "ERROR: Power source cannot supply required current. Suggest larger source or reduce load."
+    },
+    "step_4_check_thermal_budget": {
+      "ldo_check": "(Vin - Vout) × total_current_ma < max_thermal_dissipation_mw",
+      "if_exceeded": "ERROR: LDO will overheat. Insert switching pre-regulator or replace LDO with buck converter."
+    },
+    "step_5_peak_current_check": {
+      "check": "Sum of all peak_current_ma < source max + bulk cap reserve",
+      "notes": "Peak currents (WiFi TX, cellular TX, motor stall) stack. Bulk caps provide short-term reserve."
+    },
+    "step_6_battery_life_estimate": {
+      "formula": "battery_capacity_mah / (average_system_current_ma / regulator_efficiency)",
+      "duty_cycle_model": "(active_time × active_current + sleep_time × sleep_current) / (active_time + sleep_time)",
+      "default_battery_sizes": {
+        "small": { "capacity_mah": 500, "label": "500mAh (small wearable)" },
+        "medium": { "capacity_mah": 2000, "label": "2000mAh (standard)" },
+        "large": { "capacity_mah": 6000, "label": "6000mAh (large pack)" }
+      },
+      "output": "Estimated hours/days for each battery size at given duty cycle"
+    },
+    "step_7_generate_power_report": {
+      "sections": [
+        "Voltage rail map (which components on which rail)",
+        "Current budget table (component, typical mA, peak mA, rail)",
+        "Source vs load comparison with headroom %",
+        "Thermal budget check (LDO dissipation)",
+        "Battery life estimates (if applicable)",
+        "Warnings and recommendations"
+      ]
+    }
+  },
+
+  "common_design_patterns": {
+    "usb_only": {
+      "rails": ["5V_USB", "3V3"],
+      "path": "USB 5V → AMS1117 → 3.3V",
+      "max_system_current": "500mA on 5V (USB limit), 800mA on 3.3V (LDO limit)",
+      "thermal_limit": "(5-3.3) × I = 1.7W at 1A — within AMS1117 limit"
+    },
+    "usb_plus_lipo": {
+      "rails": ["5V_USB", "VBAT", "3V3", "5V_BOOST (optional)"],
+      "path": "USB → TP4056 → LiPo → TPS63001 → 3.3V (+ MT3608 → 5V if needed)",
+      "max_system_current": "580mA charge (2k RPROG) shared with system load",
+      "notes": "System load + charge current must not exceed RPROG setting"
+    },
+    "barrel_jack": {
+      "rails": ["VIN_BARREL", "3V3", "5V (if regulator cascade)"],
+      "path": "12V → AMS1117 → 3.3V (CAUTION: thermal) or 12V → Buck → 5V → LDO → 3.3V",
+      "thermal_warning": "12V LDO to 3.3V: 8.7V drop × current = massive heat. Use buck regulator."
+    },
+    "mains_ac": {
+      "rails": ["5V_MAINS", "3V3"],
+      "path": "240VAC → HLK-PM01 → 5V → AMS1117 → 3.3V",
+      "max_system_current": "600mA on 5V (module limit)"
+    },
+    "battery_only_lora": {
+      "rails": ["VBAT", "3V3"],
+      "path": "LiPo → TPS63001 → 3.3V",
+      "typical_budget": "ATmega328P (0.1µA sleep) + RFM95W (1µA sleep) + BME680 (0.8µA sleep) = 2µA total sleep",
+      "battery_life": "2000mAh / 0.002mA = 1,000,000 hours = 114 years (sleep only). Realistic with hourly TX: ~3 years on 2000mAh."
+    }
+  }
+}

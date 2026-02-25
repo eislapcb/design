@@ -1,0 +1,157 @@
+{
+  "_description": "Standardized net naming conventions for PCB Wizard schematic generation. All resolver-generated schematics MUST use these exact net names for consistency.",
+  "_version": "1.0",
+
+  "power_nets": {
+    "description": "Power rail net names — these are global across the entire schematic",
+    "nets": {
+      "3V3": "3.3V regulated rail (from LDO or buck converter)",
+      "5V": "5V regulated rail (from USB, buck, or boost converter)",
+      "VBAT": "Battery voltage (direct from LiPo, typically 3.0-4.2V)",
+      "VBAT_RAW": "Unprotected battery voltage (before DW01A/FS8205A)",
+      "VBAT_PROT": "Protected battery voltage (after DW01A/FS8205A, before regulator)",
+      "VIN": "External input voltage (barrel jack, screw terminal — unregulated)",
+      "VBUS": "USB 5V from connector (before ferrite bead/PTC)",
+      "VBUS_FILT": "Filtered USB 5V (after ferrite bead)",
+      "VMOT": "Motor power supply (separate from logic, typically 8-45V for steppers)",
+      "MAINS_LIVE": "230V AC live (HLK-PM01 only — isolated zone)",
+      "MAINS_NEUTRAL": "230V AC neutral (HLK-PM01 only — isolated zone)",
+      "MAINS_FUSED": "230V AC live AFTER fuse (between fuse output and HLK-PM01 AC_L input)",
+      "MAINS_GND": "Mains-side ground (if needed for earth reference — NOT connected to SELV GND)",
+      "PE": "Protective Earth — metal enclosure chassis ground only (Class I equipment)",
+      "GND": "Main ground — all low-voltage circuits share this",
+      "GND_BATT": "Battery protection ground (between DW01A and FS8205A FETs)",
+      "PGND": "Power ground for switching regulators (star-point to GND)",
+      "VBAT_COIN": "Coin cell backup (CR2032, for DS3231 RTC)"
+    }
+  },
+
+  "i2c_nets": {
+    "description": "I2C bus naming. Bus 0 is the primary/default bus on any MCU.",
+    "pattern": {
+      "single_bus": { "sda": "SDA", "scl": "SCL" },
+      "multi_bus": { "sda": "SDA{N}", "scl": "SCL{N}", "example": "SDA0, SCL0, SDA1, SCL1" },
+      "mux_downstream": { "sda": "SDA_CH{N}", "scl": "SCL_CH{N}", "example": "SDA_CH0, SCL_CH0 (TCA9548A channel 0)" },
+      "secondary_mcu": { "sda": "SDA_{MCU}", "scl": "SCL_{MCU}", "example": "SDA_AVR, SCL_AVR (ATmega328P's own I2C bus)" }
+    },
+    "rules": [
+      "Default single-bus design uses SDA/SCL (no number)",
+      "If MCU uses second I2C peripheral, use SDA1/SCL1",
+      "If TCA9548A is present, upstream is SDA/SCL, downstream channels are SDA_CH0..SDA_CH7",
+      "If multi-MCU, each MCU's bus is prefixed: SDA_ESP, SDA_AVR, SDA_RP2, SDA_NRF, SDA_STM"
+    ]
+  },
+
+  "spi_nets": {
+    "description": "SPI bus naming",
+    "pattern": {
+      "single_bus": { "mosi": "MOSI", "miso": "MISO", "sck": "SCK", "cs": "CS_{DEVICE}" },
+      "multi_bus": { "mosi": "MOSI{N}", "miso": "MISO{N}", "sck": "SCK{N}", "cs": "CS_{DEVICE}" }
+    },
+    "cs_naming": {
+      "pattern": "CS_{DEVICE_SHORT_NAME}",
+      "examples": {
+        "w5500": "CS_ETH",
+        "mcp2515": "CS_CAN",
+        "rfm95w": "CS_LORA",
+        "w25q32jv": "CS_FLASH",
+        "ili9341_tft": "CS_TFT",
+        "sd_card_socket": "CS_SD",
+        "max31855": "CS_THERMO",
+        "mfrc522": "CS_NFC",
+        "epaper_2_9inch": "CS_EPAPER",
+        "eeprom_25lc256": "CS_EEPROM"
+      }
+    },
+    "rules": [
+      "MOSI/MISO/SCK are shared across all SPI devices on same bus",
+      "Each SPI device gets a unique CS_ net name",
+      "Second SPI bus (if needed): MOSI1/MISO1/SCK1",
+      "Display SPI often separated from sensor SPI for performance — use SPI1 for display"
+    ]
+  },
+
+  "uart_nets": {
+    "description": "UART naming — always from the perspective of the MCU",
+    "pattern": {
+      "usb_debug": { "tx": "TX_DBG", "rx": "RX_DBG", "note": "MCU TX → CP2102N RXD, MCU RX → CP2102N TXD" },
+      "gps": { "tx": "TX_GPS", "rx": "RX_GPS" },
+      "cellular": { "tx": "TX_CELL", "rx": "RX_CELL" },
+      "rs485": { "tx": "TX_485", "rx": "RX_485", "de_re": "DE_485" },
+      "rs232": { "tx": "TX_232", "rx": "RX_232" },
+      "inter_mcu": { "tx": "TX_{MCU_TARGET}", "rx": "RX_{MCU_TARGET}", "example": "TX_AVR (primary sends to ATmega), RX_AVR (primary receives from ATmega)" },
+      "mmwave": { "tx": "TX_MMWAVE", "rx": "RX_MMWAVE" }
+    },
+    "rules": [
+      "TX/RX are ALWAYS from the primary MCU's perspective",
+      "CP2102N: MCU_TX → CP2102N_RXD, MCU_RX → CP2102N_TXD (crossover)",
+      "Inter-MCU: TX_AVR means 'primary MCU transmit line going to AVR'. AVR's TX goes to primary's RX.",
+      "If MCU has only one UART and multiple UART devices, a multiplexer or software UART is needed"
+    ]
+  },
+
+  "gpio_nets": {
+    "description": "General-purpose GPIO naming for signals that aren't part of a standard bus",
+    "pattern": {
+      "motor_control": {
+        "step": "STEP_{N}", "dir": "DIR_{N}", "enable": "nEN_MOT_{N}",
+        "pwm_a": "PWM_A{N}", "pwm_b": "PWM_B{N}",
+        "note": "N = motor number (1, 2, 3...)"
+      },
+      "interrupts": {
+        "pattern": "INT_{DEVICE}",
+        "examples": { "mpu6050": "INT_IMU", "mcp2515": "INT_CAN", "rfm95w": "INT_LORA", "mcp23017": "INT_GPIO_EXP" }
+      },
+      "chip_control": {
+        "reset": "nRST_{DEVICE}",
+        "enable": "EN_{DEVICE}",
+        "examples": { "w5500": "nRST_ETH", "rfm95w": "nRST_LORA", "ili9341_tft": "DC_TFT" }
+      },
+      "display": {
+        "dc": "DC_{DISPLAY}", 
+        "backlight": "BL_{DISPLAY}",
+        "examples": { "ili9341_tft": "DC_TFT, BL_TFT", "st7789_tft": "DC_TFT2, BL_TFT2" }
+      },
+      "led_strip": { "data": "LED_DATA", "note": "WS2812B data out from MCU GPIO" },
+      "buttons": { "pattern": "BTN_{FUNCTION}", "examples": { "reset": "nRST_MCU", "boot": "BOOT0", "user": "BTN_USER" } },
+      "sensor_digital": {
+        "dht22": "DHT_DATA",
+        "pir": "PIR_OUT",
+        "ir_rx": "IR_RX",
+        "reed": "REED_SW",
+        "flow": "FLOW_PULSE"
+      },
+      "analog": {
+        "pattern": "AIN_{FUNCTION}",
+        "examples": { "soil_moisture": "AIN_SOIL", "0_10v_out": "AOUT_010V", "ct_clamp": "AIN_CT" }
+      }
+    }
+  },
+
+  "usb_nets": {
+    "dp": "USB_DP",
+    "dm": "USB_DM",
+    "cc1": "USB_CC1",
+    "cc2": "USB_CC2",
+    "shield": "USB_SHIELD",
+    "note": "USB-C CC pins need 5.1kΩ pull-downs each. Shield connects to GND via ferrite bead."
+  },
+
+  "programming_debug_nets": {
+    "swd": { "swdio": "SWDIO", "swdclk": "SWDCLK", "swo": "SWO", "nrst": "nRST_MCU" },
+    "avr_isp": { "mosi": "ISP_MOSI", "miso": "ISP_MISO", "sck": "ISP_SCK", "reset": "nRST_MCU" },
+    "note": "SWD shares physical pins with GPIO but net names are dedicated for clarity"
+  },
+
+  "naming_rules_summary": [
+    "All net names are UPPERCASE with underscores",
+    "Active-low signals prefixed with lowercase 'n': nRST, nEN, nCS",
+    "Power nets have no prefix — just the rail name: 3V3, 5V, GND",
+    "Bus signals use standard abbreviations: SDA, SCL, MOSI, MISO, SCK, TX, RX",
+    "Device-specific signals include device short name: CS_ETH, INT_IMU, DC_TFT",
+    "Numbered instances use suffix N: STEP_1, DIR_1, SDA_CH0",
+    "MCU-specific buses use MCU short name: SDA_AVR, TX_ESP",
+    "Never use generic names like 'PIN1' or 'GPIO5' — always describe the function",
+    "Resolver maps MCU pin numbers to net names based on capability assignment"
+  ]
+}

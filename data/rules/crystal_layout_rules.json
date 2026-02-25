@@ -1,0 +1,268 @@
+{
+  "_description": "Crystal oscillator layout rules for PCB Wizard resolver. Crystals are sensitive analog components — poor layout causes startup failure, frequency drift, increased jitter, and EMI. These rules are critical for reliable operation.",
+  "_version": "1.0",
+
+  "general_principles": [
+    "A crystal oscillator is NOT a digital circuit. It is a high-impedance analog feedback loop between the MCU's oscillator pins and the crystal. Any stray capacitance, inductance, or noise coupling can prevent oscillation or shift the frequency.",
+    "The traces between crystal and MCU XTAL pins must be as short as possible — ideally under 10mm.",
+    "Load capacitors must connect to the SAME ground point as the MCU's ground pin — short, direct return path.",
+    "The crystal area needs shielding from digital noise, but the wrong ground plane approach can add parasitic capacitance that detunes the oscillator."
+  ],
+
+  "four_layer_stackup": {
+    "description": "All PCB Wizard boards are 4-layer. Standard JLCPCB 4-layer stackup.",
+    "layers": {
+      "L1_top": "Signal + components",
+      "L2_inner1": "Ground plane (continuous)",
+      "L3_inner2": "Power plane (3V3, 5V splits)",
+      "L4_bottom": "Signal + components"
+    },
+    "crystal_relevant_layers": {
+      "crystal_placement": "L1 (top) — same side as MCU",
+      "ground_plane_under_crystal": "L2 — this is the critical layer",
+      "no_power_splits_under_crystal": "L3 — ensure no power plane split boundary runs under crystal area",
+      "no_signals_on_bottom": "L4 — no traces routed under crystal area on bottom layer"
+    }
+  },
+
+  "ground_plane_rules": {
+    "mhz_crystals": {
+      "applies_to": ["crystal_8mhz", "crystal_12mhz", "crystal_16mhz", "crystal_32mhz"],
+      "frequency_range": "8-32 MHz (HSE crystals for MCUs)",
+      "ground_plane": {
+        "recommendation": "SOLID unbroken ground plane on L2 directly beneath crystal and load caps",
+        "reason": "At MHz frequencies, the ground plane provides essential shielding against digital switching noise coupling into the oscillator. The parasitic capacitance added by L2 ground (~0.5-1pF) is small relative to the 15-22pF load caps and can be compensated.",
+        "critical_rules": [
+          "NO signal traces on L2 under the crystal footprint + 2mm margin each side",
+          "NO vias penetrating the ground plane under the crystal (breaks the plane, creates slots)",
+          "NO power plane splits on L3 under the crystal area",
+          "Ground plane must extend at least 3mm beyond crystal footprint in all directions",
+          "Load cap ground vias must connect to this same unbroken ground region"
+        ],
+        "via_stitching": {
+          "description": "Stitch L1 ground pad/pour to L2 ground plane around the crystal perimeter",
+          "via_count": 4,
+          "via_diameter_mm": 0.3,
+          "placement": "2 vias near each load cap ground pad, connecting L1 to L2",
+          "purpose": "Short, low-inductance ground return path for load cap current"
+        }
+      },
+      "guard_ring": {
+        "recommended": true,
+        "description": "Ground pour ring on L1 (top layer) around the crystal and its load caps",
+        "width_mm": 0.5,
+        "clearance_to_crystal_mm": 1.0,
+        "connected_to": "GND via stitching vias to L2",
+        "purpose": "Shields crystal traces from adjacent digital signal coupling on L1"
+      },
+      "trace_routing": {
+        "xtal_to_mcu": {
+          "max_length_mm": 10,
+          "ideal_length_mm": 5,
+          "matched_length": false,
+          "trace_width_mm": 0.2,
+          "note": "Keep XTAL1 and XTAL2 traces as short as possible. They do NOT need to be matched length (crystal is not a transmission line at these frequencies)."
+        },
+        "load_cap_to_crystal": {
+          "max_length_mm": 3,
+          "note": "Load caps should be within 3mm of crystal pads. Ideally on the same side of the crystal as the MCU pins."
+        },
+        "load_cap_to_ground": {
+          "max_length_mm": 2,
+          "note": "Ground side of load caps connects via short trace to ground via, which goes straight to L2 plane. This is the most critical ground return path."
+        },
+        "forbidden_under_crystal": [
+          "No SPI clock traces",
+          "No PWM outputs",
+          "No switching regulator SW node traces",
+          "No USB differential pairs",
+          "No high-speed digital signals of any kind",
+          "No power plane split boundaries"
+        ]
+      },
+      "parasitic_capacitance_compensation": {
+        "description": "The ground plane and PCB traces add ~1-3pF of stray capacitance to each crystal pin. This must be subtracted from the calculated load cap value.",
+        "formula": "C_load_cap = 2 × (C_L - C_stray)",
+        "C_stray_typical_pF": 2,
+        "examples": [
+          {
+            "crystal_CL_pF": 20,
+            "C_stray_pF": 2,
+            "calculated_cap_pF": 36,
+            "nearest_standard_pF": 33,
+            "note": "C_load = 2 × (20 - 2) = 36pF → use 33pF. Most designs use 22pF or 33pF which works within tolerance."
+          },
+          {
+            "crystal_CL_pF": 12.5,
+            "C_stray_pF": 2,
+            "calculated_cap_pF": 21,
+            "nearest_standard_pF": 22,
+            "note": "RP2040 12MHz crystal. C_load = 2 × (12.5 - 2) = 21pF → use 22pF"
+          }
+        ],
+        "warning": "If stray capacitance is too high (e.g., ground pour directly touching crystal pads), the oscillator can be overloaded — causes slow startup, reduced amplitude, or failure to oscillate. The guard ring approach (pour AROUND but not UNDER the pads) avoids this."
+      }
+    },
+
+    "khz_crystals": {
+      "applies_to": ["crystal_32khz"],
+      "frequency_range": "32.768 kHz (LSE / RTC crystal)",
+      "ground_plane": {
+        "recommendation": "REMOVE ground plane on L2 directly beneath the 32kHz crystal. Keep ground plane intact under the load caps.",
+        "reason": "32kHz crystals have very high impedance (~50kΩ motional resistance vs ~50Ω for MHz crystals). Even small parasitic capacitance (1-2pF from the ground plane ~0.2mm away through FR-4) is significant relative to the typical 6-12.5pF load capacitance. The ground plane capacitance can prevent oscillation entirely or cause extremely slow startup (seconds instead of milliseconds).",
+        "critical_rules": [
+          "Create a copper-free keepout on L2 under the 32kHz crystal footprint + 1mm margin",
+          "The keepout should NOT extend under the load caps — load caps still need ground connection",
+          "NO signal traces on ANY layer under the 32kHz crystal",
+          "NO power plane on L3 under the 32kHz crystal",
+          "Place crystal as close to MCU XTAL/LSE pins as physically possible"
+        ],
+        "keepout_geometry": {
+          "shape": "Rectangle",
+          "size": "Crystal footprint + 1mm each side",
+          "layers": ["L2 (ground plane)", "L3 (power plane)"],
+          "note": "This creates a small island of bare FR-4 under the crystal, reducing stray capacitance. The ground plane remains intact everywhere else."
+        }
+      },
+      "guard_ring": {
+        "recommended": true,
+        "description": "Ground pour ring on L1 around the 32kHz crystal area. Ring is connected to ground but does NOT fill under the crystal.",
+        "width_mm": 0.3,
+        "clearance_to_crystal_mm": 0.5,
+        "purpose": "Shields the high-impedance crystal traces from noise coupling while keeping capacitance low"
+      },
+      "trace_routing": {
+        "xtal_to_mcu": {
+          "max_length_mm": 5,
+          "ideal_length_mm": 3,
+          "trace_width_mm": 0.15,
+          "note": "Even shorter than MHz crystals. These traces are extremely sensitive to noise. Route directly, no bends if possible."
+        },
+        "load_cap_to_crystal": {
+          "max_length_mm": 2,
+          "note": "Load caps should be immediately adjacent to crystal pads"
+        },
+        "load_cap_to_ground": {
+          "max_length_mm": 1.5,
+          "note": "Short via to L2 ground plane at the edge of the keepout zone. The via MUST be outside the crystal keepout."
+        },
+        "forbidden_under_crystal": [
+          "Everything from the MHz list",
+          "ADDITIONALLY: No ground pour, no power plane, no traces of any kind on any layer"
+        ]
+      },
+      "parasitic_capacitance_compensation": {
+        "description": "With ground plane removed, stray capacitance drops to ~0.5-1pF. This is factored into load cap selection.",
+        "C_stray_typical_pF": 0.5,
+        "typical_CL_pF": 6,
+        "calculated_cap_pF": 11,
+        "nearest_standard_pF": 10,
+        "note": "DS3231 has internal crystal — no external load caps needed. For MCU 32kHz crystals: C_load = 2 × (6 - 0.5) = 11pF → use 10pF"
+      },
+      "startup_time": {
+        "typical_ms": 500,
+        "worst_case_ms": 2000,
+        "note": "32kHz crystals are SLOW to start. Firmware must wait for oscillator stable flag before using RTC. If startup takes >2 seconds, suspect excessive parasitic capacitance — check ground plane removal."
+      }
+    }
+  },
+
+  "per_mcu_crystal_placement": {
+    "atmega328p_au": {
+      "hse_crystal": "crystal_16mhz",
+      "hse_pins": { "xtal1": 7, "xtal2": 8, "pin_names": "PB6/XTAL1, PB7/XTAL2" },
+      "load_caps": "cap_22pf_0402",
+      "placement": "Crystal directly adjacent to pins 7-8, load caps between crystal and MCU",
+      "lse_crystal": null,
+      "note": "ATmega328P at 16MHz needs external crystal. No LSE — uses Timer2 with external 32kHz crystal on TOSC1/TOSC2 if RTC needed, but we use DS3231 instead."
+    },
+    "rp2040": {
+      "hse_crystal": "crystal_12mhz",
+      "hse_pins": { "xin": 21, "xout": 22, "pin_names": "XIN, XOUT" },
+      "load_caps": "cap_15pf_0402",
+      "placement": "Crystal between pins 21-22, load caps flanking the crystal",
+      "lse_crystal": null,
+      "note": "RP2040 has no RTC — uses external DS3231 for timekeeping"
+    },
+    "nrf52840_qiaa": {
+      "hse_crystal": "crystal_32mhz",
+      "hse_pins": { "xc1": 19, "xc2": 20, "pin_names": "XC1, XC2" },
+      "load_caps": "Internal (specified by crystal ESR, typically no external caps needed)",
+      "hse_note": "nRF52840 has internal load caps for 32MHz crystal. Check crystal datasheet for ESR compatibility.",
+      "lse_crystal": "crystal_32khz",
+      "lse_pins": { "xl1": 21, "xl2": 22, "pin_names": "XL1, XL2" },
+      "lse_load_caps": "Internal (use crystal with CL=7pF for internal caps)",
+      "placement": "32MHz crystal near pins 19-20. 32kHz crystal near pins 21-22. Keep 3mm separation between the two crystals.",
+      "note": "nRF52840 has TWO crystals. 32MHz for radio timing (critical for BLE). 32kHz for low-power RTC. Both need proper layout."
+    },
+    "stm32h743vit6": {
+      "hse_crystal": "crystal_8mhz",
+      "hse_pins": { "osc_in": 12, "osc_out": 13, "pin_names": "PH0-OSC_IN, PH1-OSC_OUT" },
+      "load_caps": "cap_22pf_0402",
+      "hse_note": "STM32H7 PLL multiplies 8MHz to 480MHz. Crystal accuracy directly affects all peripheral clocking.",
+      "lse_crystal": "crystal_32khz",
+      "lse_pins": { "osc32_in": 8, "osc32_out": 9, "pin_names": "PC14-OSC32_IN, PC15-OSC32_OUT" },
+      "lse_load_caps": "cap_10pf_0402",
+      "placement": "HSE crystal near pins 12-13 (top side). LSE crystal near pins 8-9 (left side). Keep crystals on opposite sides of MCU if possible.",
+      "note": "STM32H743 at 480MHz is very noisy. HSE crystal placement is critical — keep away from SW node of any switching regulator."
+    },
+    "esp32_wroom_32": {
+      "hse_crystal": "Internal (40MHz crystal inside module)",
+      "lse_crystal": "Internal (32kHz crystal inside module)",
+      "placement": "No external crystals needed. Module has everything internal.",
+      "note": "ESP32-WROOM-32 module includes both crystals. Antenna keep-out zone is the main layout concern."
+    }
+  },
+
+  "load_cap_ground_return": {
+    "description": "The single most common crystal layout mistake: load capacitor ground vias placed far from the crystal, or routed through a long trace to a distant ground via. This adds inductance to the ground return path, which appears as additional effective inductance in series with the crystal, shifting frequency and potentially preventing oscillation.",
+    "correct_pattern": {
+      "description": "Star ground topology for crystal circuit",
+      "implementation": [
+        "1. Place crystal between MCU XTAL pins",
+        "2. Place load cap C1 on XTAL1 side, load cap C2 on XTAL2 side",
+        "3. Each load cap's ground pad gets its OWN via to L2 ground plane",
+        "4. Both vias should be within 1mm of the cap ground pad",
+        "5. The L2 ground plane under these vias must be unbroken (for MHz crystals) or just outside the keepout (for 32kHz)",
+        "6. These ground vias should be the CLOSEST ground connection to the crystal area — not shared with other components"
+      ]
+    },
+    "incorrect_patterns": [
+      {
+        "mistake": "Single ground via shared between both load caps",
+        "effect": "Common impedance coupling between XTAL1 and XTAL2 ground returns. Can cause oscillation issues or increased jitter."
+      },
+      {
+        "mistake": "Load cap ground routed as a long trace to a distant ground via",
+        "effect": "Added inductance in ground return. At 16MHz, even 5mm of extra trace adds measurable phase shift."
+      },
+      {
+        "mistake": "Ground via placed under the crystal body",
+        "effect": "Via breaks the L2 ground plane under the crystal, creating a slot antenna that radiates and receives noise."
+      },
+      {
+        "mistake": "Ground pour under 32kHz crystal",
+        "effect": "Excessive parasitic capacitance (2-5pF). Can prevent oscillation entirely. Startup may take >5 seconds or fail."
+      },
+      {
+        "mistake": "Routing SPI/PWM/switching traces between crystal and MCU",
+        "effect": "Digital noise couples into high-impedance oscillator traces. Causes jitter, frequency pulling, or startup failure."
+      }
+    ]
+  },
+
+  "resolver_behavior": [
+    "When any MCU requiring external crystal is selected:",
+    "1. Auto-add the correct crystal and load caps from per_mcu_crystal_placement",
+    "2. Add layout constraints:",
+    "   - Crystal within 10mm of MCU XTAL pins (5mm for 32kHz)",
+    "   - Guard ring on L1 around crystal area",
+    "   - For MHz crystal: solid L2 ground plane, no vias or traces under crystal",
+    "   - For 32kHz crystal: L2/L3 copper keepout under crystal, ground vias at keepout edge",
+    "   - No signal routing under crystal on any layer",
+    "   - Load cap ground vias within 1mm of cap pads, one per cap",
+    "3. Add build notes warning about crystal sensitivity",
+    "4. If both HSE and LSE crystals present (nRF52840, STM32H743): ensure 3mm+ separation",
+    "5. Flag any switching regulator placed within 15mm of crystal area"
+  ]
+}
