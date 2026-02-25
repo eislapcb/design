@@ -43,7 +43,7 @@ COMPONENTS = {
         "db_price_1": 1.45, "db_price_10": 1.38, "db_price_100": 1.20,
         "dk_pn": "2648-SC0914(13)-ND"
     },
-    "PIC24FJ64GA004": {
+    "PIC24FJ64GA004-I/PT": {
         "cat": "MCU", "manufacturer": "Microchip Technology",
         "db_price_1": 2.84, "db_price_10": 2.44, "db_price_100": 2.10,
         "dk_pn": "PIC24FJ64GA004-I/PT-ND"
@@ -70,7 +70,7 @@ COMPONENTS = {
         "db_price_1": 0.88, "db_price_10": 0.74, "db_price_100": 0.60,
         "dk_pn": "MT3608-ND"
     },
-    "MCP73831T-2ATI": {
+    "MCP73831T-2ATI/OT": {
         "cat": "Power", "manufacturer": "Microchip Technology",
         "db_price_1": 0.55, "db_price_10": 0.46, "db_price_100": 0.38,
         "dk_pn": "MCP73831T-2ATI/OTCT-ND"
@@ -97,7 +97,7 @@ COMPONENTS = {
         "db_price_1": 3.45, "db_price_10": 3.10, "db_price_100": 2.65,
         "dk_pn": "828-1063-1-ND"
     },
-    "VEML7700": {
+    "VEML7700-TT": {
         "cat": "Sensor", "manufacturer": "Vishay",
         "db_price_1": 1.62, "db_price_10": 1.38, "db_price_100": 1.15,
         "dk_pn": "VEML7700-TT-ND"
@@ -131,15 +131,17 @@ COMPONENTS = {
     },
 
     # ── Display ──
-    "SSD1306": {
-        "cat": "Display", "manufacturer": "Solomon Systech",
+    # SSD1306 and ILI9341 are controller ICs not sold standalone.
+    # components.json uses module MPNs; validate closest distributable equivalents.
+    "WEA012864DWPP3N00003": {
+        "cat": "Display", "manufacturer": "Winstar",
         "db_price_1": 2.50, "db_price_10": 2.15, "db_price_100": 1.80,
-        "dk_pn": "SSD1306-ND"
+        "dk_pn": "WEA012864DWPP3N00003-ND"
     },
-    "ILI9341": {
-        "cat": "Display", "manufacturer": "ILITEK",
+    "MSP2402": {
+        "cat": "Display", "manufacturer": "Waveshare",
         "db_price_1": 3.80, "db_price_10": 3.40, "db_price_100": 2.90,
-        "dk_pn": "ILI9341-ND"
+        "dk_pn": "MSP2402-ND"
     },
 
     # ── Motor Drivers ──

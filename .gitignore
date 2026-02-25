@@ -6,3 +6,4 @@ jobs/*/
 *.log
 .DS_Store
 freerouting/freerouting.jar
+.claude/

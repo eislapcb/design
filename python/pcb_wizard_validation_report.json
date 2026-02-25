@@ -1,0 +1,339 @@
+{
+  "generated": "2026-02-25T23:02:06.182872",
+  "total": 24,
+  "results": [
+    {
+      "mpn": "ESP32-WROOM-32E",
+      "cat": "MCU",
+      "db_manufacturer": "Espressif Systems",
+      "db_price_1": 3.5,
+      "db_price_100": 2.68,
+      "nexar_name": "Espressif Systems ESP32-WROOM-32E",
+      "nexar_manufacturer": "Espressif Systems",
+      "nexar_description": "WiFi module ESP32-WROOM-32E Espressif; 4MB",
+      "nexar_total_avail": 211886,
+      "stocked_sellers": 0,
+      "status": "OK",
+      "issues": []
+    },
+    {
+      "mpn": "RP2040",
+      "cat": "MCU",
+      "db_manufacturer": "Raspberry Pi",
+      "db_price_1": 1.45,
+      "db_price_100": 1.2,
+      "nexar_name": "Raspberry Pi RP2040",
+      "nexar_manufacturer": "Raspberry Pi",
+      "nexar_description": "264KB 30 133MHZ LQFN-56(7X7) Microcontrollers (mcu/mpu/soc) Rohs",
+      "nexar_total_avail": 252455,
+      "stocked_sellers": 1,
+      "status": "OK",
+      "issues": []
+    },
+    {
+      "mpn": "PIC24FJ64GA004",
+      "cat": "MCU",
+      "db_manufacturer": "Microchip Technology",
+      "db_price_1": 2.84,
+      "db_price_100": 2.1,
+      "status": "NOT FOUND",
+      "issues": [
+        "Not found in Nexar/Octopart"
+      ]
+    },
+    {
+      "mpn": "ATSAMD51J20A-AU",
+      "cat": "MCU",
+      "db_manufacturer": "Microchip Technology",
+      "db_price_1": 5.56,
+      "db_price_100": 4.2,
+      "nexar_name": "Microchip ATSAMD51J20A-AU",
+      "nexar_manufacturer": "Microchip",
+      "nexar_description": "ARM MCU, 32-bit, ARM Cortex-M4F, 120 MHz, 1 Megabytes, 256 Kilobytes, 64Pins, TQFP",
+      "nexar_total_avail": 299261,
+      "nexar_price": 5.47,
+      "nexar_currency": "USD",
+      "stocked_sellers": 9,
+      "price_dev_pct": 30.2,
+      "status": "OK",
+      "issues": []
+    },
+    {
+      "mpn": "AMS1117-3.3",
+      "cat": "Power",
+      "db_manufacturer": "Advanced Monolithic Systems",
+      "db_price_1": 0.45,
+      "db_price_100": 0.28,
+      "nexar_name": "ams AMS1117-3.3",
+      "nexar_manufacturer": "ams",
+      "nexar_description": "Linear Voltage Regulators / LDOs 3.3V 1A SOT-223-3 -40\u2103~+125\u2103",
+      "nexar_total_avail": 299694,
+      "stocked_sellers": 0,
+      "status": "ISSUES",
+      "issues": [
+        "MANUFACTURER MISMATCH: DB=\"Advanced Monolithic Systems\" vs Nexar=\"ams\""
+      ]
+    },
+    {
+      "mpn": "MP2307DN-LF-Z",
+      "cat": "Power",
+      "db_manufacturer": "Monolithic Power Systems",
+      "db_price_1": 1.22,
+      "db_price_100": 0.88,
+      "nexar_name": "Monolithic Power Systems MP2307DN-LF-Z",
+      "nexar_manufacturer": "Monolithic Power Systems",
+      "nexar_description": "MP2307 Series 23 V 3 A 380 KHz Synchronous Rectified Step-Down Converter-SOIC-8",
+      "nexar_total_avail": 362535,
+      "nexar_price": 2.017335,
+      "nexar_currency": "USD",
+      "stocked_sellers": 4,
+      "price_dev_pct": 129.2,
+      "status": "ISSUES",
+      "issues": [
+        "PRICE DEVIATION 129%: DB \u00a30.88 vs Nexar USD2.017 @1000"
+      ]
+    },
+    {
+      "mpn": "MT3608",
+      "cat": "Power",
+      "db_manufacturer": "Aerosemi",
+      "db_price_1": 0.88,
+      "db_price_100": 0.6,
+      "nexar_name": "Aerosemi MT3608",
+      "nexar_manufacturer": "Aerosemi",
+      "nexar_description": "Function type: boost Input voltage: 2V to 24V Maximum output voltage: 28V SOT23-6",
+      "nexar_total_avail": 297951,
+      "stocked_sellers": 0,
+      "status": "OK",
+      "issues": []
+    },
+    {
+      "mpn": "MCP73831T-2ATI",
+      "cat": "Power",
+      "db_manufacturer": "Microchip Technology",
+      "db_price_1": 0.55,
+      "db_price_100": 0.38,
+      "status": "NOT FOUND",
+      "issues": [
+        "Not found in Nexar/Octopart"
+      ]
+    },
+    {
+      "mpn": "FUSB302BMPX",
+      "cat": "Power",
+      "db_manufacturer": "onsemi",
+      "db_price_1": 1.85,
+      "db_price_100": 1.4,
+      "nexar_name": "onsemi FUSB302BMPX",
+      "nexar_manufacturer": "onsemi",
+      "nexar_description": "Full Speed Programmable USB Power Delivery Controller USB 3.1 3.3V T/R 14-Pin WQFN EP",
+      "nexar_total_avail": 1056243,
+      "nexar_price": 0.52,
+      "nexar_currency": "USD",
+      "stocked_sellers": 14,
+      "price_dev_pct": 62.9,
+      "status": "ISSUES",
+      "issues": [
+        "PRICE DEVIATION 63%: DB \u00a31.40 vs Nexar USD0.520 @1000"
+      ]
+    },
+    {
+      "mpn": "MPU-6050",
+      "cat": "Sensor",
+      "db_manufacturer": "TDK InvenSense",
+      "db_price_1": 2.54,
+      "db_price_100": 1.85,
+      "nexar_name": "InvenSense MPU-6050",
+      "nexar_manufacturer": "InvenSense",
+      "nexar_description": "IMU (Inertial Measurement Unit), 6-Axis, Accelerometer, Gyroscope",
+      "nexar_total_avail": 282492,
+      "nexar_price": 4.75,
+      "nexar_currency": "USD",
+      "stocked_sellers": 0,
+      "price_dev_pct": 156.8,
+      "status": "ISSUES",
+      "issues": [
+        "PRICE DEVIATION 157%: DB \u00a31.85 vs Nexar USD4.750 @1000"
+      ]
+    },
+    {
+      "mpn": "ICM-42688-P",
+      "cat": "Sensor",
+      "db_manufacturer": "TDK InvenSense",
+      "db_price_1": 3.2,
+      "db_price_100": 2.4,
+      "nexar_name": "InvenSense ICM-42688-P",
+      "nexar_manufacturer": "InvenSense",
+      "nexar_description": "IMU (Inertial Measurement Unit), 6-Axis, Accelerometer, Gyroscope",
+      "nexar_total_avail": 580936,
+      "nexar_price": 3.34945,
+      "nexar_currency": "USD",
+      "stocked_sellers": 0,
+      "price_dev_pct": 39.6,
+      "status": "OK",
+      "issues": []
+    },
+    {
+      "mpn": "BME280",
+      "cat": "Sensor",
+      "db_manufacturer": "Bosch Sensortec",
+      "db_price_1": 3.45,
+      "db_price_100": 2.65,
+      "nexar_name": "ROBERT BOSCH GMBH BME280",
+      "nexar_manufacturer": "ROBERT BOSCH GMBH",
+      "nexar_description": "Sensor Module, 8 Pin",
+      "nexar_total_avail": 69,
+      "stocked_sellers": 0,
+      "status": "ISSUES",
+      "issues": [
+        "LOW STOCK: only 69 units",
+        "MANUFACTURER MISMATCH: DB=\"Bosch Sensortec\" vs Nexar=\"ROBERT BOSCH GMBH\""
+      ]
+    },
+    {
+      "mpn": "VEML7700",
+      "cat": "Sensor",
+      "db_manufacturer": "Vishay",
+      "db_price_1": 1.62,
+      "db_price_100": 1.15,
+      "status": "NOT FOUND",
+      "issues": [
+        "Not found in Nexar/Octopart"
+      ]
+    },
+    {
+      "mpn": "TCS34725FN",
+      "cat": "Sensor",
+      "db_manufacturer": "ams-OSRAM",
+      "db_price_1": 2.1,
+      "db_price_100": 1.55,
+      "nexar_name": "ams TCS34725FN",
+      "nexar_manufacturer": "ams",
+      "nexar_description": "RGB Module Serial (SMBus, I2C) Interface 6-Pin SMD Module / IC COLOR CONV LIGHT-DGTL 6-DFN",
+      "nexar_total_avail": 299834,
+      "stocked_sellers": 0,
+      "status": "OK",
+      "issues": []
+    },
+    {
+      "mpn": "MDBT50Q-1MV2",
+      "cat": "Comms",
+      "db_manufacturer": "Raytac",
+      "db_price_1": 4.8,
+      "db_price_100": 3.55,
+      "nexar_name": "Raytac Corporation MDBT50Q-1MV2",
+      "nexar_manufacturer": "Raytac Corporation",
+      "nexar_description": "Embedded 2.4GHz transceiver support Bluetooth V5.0 and 802.15.4",
+      "nexar_total_avail": 23072,
+      "nexar_price": 6.15,
+      "nexar_currency": "USD",
+      "stocked_sellers": 1,
+      "price_dev_pct": 73.2,
+      "status": "ISSUES",
+      "issues": [
+        "PRICE DEVIATION 73%: DB \u00a33.55 vs Nexar USD6.150 @1000"
+      ]
+    },
+    {
+      "mpn": "RFM95W-868S2",
+      "cat": "Comms",
+      "db_manufacturer": "HopeRF",
+      "db_price_1": 5.2,
+      "db_price_100": 3.9,
+      "nexar_name": "HOPERF RFM95W-868S2",
+      "nexar_manufacturer": "HOPERF",
+      "nexar_description": "Module; LoRa/ISM; transceiver; 868MHz; +20dBm; -148dBm; SPI; FSK/GFSK/MSK/GMSK/LoRa/OOK; 1.8-3.7V; SMD",
+      "nexar_total_avail": 2568,
+      "nexar_price": 15.46,
+      "nexar_currency": "USD",
+      "stocked_sellers": 3,
+      "price_dev_pct": 296.4,
+      "status": "ISSUES",
+      "issues": [
+        "PRICE DEVIATION 296%: DB \u00a33.90 vs Nexar USD15.460 @1000"
+      ]
+    },
+    {
+      "mpn": "FT232RL",
+      "cat": "Comms",
+      "db_manufacturer": "FTDI",
+      "db_price_1": 4.5,
+      "db_price_100": 3.5,
+      "nexar_name": "FTDI FT232RL",
+      "nexar_manufacturer": "FTDI",
+      "nexar_description": "Serial I/o Controller, Cmos, PDSO28, 5.30 X 10.20 Mm, 0.65 Mm Pitch, Green, SSOP-28",
+      "nexar_total_avail": 210146,
+      "nexar_price": 7.362,
+      "nexar_currency": "USD",
+      "stocked_sellers": 1,
+      "price_dev_pct": 110.3,
+      "status": "ISSUES",
+      "issues": [
+        "PRICE DEVIATION 110%: DB \u00a33.50 vs Nexar USD7.362 @1000"
+      ]
+    },
+    {
+      "mpn": "MCP2515-I/SO",
+      "cat": "Comms",
+      "db_manufacturer": "Microchip Technology",
+      "db_price_1": 1.82,
+      "db_price_100": 1.3,
+      "nexar_name": "Microchip MCP2515-I/SO",
+      "nexar_manufacturer": "Microchip",
+      "nexar_description": "MCP2515 Series 5.5 V 1 Mb/s Stand Alone SPI Interface CAN Controller- SOIC-18",
+      "nexar_total_avail": 914991,
+      "nexar_price": 1.85,
+      "nexar_currency": "USD",
+      "stocked_sellers": 17,
+      "price_dev_pct": 42.3,
+      "status": "OK",
+      "issues": []
+    },
+    {
+      "mpn": "SSD1306",
+      "cat": "Display",
+      "db_manufacturer": "Solomon Systech",
+      "db_price_1": 2.5,
+      "db_price_100": 1.8,
+      "status": "NOT FOUND",
+      "issues": [
+        "Not found in Nexar/Octopart"
+      ]
+    },
+    {
+      "mpn": "ILI9341",
+      "cat": "Display",
+      "db_manufacturer": "ILITEK",
+      "db_price_1": 3.8,
+      "db_price_100": 2.9,
+      "status": "NOT FOUND",
+      "issues": [
+        "Not found in Nexar/Octopart"
+      ]
+    },
+    {
+      "mpn": "DRV8833PWPR",
+      "cat": "Motor",
+      "status": "ERROR",
+      "error": "You have exceeded your part limit of 10. Please upgrade your plan. Contact us at api@nexar.com for assistance."
+    },
+    {
+      "mpn": "A4988SETTR-T",
+      "cat": "Motor",
+      "status": "ERROR",
+      "error": "You have exceeded your part limit of 10. Please upgrade your plan. Contact us at api@nexar.com for assistance."
+    },
+    {
+      "mpn": "PCA9685PW",
+      "cat": "Motor",
+      "status": "ERROR",
+      "error": "You have exceeded your part limit of 10. Please upgrade your plan. Contact us at api@nexar.com for assistance."
+    },
+    {
+      "mpn": "DRV8302DCAR",
+      "cat": "Motor",
+      "status": "ERROR",
+      "error": "You have exceeded your part limit of 10. Please upgrade your plan. Contact us at api@nexar.com for assistance."
+    }
+  ]
+}
