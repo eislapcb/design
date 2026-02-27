@@ -15,6 +15,39 @@ Eisla is a web-based tool that lets users describe what they need their board to
 
 ---
 
+## Brand & Design
+
+**Tagline:** "From words to boards"
+**Sub-tagline:** "Describe your project. We build the board."
+**Positioning:** Zero engineering. Per-project pricing. No subscription.
+**Target launch:** April 2026
+
+### Tone of Voice
+Professional yet accessible. Emphasises simplicity and democratisation of electronics. Avoids all engineering jargon in customer-facing copy (see UX Vocabulary Reference). References Paul Eisler's 1936 PCB invention to build brand credibility and justify the name.
+
+### Colour Palette
+| Name | Hex | Usage |
+|------|-----|-------|
+| Copper (primary) | `#C27840` | Brand accent, CTAs, highlights |
+| Teal (primary) | `#0E3D3F` | Headers, nav, hero background |
+| Cream (accent) | `#FDF8F0` | Page backgrounds, cards |
+| Dark | `#1A1A1A` | Body text |
+| Mid-grey | `#666666` | Secondary text, captions |
+| White | `#FFFFFF` | Surfaces, input fields |
+
+### Typography
+- **Body / UI:** `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`
+- **Monospace (labels, code, part numbers):** `'JetBrains Mono', Consolas, 'Courier New', monospace`
+
+### "Engineer Reviewed" — Definition
+The landing page features "Engineer reviewed" as a trust signal. In v1 this maps to the automated engineering validation suite:
+- **Stage 3 — Design Validator:** power integrity, signal integrity, RF rules, safety checks, I2C pull-ups, differential pair flagging
+- **Stage 11 — DRC:** KiCad design rule check (clearances, annular rings, silk/copper overlap)
+
+These automated checks constitute the engineering review — every design passes a rigorous rules-based check before delivery. No human engineer is in the loop in v1. The customer-facing label is **"Quality checked"** (per UX Vocabulary — never "DRC" or "design rule check"). If a human spot-check tier is added in v2, offer it as a premium add-on.
+
+---
+
 ## Current State (v1 — Browser-Based)
 
 The existing project (`eisla.html`) is a single-file HTML/JS application that runs entirely in the browser. It currently provides:
