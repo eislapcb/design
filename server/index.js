@@ -8,6 +8,7 @@ const fs      = require('fs');
 const path    = require('path');
 const { resolve }      = require('./resolver');
 const { parseIntent }  = require('./nlparser');
+const { register, login, logout, changePassword, requireAuth } = require('./accounts');
 
 const app  = express();
 const PORT = process.env.PORT || 3001; // ops hub runs on 3000
@@ -139,6 +140,82 @@ app.post('/api/resolve', (req, res) => {
   }
 });
 
+// ─── Auth routes ─────────────────────────────────────────────────────────────
+
+/**
+ * POST /api/auth/register
+ * Body: { name, email, password }
+ */
+app.post('/api/auth/register', async (req, res) => {
+  const { name, email, password } = req.body || {};
+  if (!name || !email || !password) {
+    return res.status(400).json({ success: false, error: 'name, email and password are required' });
+  }
+  try {
+    const result = await register({ name, email, password });
+    res.status(result.success ? 201 : 400).json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * POST /api/auth/login
+ * Body: { email, password }
+ * Returns: { success, session: { access_token, refresh_token }, profile }
+ */
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body || {};
+  if (!email || !password) {
+    return res.status(400).json({ success: false, error: 'email and password are required' });
+  }
+  try {
+    const result = await login({ email, password });
+    res.status(result.success ? 200 : 401).json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * POST /api/auth/logout
+ * Requires: Authorization: Bearer <access_token>
+ */
+app.post('/api/auth/logout', async (req, res) => {
+  const token = req.headers.authorization?.slice(7);
+  if (!token) return res.status(401).json({ success: false, error: 'No token provided' });
+  try {
+    const result = await logout(token);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * POST /api/auth/change-password
+ * Requires auth. Body: { newPassword }
+ */
+app.post('/api/auth/change-password', requireAuth, async (req, res) => {
+  const { newPassword } = req.body || {};
+  if (!newPassword) return res.status(400).json({ success: false, error: 'newPassword required' });
+  const token = req.headers.authorization.slice(7);
+  try {
+    const result = await changePassword(token, newPassword);
+    res.status(result.success ? 200 : 400).json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * GET /api/auth/me
+ * Returns the authenticated customer's profile.
+ */
+app.get('/api/auth/me', requireAuth, (req, res) => {
+  res.json({ success: true, user: req.user, profile: req.profile });
+});
+
 // ─── 404 handler ─────────────────────────────────────────────────────────────
 
 app.use((req, res) => {
@@ -155,6 +232,11 @@ app.listen(PORT, () => {
   console.log(`  GET  /api/components/:id`);
   console.log(`  POST /api/parse-intent`);
   console.log(`  POST /api/resolve`);
+  console.log(`  POST /api/auth/register`);
+  console.log(`  POST /api/auth/login`);
+  console.log(`  POST /api/auth/logout`);
+  console.log(`  POST /api/auth/change-password`);
+  console.log(`  GET  /api/auth/me`);
 });
 
 module.exports = app;
