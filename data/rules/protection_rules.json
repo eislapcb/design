@@ -1,5 +1,5 @@
 {
-  "_description": "Input protection, reverse polarity, ESD, overcurrent, and reliability rules for PCB Wizard resolver. These complement mains_safety_rules.json (which covers AC mains) — this file covers DC-side and signal-level protection.",
+  "_description": "Input protection, reverse polarity, ESD, overcurrent, and reliability rules for Eisla resolver. These complement mains_safety_rules.json (which covers AC mains) — this file covers DC-side and signal-level protection.",
   "_version": "1.0",
 
   "reverse_polarity_protection": {

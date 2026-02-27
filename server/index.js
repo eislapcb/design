@@ -148,7 +148,7 @@ app.use((req, res) => {
 // ─── Start ────────────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {
-  console.log(`PCB Wizard API running on http://localhost:${PORT}`);
+  console.log(`Eisla API running on http://localhost:${PORT}`);
   console.log(`  GET  /api/health`);
   console.log(`  GET  /api/capabilities`);
   console.log(`  GET  /api/components`);

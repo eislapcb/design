@@ -1,5 +1,5 @@
 {
-  "_description": "Thermal design rules and constraints for PCB Wizard resolver",
+  "_description": "Thermal design rules and constraints for Eisla resolver",
   "_version": "1.0",
   "thermal_classes": {
     "class_A_critical": {

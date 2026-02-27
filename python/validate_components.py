@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PCB Wizard — Component Database Validator
+Eisla — Component Database Validator
 Uses the Nexar (Octopart) GraphQL API to validate the current component
 database against live supply chain data.
 
@@ -530,7 +530,7 @@ def main():
     print_report(results)
 
     # Save JSON
-    json_path = "pcb_wizard_validation_report.json"
+    json_path = "eisla_validation_report.json"
     save_json_report(results, json_path)
 
 

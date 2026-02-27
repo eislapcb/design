@@ -1,5 +1,5 @@
 {
-  "_description": "Silkscreen design rules for PCB Wizard resolver. Covers reference designators, polarity markings, pin 1 indicators, connector labels, board info block, and manufacturing constraints. Applied to every board.",
+  "_description": "Silkscreen design rules for Eisla resolver. Covers reference designators, polarity markings, pin 1 indicators, connector labels, board info block, and manufacturing constraints. Applied to every board.",
   "_version": "1.0",
   "reference_designators": {
     "description": "Every component gets a reference designator on silkscreen, positioned adjacent to the component. Follows IEC 60617 / IEEE 315 conventions.",
@@ -340,7 +340,7 @@
       "line_1": "Project name (from user input)",
       "line_2": "Version / revision (e.g., Rev 1.0)",
       "line_3": "Date (ISO format: YYYY-MM-DD)",
-      "line_4": "PCB Wizard order reference number",
+      "line_4": "Eisla order reference number",
       "line_5": "Board dimensions (e.g., 80×50mm)"
     },
     "text_size_mm": 0.8,
@@ -351,8 +351,8 @@
     },
     "additional_marks": {
       "order_number": {
-        "description": "PCB Wizard order reference number. Unique per order, assigned at time of manufacture.",
-        "format": "PW-XXXXXX",
+        "description": "Eisla order reference number. Unique per order, assigned at time of manufacture.",
+        "format": "EI-XXXXXX",
         "position": "Inside board info block, line 4",
         "layer": "B.Silkscreen"
       }
@@ -488,7 +488,7 @@
     "4. Add functional labels on all connectors from connector_labels table",
     "5. Add net name labels on all test points",
     "6. Add board info block on B.Silkscreen with project name, revision, date",
-    "7. Add PCB Wizard order number (PW-XXXXXX) in board info block on B.Silkscreen",
+    "7. Add Eisla order number (EI-XXXXXX) in board info block on B.Silkscreen",
     "8. Add antenna keepout outlines for all RF components",
     "9. Add 32kHz crystal no-route zone outline if 32kHz crystal present",
     "10. Add functional zone labels if board area > 1600mm² (40×40mm)",
@@ -510,7 +510,7 @@
     "note": "These are conservative values compatible with all major PCB fabricators. Silkscreen over exposed copper/pads will be clipped by the fab house."
   },
   "logo_zone": {
-    "description": "Reserved area on every board for the PCB Wizard copper logo. Logo is rendered as a copper pour on the top layer for aesthetic purposes. Design TBD — zone is reserved at a fixed size and position.",
+    "description": "Reserved area on every board for the Eisla copper logo. Logo is rendered as a copper pour on the top layer for aesthetic purposes. Design TBD — zone is reserved at a fixed size and position.",
     "layer": "F.Cu",
     "type": "Copper pour (filled zone)",
     "rendering": "Logo artwork will be converted to a KiCad footprint with copper fill on F.Cu. No electrical function — purely aesthetic.",

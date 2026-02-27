@@ -1,5 +1,5 @@
 {
-  "_description": "Crystal oscillator layout rules for PCB Wizard resolver. Crystals are sensitive analog components — poor layout causes startup failure, frequency drift, increased jitter, and EMI. These rules are critical for reliable operation.",
+  "_description": "Crystal oscillator layout rules for Eisla resolver. Crystals are sensitive analog components — poor layout causes startup failure, frequency drift, increased jitter, and EMI. These rules are critical for reliable operation.",
   "_version": "1.0",
 
   "general_principles": [
@@ -10,7 +10,7 @@
   ],
 
   "four_layer_stackup": {
-    "description": "All PCB Wizard boards are 4-layer. Standard JLCPCB 4-layer stackup.",
+    "description": "All Eisla boards are 4-layer. Standard JLCPCB 4-layer stackup.",
     "layers": {
       "L1_top": "Signal + components",
       "L2_inner1": "Ground plane (continuous)",

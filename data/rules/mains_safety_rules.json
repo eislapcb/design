@@ -1,5 +1,5 @@
 {
-  "_description": "Comprehensive mains safety rules for PCB Wizard resolver. Triggered when hlk_pm01 or any mains-connected component is selected. These rules define physical layout constraints, protection components, silkscreen markings, and DRC rules that the schematic/layout generator MUST enforce.",
+  "_description": "Comprehensive mains safety rules for Eisla resolver. Triggered when hlk_pm01 or any mains-connected component is selected. These rules define physical layout constraints, protection components, silkscreen markings, and DRC rules that the schematic/layout generator MUST enforce.",
   "_version": "1.0",
   "_standard_references": [
     "IEC 62368-1:2023 (Audio/video, IT and communication technology equipment — Safety)",

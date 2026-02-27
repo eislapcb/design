@@ -1,4 +1,4 @@
-# PCB Wizard — Project Brief
+# Eisla — Project Brief
 **Version:** 3.9 (Zero-experience UX: Stage 6B replaced with 3D render + plain-English summary card; Revision Loop added with change classification and partial pipeline re-run; Reorder function added; UX Vocabulary Reference added; 3D render export added to Stage 9; API endpoints updated)  
 **Last Updated:** February 2026  
 **Purpose:** Reference document for Claude Code sessions — paste relevant sections at the start of each session to maintain context.
@@ -7,7 +7,7 @@
 
 ## Project Overview
 
-PCB Wizard is a web-based tool that lets users describe what they need their board to *do* — in plain English or via a guided questionnaire — and automatically generates a complete, routed, validated PCB design ready for manufacture. The user describes their project ("I'm building a soil moisture sensor that runs on a battery and sends data to my phone"), the system resolves requirements into specific components, designs the board, validates it against design rules, and presents real manufacturing quotes from multiple fabricators. The customer can order manufacture directly through PCB Wizard.
+Eisla is a web-based tool that lets users describe what they need their board to *do* — in plain English or via a guided questionnaire — and automatically generates a complete, routed, validated PCB design ready for manufacture. The user describes their project ("I'm building a soil moisture sensor that runs on a battery and sends data to my phone"), the system resolves requirements into specific components, designs the board, validates it against design rules, and presents real manufacturing quotes from multiple fabricators. The customer can order manufacture directly through Eisla.
 
 **The core value proposition:** A non-expert user can go from a plain English project description to a manufacturable, validated PCB with real manufacturing quotes — in under two minutes, without any electronics knowledge required. Expert users get a fast, intelligent design assistant with advanced override capabilities.
 
@@ -17,7 +17,7 @@ PCB Wizard is a web-based tool that lets users describe what they need their boa
 
 ## Current State (v1 — Browser-Based)
 
-The existing project (`pcb-wizard.html`) is a single-file HTML/JS application that runs entirely in the browser. It currently provides:
+The existing project (`eisla.html`) is a single-file HTML/JS application that runs entirely in the browser. It currently provides:
 
 - **Step 1 — Module Selection:** 6 categories, 30+ modules with power estimates and layer requirements, quantity controls
 - **Step 2 — Board Configuration:** Shape (rectangular, circular, L-shape), dimensions, layer count, copper weight, silkscreen/conformal coating/test point toggles
@@ -58,7 +58,7 @@ Move all PCB intelligence to the server. The browser becomes a lightweight UI th
 - Post-generation: submit Gerbers + BOM + P&P to fabs for real quotes — all four fabs quoted in parallel (JLCPCB, PCBWay, PCBTrain, Eurocircuits), customer chooses; 26% margin applied regardless of fab selected (13% for reorders)
 - **Assembly service integration** — full SMT assembly quotes and ordering where fabs support it
 - **Email/webhook notifications** — customer notified when design is ready
-- PCB Wizard acts as procurement broker
+- Eisla acts as procurement broker
 
 ---
 
@@ -172,7 +172,7 @@ Stripe → webhook → order placed with fab
 ## Project Folder Structure
 
 ```
-pcb-wizard/
+eisla/
 ├── BRIEF.md
 ├── package.json
 ├── .env
@@ -513,9 +513,9 @@ Stripe handles VAT collection for UK/EU customers automatically if you enable St
 
 ### Business Model
 
-PCB Wizard acts as a **procurement broker**. After the design files are generated, PCB Wizard queries all four fabricators (JLCPCB, PCBWay, PCBTrain, Eurocircuits) and presents the customer with side-by-side quotes — price, lead time, and country for each. The customer chooses their fab; PCB Wizard places the order on their behalf regardless of which fab is selected. A **26% margin** is applied to every raw fab price before it is shown to the customer (13% for reorders — same board, no new design work). This margin covers: reprint risk, order management overhead, currency exposure on USD/EUR orders, and customer support.
+Eisla acts as a **procurement broker**. After the design files are generated, Eisla queries all four fabricators (JLCPCB, PCBWay, PCBTrain, Eurocircuits) and presents the customer with side-by-side quotes — price, lead time, and country for each. The customer chooses their fab; Eisla places the order on their behalf regardless of which fab is selected. A **26% margin** is applied to every raw fab price before it is shown to the customer (13% for reorders — same board, no new design work). This margin covers: reprint risk, order management overhead, currency exposure on USD/EUR orders, and customer support.
 
-Financial modelling uses JLCPCB landed costs as the base case (most price-sensitive prototype customers will select JLCPCB). UK fab customers (PCBTrain, Eurocircuits) will pay more for manufacturing but PCB Wizard earns the same percentage margin on a higher absolute value — the model is conservatively stated.
+Financial modelling uses JLCPCB landed costs as the base case (most price-sensitive prototype customers will select JLCPCB). UK fab customers (PCBTrain, Eurocircuits) will pay more for manufacturing but Eisla earns the same percentage margin on a higher absolute value — the model is conservatively stated.
 
 The margin is applied silently — the customer sees only the final price, never the raw fab cost. The `fab_quotes.json` file in the job folder stores both figures internally for your records, but only the customer price is exposed via the API.
 
@@ -586,7 +586,7 @@ Base endpoint: `https://open.jlcpcb.com`
 
 **SDK note — Java only, no Node.js SDK:**
 
-The official SDK is Java-only and handles request signing automatically. Since PCB Wizard runs Node.js, the signing logic must be implemented manually in `jlcpcb.js`. The SDK source is the reference for understanding the signing algorithm — review the core package to understand exactly how requests are signed before building the adapter. Key SDK dependencies (for reference): `okhttp3` for HTTP, `gson` for JSON, `slf4j` for logging.
+The official SDK is Java-only and handles request signing automatically. Since Eisla runs Node.js, the signing logic must be implemented manually in `jlcpcb.js`. The SDK source is the reference for understanding the signing algorithm — review the core package to understand exactly how requests are signed before building the adapter. Key SDK dependencies (for reference): `okhttp3` for HTTP, `gson` for JSON, `slf4j` for logging.
 
 The SDK uses a **singleton pattern** with double-checked locking for client initialisation — replicate this in Node.js:
 
@@ -620,7 +620,7 @@ function isSuccessful(response) {
 
 **Available API endpoints (from official docs):**
 
-| Endpoint | Purpose | Used in PCB Wizard at |
+| Endpoint | Purpose | Used in Eisla at |
 |---|---|---|
 | Upload Gerber files | Upload Gerber ZIP, returns `gerber_file_id` | Stage 13 (quoting) |
 | Get PCB pre-review info | Submit `gerber_file_id` + language, returns parsed dimensions + preview image | Stage 13 — validate Gerbers before quoting |
@@ -644,7 +644,7 @@ File upload fields: `orderNo` (string), `file` (multipart file object)
 
 File download fields: `fileId` (string) — returns filename + input stream
 
-**PCB Wizard integration flow for JLCPCB:**
+**Eisla integration flow for JLCPCB:**
 
 ```
 Stage 13 — Quoting:
@@ -1230,7 +1230,7 @@ Internal traces run hotter (less heat dissipation) — increase width by ~50% fo
 - For parallel signal traces, centre-to-centre spacing must be ≥ 3× the trace width
 - Example: 0.2mm traces → 0.6mm centre-to-centre minimum spacing
 - Applied automatically by FreeRouting clearance rules if net class clearance is set correctly
-- PCB Wizard validation check: flag if two parallel traces of length >10mm violate the 3W rule post-routing
+- Eisla validation check: flag if two parallel traces of length >10mm violate the 3W rule post-routing
 
 **Decoupling capacitors (set during Stage 3 placement, enforced here):**
 - Every IC with a VCC pin must have:
@@ -1678,7 +1678,7 @@ Quote panel:
 - Assembly toggle
 - Lead time per fab in working days (*"5–7 working days"* not *"5–7 days (standard)"*)
 - Method badge shown only if needed (e.g. *"estimate"* if rate card)
-- **"Order via PCB Wizard — we handle it"** button per fab row (primary CTA — not just a link)
+- **"Order via Eisla — we handle it"** button per fab row (primary CTA — not just a link)
 
 ZIP download section:
 - Primary button: *"Download your files"*
@@ -1773,7 +1773,7 @@ FX_API_URL=https://open.er-api.com/v6/latest/GBP
 Build and test each stage independently before wiring together. Sessions 1–8 are the core pipeline foundations. Sessions 9–17 build the PCB generation pipeline and enhancements. Sessions 18–20 are integration, frontend, and deployment.
 
 **Session 1 — Capability Taxonomy + Component Database** ✅ COMPLETE
-`data/capabilities.json` (full taxonomy, 50+ capability IDs), `data/components.json` (199 components, 8 categories). `python/validate_components.py` + `python/run_validation.py`. Nexar MPN validation run: 20/24 confirmed, 5 MPNs corrected (package suffixes + module swaps for SSD1306/ILI9341). Validation report: `python/pcb_wizard_validation_report.json`. Note: 4 motor drivers (DRV8833PWPR, A4988SETTR-T, PCA9685PW, DRV8302DCAR) hit eval tier limit — revalidate with fresh Nexar token.
+`data/capabilities.json` (full taxonomy, 50+ capability IDs), `data/components.json` (199 components, 8 categories). `python/validate_components.py` + `python/run_validation.py`. Nexar MPN validation run: 20/24 confirmed, 5 MPNs corrected (package suffixes + module swaps for SSD1306/ILI9341). Validation report: `python/eisla_validation_report.json`. Note: 4 motor drivers (DRV8833PWPR, A4988SETTR-T, PCA9685PW, DRV8302DCAR) hit eval tier limit — revalidate with fresh Nexar token.
 
 **Session 2 — Capability Resolver + Pricing + Credits** ✅ COMPLETE (resolver + pricing; credits deferred to Session 4)
 `server/resolver.js`: 8-step resolver — normalise → MCU selection (score-ranked) → remaining caps → supporting components (auto-adds TP4056 for LiPo, RTC crystal holders, etc.) → power budget → conflict detection → layer recommendation → pricing. Tiers: Tier 1 £499 / Tier 2 £599 / Tier 3 £749, repeat customer 10% discount. Tested: ESP32+sensors+LiPo (Tier 2, 3 components, layer warning), ATmega328P simple (Tier 1), invalid input (400 error). Separate `server/pricing.js` and credits system deferred.
@@ -2365,7 +2365,7 @@ The DRC panel on the download screen uses clear visual indicators:
 
 ### 8. Assembly Service Integration
 
-**Goal:** Allow customers to order fully assembled PCBs (components soldered, not just bare boards) through PCB Wizard, with the same 26% margin applied (13% for reorder assembly).
+**Goal:** Allow customers to order fully assembled PCBs (components soldered, not just bare boards) through Eisla, with the same 26% margin applied (13% for reorder assembly).
 
 **Where assembly is available:**
 
@@ -2455,7 +2455,7 @@ Step 7 (Download) quote panel shows PCB Only / With Assembly as a toggle, updati
 
 **1. Job Created** (sent immediately after Stripe webhook creates the job)
 ```
-Subject: Your PCB design is being generated — PCB Wizard
+Subject: Your PCB design is being generated — Eisla
 Body: Hi [name or "there"],
 Your design job has started. We'll email you when it's ready (usually 2–5 minutes).
 Job reference: [uuid short form]
@@ -2513,7 +2513,7 @@ const transporter = nodemailer.createTransport({
 async function send(to, templateName, vars) {
   const { subject, html, text } = renderTemplate(templateName, vars);
   await transporter.sendMail({
-    from: `PCB Wizard <${process.env.SMTP_USER}>`,
+    from: `Eisla <${process.env.SMTP_USER}>`,
     to, subject, html, text
   });
 }
@@ -2749,7 +2749,7 @@ This is applied automatically in `fabquoter.js` when computing customer prices. 
 - BullMQ: https://docs.bullmq.io
 
 **Legacy**
-- Existing v1 project: `pcb-wizard-vscode.zip` (from previous Claude session)
+- Existing v1 project: `eisla-vscode.zip` (from previous Claude session)
 
 ---
 

@@ -28,7 +28,7 @@
   "placement_zone":           { "_type": "string",  "_required": true,  "_note": "One of: centre, edge_top, edge_bottom, edge_left, edge_right, any, corner. Where on the board this component prefers to be.", "_example": "any" },
   "placement_priority":       { "_type": "number",  "_required": true,  "_note": "1-10. Higher = placed first. MCUs: 1, regulators: 2, ICs: 3-5, passives: 8-10.", "_example": 5 },
   "antenna_keepout_mm":       { "_type": "number",  "_required": true,  "_note": "Antenna keep-out zone radius. 0 for non-RF components.", "_example": 0 },
-  "min_layers":               { "_type": "number",  "_required": true,  "_note": "Always 4. All PCB Wizard boards are 4-layer.", "_example": 4 },
+  "min_layers":               { "_type": "number",  "_required": true,  "_note": "Always 4. All Eisla boards are 4-layer.", "_example": 4 },
 
   "cost_gbp":                 { "_type": "number",  "_required": false, "_note": "Indicative unit cost in GBP.", "_example": 2.50 },
   "cost_gbp_unit":            { "_type": "number",  "_required": true,  "_note": "Unit cost in GBP for BOM costing.", "_example": 2.50 },

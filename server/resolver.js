@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * PCB Wizard — Capability Resolver (server/resolver.js)
+ * Eisla — Capability Resolver (server/resolver.js)
  *
  * Takes a set of capability selections and board constraints, returns a
  * concrete component list with warnings, power budget, layer recommendation,

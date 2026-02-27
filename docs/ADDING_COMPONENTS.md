@@ -1,4 +1,4 @@
-# Adding Components to PCB Wizard
+# Adding Components to Eisla
 
 ## Process Overview
 

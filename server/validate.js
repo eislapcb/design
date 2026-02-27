@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * PCB Wizard — Session 1 Data Validation Script
+ * Eisla — Session 1 Data Validation Script
  * 
  * Validates capabilities.json and components.json against the brief's
  * required schema, cross-references, and sanity checks.

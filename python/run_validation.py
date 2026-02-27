@@ -226,12 +226,12 @@ def main():
     print(f"\n  Nexar lookups used: ~{len(results)}")
     print(f"{'='*70}")
 
-    with open("pcb_wizard_validation_report.json", "w") as f:
+    with open("eisla_validation_report.json", "w") as f:
         json.dump(
             {"generated": datetime.now().isoformat(), "total": len(results), "results": results},
             f, indent=2, default=str
         )
-    print(f"  JSON saved: pcb_wizard_validation_report.json\n")
+    print(f"  JSON saved: eisla_validation_report.json\n")
 
 
 if __name__ == "__main__":

@@ -13949,7 +13949,7 @@
     "mpn": "FS8205A",
     "lcsc_pn": "C32254",
     "datasheet_url": "https://www.ic-fortune.com/upload/Download/FS8205A-DS-12_EN.pdf",
-    "ipc610_notes": "TSSOP-8. Dual N-channel MOSFET pair for battery protection. Back-to-back configuration: one FET for discharge protection, one for charge protection. Controlled by DW01A IC. Very low Rds(on) (25mΩ typical) — minimal voltage drop. 6A continuous rating handles all PCB Wizard designs. Place in series between battery negative terminal and system GND. Auto-add with DW01A.",
+    "ipc610_notes": "TSSOP-8. Dual N-channel MOSFET pair for battery protection. Back-to-back configuration: one FET for discharge protection, one for charge protection. Controlled by DW01A IC. Very low Rds(on) (25mΩ typical) — minimal voltage drop. 6A continuous rating handles all Eisla designs. Place in series between battery negative terminal and system GND. Auto-add with DW01A.",
     "capabilities": [],
     "capability_score": {},
     "satisfies_processing": false,

@@ -1,5 +1,5 @@
 {
-  "_description": "I2C address conflict detection and resolution rules for the PCB Wizard resolver",
+  "_description": "I2C address conflict detection and resolution rules for the Eisla resolver",
   "_version": "1.0",
   
   "conflict_detection": {

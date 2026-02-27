@@ -1,4 +1,4 @@
-# PCB Wizard — VS Code Project
+# Eisla — VS Code Project
 
 AI-powered service that converts plain-English product descriptions into manufactured circuit boards for non-engineers.
 
@@ -6,11 +6,11 @@ AI-powered service that converts plain-English product descriptions into manufac
 
 ### 1. Extract & Open
 ```bash
-unzip pcb-wizard-vscode.zip
-cd pcb-wizard-vscode
+unzip eisla-vscode.zip
+cd eisla-vscode
 code .
 ```
-Or: **File → Open Folder** → select `pcb-wizard-vscode`
+Or: **File → Open Folder** → select `eisla-vscode`
 
 ### 2. Install Dependencies
 Open the integrated terminal (`` Ctrl+` ``):
@@ -34,7 +34,7 @@ Click **"Install All"** — or manually install:
 ## Project Structure
 
 ```
-pcb-wizard-vscode/
+eisla-vscode/
 │
 ├── .vscode/                    # VS Code config
 │   ├── settings.json           # Editor settings & JSON schema mapping

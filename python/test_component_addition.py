@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PCB Wizard — Component Addition Test
+Eisla — Component Addition Test
 =====================================
 Tests the full component addition pipeline for: PIC32CK2051SG01064
 """

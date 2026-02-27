@@ -1,5 +1,5 @@
 {
-  "_description": "Standardized net naming conventions for PCB Wizard schematic generation. All resolver-generated schematics MUST use these exact net names for consistency.",
+  "_description": "Standardized net naming conventions for Eisla schematic generation. All resolver-generated schematics MUST use these exact net names for consistency.",
   "_version": "1.0",
 
   "power_nets": {

@@ -1,4 +1,4 @@
-# PCB Wizard — IoT Capability Gap Analysis
+# Eisla — IoT Capability Gap Analysis
 
 ## Current State: 45 Capabilities, 52 Components
 
@@ -116,7 +116,7 @@ This is the single biggest gap in our taxonomy. Here's why it matters:
 - Better for real-time tracking and firmware OTA
 - Module: SIM7080G does both NB-IoT + LTE-M + GNSS (~£7.50)
 
-**Implementation for PCB Wizard:**
+**Implementation for Eisla:**
 Both need: UART connection to MCU, SIM card slot (nano-SIM), antenna (LTE band), and adequate power supply (peak current can hit 500mA during transmission). The resolver should auto-add a nano-SIM holder and antenna connector when either cellular capability is selected — same pattern as LoRa auto-adding SMA connector.
 
 ---
@@ -140,6 +140,6 @@ The resolver auto-add rules need extending:
 
 ## Recommendation
 
-**For Session 1 completion:** Add the 7 Tier A capabilities to capabilities.json now, plus their components. This positions PCB Wizard for the real IoT market rather than just the maker/hobbyist segment.
+**For Session 1 completion:** Add the 7 Tier A capabilities to capabilities.json now, plus their components. This positions Eisla for the real IoT market rather than just the maker/hobbyist segment.
 
 **Total after additions:** ~52 capabilities, ~60 components — comprehensive enough for launch without being unwieldy.
