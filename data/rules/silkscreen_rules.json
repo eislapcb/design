@@ -352,7 +352,7 @@
     "additional_marks": {
       "order_number": {
         "description": "Eisla order reference number. Unique per order, assigned at time of manufacture.",
-        "format": "EI-XXXXXX",
+        "format": "EISLA-YYYY-NNNN",
         "position": "Inside board info block, line 4",
         "layer": "B.Silkscreen"
       }
@@ -488,7 +488,7 @@
     "4. Add functional labels on all connectors from connector_labels table",
     "5. Add net name labels on all test points",
     "6. Add board info block on B.Silkscreen with project name, revision, date",
-    "7. Add Eisla order number (EI-XXXXXX) in board info block on B.Silkscreen",
+    "7. Add Eisla order number (EISLA-YYYY-NNNN) in board info block on B.Silkscreen",
     "8. Add antenna keepout outlines for all RF components",
     "9. Add 32kHz crystal no-route zone outline if 32kHz crystal present",
     "10. Add functional zone labels if board area > 1600mm² (40×40mm)",

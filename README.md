@@ -40,7 +40,7 @@ cp .env.example .env
 export PATH="/c/Program Files/nodejs:$PATH"
 
 node server/index.js
-# → Eisla API running on http://localhost:3000
+# → Eisla API running on http://localhost:3001
 ```
 
 ### 5. Install Recommended Extensions
@@ -84,7 +84,7 @@ eisla/
 │   │   └── weather_station.kicad_sch
 │   └── fab_rates/              # Fab pricing rate cards (Session 3)
 │
-├── server/                     # Node.js API (port 3000)
+├── server/                     # Node.js API (port 3001 — ops hub is on 3000)
 │   ├── index.js                # Express server — all API routes
 │   ├── resolver.js             # 8-step capability → component resolver
 │   ├── nlparser.js             # Claude API natural language parser
