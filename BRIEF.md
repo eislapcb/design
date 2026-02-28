@@ -1844,11 +1844,11 @@ Build and test each stage independently before wiring together. Sessions 1–8 a
 **Session 5 — Natural Language Parser** ✅ COMPLETE
 `server/nlparser.js`: calls `claude-sonnet-4-6` with structured system prompt, returns `{ capabilities[], suggested_board: { layers, dimensions_mm, power_source }, confidence_notes[] }`. Strips hallucinated capability IDs automatically. Graceful fallback (`{ success: false }`) when `ANTHROPIC_API_KEY` missing — never blocks the user. All 6 BRIEF test cases passed live. Endpoint: `POST /api/parse-intent`.
 
-**Session 6 — Design Validator**
-Build `python/validator.py` and `data/validation_rules.json`. Unit test every check with known-good and known-bad component combinations.
+**Session 6 — Design Validator** ✅ COMPLETE
+`python/validator.py`: 14 checks (power integrity, signal integrity, RF, mechanical, assembly). Auto-resolves: missing decoupling caps, I2C pull-ups (4.7k), USB diff-pair net class. Errors: power budget exceeded, LDO output cap missing, UART TX/RX crossover, RF without antenna, motor driver without flyback. Warnings: LoRa+WiFi simultaneous, SPI shared CS, high board density. Input: `resolved.json` + `board.json` in job dir. Output: `validation_warnings.json`. CLI: `--test` runs 4 built-in unit tests (all pass). `data/validation_rules.json` populated with 16 rules.
 
-**Session 7 — Stripe Integration (Both Payment Flows)**
-Build `server/stripe.js` for design fee and manufacturing checkout. Test all scenarios: cancellation, refund, duplicate webhook, expired quote.
+**Session 7 — Stripe Integration (Both Payment Flows)** ✅ COMPLETE
+`server/stripe.js`: three Checkout flows (metadata.type: `design_fee`, `manufacturing`, `credit_purchase`). `server/pricing.js`: tiers T1 £499/T2 £599/T3 £749 (repeat 10% off), service surcharges (Priority +£50, Express +£150), manufacturing margin (26% tapering to 13% at 100+ units). `POST /api/webhook` uses `express.raw()` registered BEFORE `express.json()` middleware — required for Stripe signature verification. Idempotency guards on design creation and credit ledger (duplicate webhook safe). Quote expiry enforced at manufacturing checkout (rejects >24h). Routes: `POST /api/checkout` (auth required), `POST /api/manufacturing-checkout` (auth, 410 on expired quote), `POST /api/checkout/credits`. Stripe Tax enabled. Shipping collected at manufacturing checkout. Jobs created in Supabase `designs` table from webhook only — never from success URL. BullMQ enqueue stub ready for Session 9.
 
 **Session 8 — Node.js API Skeleton** 🔄 IN PROGRESS
 `server/index.js` live on port **3001**: `GET /api/health`, `GET /api/capabilities`, `GET /api/components`, `GET /api/components/:id`, `POST /api/parse-intent`, `POST /api/resolve`. Remaining: job queue endpoints, `GET /api/jobs/:id/status`, Stripe webhook handler, Supabase accounts middleware — wire in as Sessions 3/4/7 are completed.

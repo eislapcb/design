@@ -9,9 +9,15 @@ const path    = require('path');
 const { resolve }      = require('./resolver');
 const { parseIntent }  = require('./nlparser');
 const { register, login, logout, changePassword, requireAuth } = require('./accounts');
+const { createDesignCheckout, createManufacturingCheckout, createCreditCheckout, handleWebhook } = require('./stripe');
 
 const app  = express();
 const PORT = process.env.PORT || 3001; // ops hub runs on 3000
+
+// ─── Stripe webhook (raw body — MUST come before express.json()) ──────────────
+// Stripe needs the raw request body to verify the signature.
+
+app.post('/api/webhook', express.raw({ type: 'application/json' }), handleWebhook);
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 
@@ -216,6 +222,86 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
   res.json({ success: true, user: req.user, profile: req.profile });
 });
 
+// ─── Stripe routes ───────────────────────────────────────────────────────────
+
+/**
+ * POST /api/checkout
+ * Creates a Stripe Checkout session for the design fee.
+ * Body: { tier, repeat_customer?, promo?, service_level?, boardConfig, capabilities, userEmail? }
+ */
+app.post('/api/checkout', requireAuth, async (req, res) => {
+  const { tier, repeat_customer, promo, service_level, boardConfig, capabilities } = req.body;
+  if (!tier || !boardConfig || !capabilities) {
+    return res.status(400).json({ error: 'tier, boardConfig and capabilities are required' });
+  }
+  try {
+    const result = await createDesignCheckout({
+      tier:            parseInt(tier, 10),
+      repeat_customer: !!repeat_customer,
+      promo:           !!promo,
+      service_level:   service_level || 'standard',
+      boardConfig,
+      capabilities,
+      userId:          req.user?.id    || null,
+      userEmail:       req.user?.email || null,
+    });
+    res.json({ success: true, url: result.url, sessionId: result.sessionId });
+  } catch (err) {
+    console.error('[checkout] error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * POST /api/manufacturing-checkout
+ * Creates a Stripe Checkout session for a manufacturing order.
+ * Body: { jobId, fab, quantity, rawPriceGbp, jobType?, quoteGeneratedAt? }
+ */
+app.post('/api/manufacturing-checkout', requireAuth, async (req, res) => {
+  const { jobId, fab, quantity, rawPriceGbp, jobType, quoteGeneratedAt } = req.body;
+  if (!jobId || !fab || !quantity || rawPriceGbp == null) {
+    return res.status(400).json({ error: 'jobId, fab, quantity and rawPriceGbp are required' });
+  }
+  try {
+    const result = await createManufacturingCheckout({
+      jobId,
+      fab,
+      quantity:        parseInt(quantity, 10),
+      rawPriceGbp:     parseFloat(rawPriceGbp),
+      jobType:         jobType || 'new',
+      quoteGeneratedAt,
+      userId:          req.user?.id    || null,
+      userEmail:       req.user?.email || null,
+    });
+    res.json({ success: true, url: result.url, sessionId: result.sessionId });
+  } catch (err) {
+    console.error('[manufacturing-checkout] error:', err.message);
+    const isExpired = err.message.includes('expired');
+    res.status(isExpired ? 410 : 500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * POST /api/checkout/credits
+ * Creates a Stripe Checkout session for a credit pack purchase.
+ * Body: { packSize: 1 | 3 | 5 }
+ */
+app.post('/api/checkout/credits', requireAuth, async (req, res) => {
+  const { packSize } = req.body;
+  if (!packSize) return res.status(400).json({ error: 'packSize required (1, 3, or 5)' });
+  try {
+    const result = await createCreditCheckout({
+      packSize:  parseInt(packSize, 10),
+      userId:    req.user?.id    || null,
+      userEmail: req.user?.email || null,
+    });
+    res.json({ success: true, url: result.url, sessionId: result.sessionId });
+  } catch (err) {
+    console.error('[checkout/credits] error:', err.message);
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 // ─── 404 handler ─────────────────────────────────────────────────────────────
 
 app.use((req, res) => {
@@ -237,6 +323,10 @@ app.listen(PORT, () => {
   console.log(`  POST /api/auth/logout`);
   console.log(`  POST /api/auth/change-password`);
   console.log(`  GET  /api/auth/me`);
+  console.log(`  POST /api/checkout`);
+  console.log(`  POST /api/manufacturing-checkout`);
+  console.log(`  POST /api/checkout/credits`);
+  console.log(`  POST /api/webhook`);
 });
 
 module.exports = app;

@@ -1,6 +1,152 @@
 {
   "_meta": {
-    "notes": "Rules for python/validator.py — built in Session 6. Placeholder structure only."
+    "notes": "Rules for python/validator.py — built in Session 6. Each rule can be disabled per-job in advanced mode.",
+    "schema_version": "1.0"
   },
-  "rules": []
+  "rules": [
+    {
+      "id": "decoupling_cap_required",
+      "name": "Decoupling capacitor required",
+      "category": "power_integrity",
+      "enabled": true,
+      "auto_resolve": true,
+      "default_severity": "warning",
+      "description": "Every IC with requires_decoupling=true must have at least one 100nF or 10uF capacitor in the BOM. Auto-adds a 100nF 0402 cap if missing."
+    },
+    {
+      "id": "ldo_output_cap",
+      "name": "LDO output capacitor required",
+      "category": "power_integrity",
+      "enabled": true,
+      "auto_resolve": false,
+      "default_severity": "error",
+      "description": "LDO regulators (AMS1117, MCP1700, etc.) require specific output capacitors for stability. Checks BOM against each regulator's required_output_cap field."
+    },
+    {
+      "id": "power_budget_exceeded",
+      "name": "Power budget exceeded",
+      "category": "power_integrity",
+      "enabled": true,
+      "auto_resolve": false,
+      "default_severity": "error",
+      "description": "Sum of all component power_consumption_ma must not exceed the power source limit (USB: 500mA, LiPo: 1000mA at 3.3V)."
+    },
+    {
+      "id": "reverse_polarity_missing",
+      "name": "Reverse polarity protection missing",
+      "category": "power_integrity",
+      "enabled": true,
+      "auto_resolve": false,
+      "default_severity": "info",
+      "description": "Battery-powered designs without a TVS diode or P-channel MOSFET reverse polarity protection. Recommendation only — not blocking."
+    },
+    {
+      "id": "usb_differential_pair",
+      "name": "USB differential pair net class",
+      "category": "signal_integrity",
+      "enabled": true,
+      "auto_resolve": true,
+      "default_severity": "info",
+      "description": "If USB D+ and D- are present, auto-assigns them to USB_DP diff pair net class for FreeRouting. Warns if they are on different net classes."
+    },
+    {
+      "id": "i2c_pullup_missing",
+      "name": "I2C pull-up resistors missing",
+      "category": "signal_integrity",
+      "enabled": true,
+      "auto_resolve": true,
+      "default_severity": "warning",
+      "description": "If any I2C device is in the BOM, SDA and SCL nets must have pull-up resistors. Auto-adds 4.7kΩ for 100kHz or 2.2kΩ for 400kHz if missing."
+    },
+    {
+      "id": "uart_rx_tx_cross",
+      "name": "UART TX/RX crossover error",
+      "category": "signal_integrity",
+      "enabled": true,
+      "auto_resolve": false,
+      "default_severity": "error",
+      "description": "TX of one UART device must connect to RX of another (and vice versa). Straight TX→TX connections are flagged as errors."
+    },
+    {
+      "id": "spi_shared_cs",
+      "name": "SPI shared chip-select",
+      "category": "signal_integrity",
+      "enabled": true,
+      "auto_resolve": false,
+      "default_severity": "error",
+      "description": "Multiple SPI devices sharing a single CS line. Each SPI peripheral requires its own dedicated CS line."
+    },
+    {
+      "id": "antenna_keepout_violation",
+      "name": "Antenna keep-out zone",
+      "category": "rf",
+      "enabled": true,
+      "auto_resolve": false,
+      "default_severity": "warning",
+      "description": "Pre-warning for placement engine: no component should be within the antenna_keepout_radius_mm of an RF module's antenna. Flagged as a placement constraint."
+    },
+    {
+      "id": "lora_wifi_simultaneous",
+      "name": "LoRa + WiFi simultaneous transmission risk",
+      "category": "rf",
+      "enabled": true,
+      "auto_resolve": false,
+      "default_severity": "warning",
+      "description": "LoRa and WiFi present together. Firmware must implement time-division multiplexing to avoid interference."
+    },
+    {
+      "id": "rf_no_antenna",
+      "name": "RF module without antenna",
+      "category": "rf",
+      "enabled": true,
+      "auto_resolve": false,
+      "default_severity": "error",
+      "description": "RF module (LoRa, WiFi without integrated antenna, etc.) with no antenna component in BOM."
+    },
+    {
+      "id": "board_density_high",
+      "name": "High board density warning",
+      "category": "mechanical",
+      "enabled": true,
+      "auto_resolve": false,
+      "default_severity": "warning",
+      "description": "Estimated component footprint area exceeds 75% of board area. Placement may be very tight and manual adjustments will likely be needed."
+    },
+    {
+      "id": "no_mounting_holes",
+      "name": "No mounting holes",
+      "category": "mechanical",
+      "enabled": true,
+      "auto_resolve": false,
+      "default_severity": "info",
+      "description": "Board larger than 50×50mm with no mounting holes in the component list."
+    },
+    {
+      "id": "fine_pitch_assembly",
+      "name": "Fine-pitch component requires reflow",
+      "category": "assembly",
+      "enabled": true,
+      "auto_resolve": false,
+      "default_severity": "info",
+      "description": "QFN, BGA, or passive smaller than 0201 detected. Requires precision SMT assembly and reflow — not suitable for hand soldering."
+    },
+    {
+      "id": "mixed_assembly_sides",
+      "name": "Components on both assembly sides",
+      "category": "assembly",
+      "enabled": true,
+      "auto_resolve": false,
+      "default_severity": "warning",
+      "description": "SMT components on both top and bottom sides increases assembly cost significantly. Most low-cost assembly services default to single-side."
+    },
+    {
+      "id": "motor_flyback_missing",
+      "name": "Motor driver flyback protection missing",
+      "category": "protection",
+      "enabled": true,
+      "auto_resolve": false,
+      "default_severity": "error",
+      "description": "DC motor driver or relay in BOM without flyback diodes. Without protection, back-EMF will damage the driver IC."
+    }
+  ]
 }
