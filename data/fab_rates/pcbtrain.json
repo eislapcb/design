@@ -1,0 +1,138 @@
+{
+  "_meta": {
+    "fab": "PCBTrain",
+    "method": "rate_card",
+    "currency": "GBP",
+    "fx_to_gbp": 1.0,
+    "rate_card_date": "2026-02",
+    "validation_status": "estimated — validate against pcbtrain.co.uk/quick-online-quote/",
+    "validated_at": null,
+    "review_url": "https://www.pcbtrain.co.uk/quick-online-quote/",
+    "url": "https://www.pcbtrain.co.uk",
+    "note": "Estimate based on published rates as of 2026-02 — verify at pcbtrain.co.uk",
+    "pricing_notes": [
+      "PCBTrain is a UK-based pooling fab; multiple customers share manufacturing panels.",
+      "No tooling charges. No minimum order charge.",
+      "VAT (20%) is NOT included in rate card prices — add at invoice stage.",
+      "HASL is NOT offered. Default finish is Immersion Silver.",
+      "Assembly is NOT available via this fab — PCB only.",
+      "Panel maximum: 200x300mm.",
+      "Express service (PCBTrain Express): immersion silver only, no solder resist/legend, no internal routed cut-outs."
+    ]
+  },
+
+  "assembly_available": false,
+
+  "default_spec": {
+    "layers": 2,
+    "surface_finish": "immersion_silver",
+    "copper_weight_oz": 1,
+    "thickness_mm": 1.6,
+    "material": "FR4"
+  },
+
+  "lead_times": {
+    "standard_days": 12,
+    "express_days": 1,
+    "express_notes": "8-hour turnaround for 1-2 layer; 32-hour for 4-layer. Data must be received by 09:00."
+  },
+
+  "surface_finishes": {
+    "immersion_silver": {
+      "label": "Immersion Silver (RoHS)",
+      "surcharge_gbp_flat": 0.00,
+      "surcharge_pct": 0.00,
+      "available_express": true,
+      "notes": "Default and most popular. 6-month shelf life. Flat surface."
+    },
+    "enig": {
+      "label": "ENIG (Electroless Nickel Immersion Gold)",
+      "surcharge_gbp_flat": 0.00,
+      "surcharge_pct": 0.15,
+      "available_express": false,
+      "notes": "15% surcharge on board cost. Not available on Express service."
+    }
+  },
+
+  "layer_multipliers": {
+    "2": 1.00,
+    "4": 2.80,
+    "6": 4.50
+  },
+
+  "copper_weight_multipliers": {
+    "1oz": 1.00,
+    "2oz": 1.20
+  },
+
+  "express_multiplier": 2.40,
+
+  "shipping_gbp": {
+    "royal_mail_3day": 5.00,
+    "express_next_day_pm": 10.00,
+    "express_next_day_noon": 15.00,
+    "express_next_day_1030am": 20.00,
+    "saturday": 30.00,
+    "notes": "Royal Mail untracked — use tracked carrier for orders >£100."
+  },
+
+  "price_table": {
+    "ref_spec": "2-layer, Immersion Silver, 1oz copper, 1.6mm FR4, standard lead time (12 days), GBP ex-VAT",
+    "interpolation": "linear_area",
+    "interpolation_notes": "For board sizes not in table: scale price linearly by area (w_mm * h_mm) relative to the nearest entry. Apply layer_multipliers, surface_finish surcharges, and express_multiplier on top.",
+    "entries": [
+      {
+        "label": "50x50mm",
+        "w_mm": 50,
+        "h_mm": 50,
+        "area_cm2": 25,
+        "qty_5":   14.00,
+        "qty_10":  17.00,
+        "qty_25":  24.00,
+        "qty_50":  36.00
+      },
+      {
+        "label": "100x100mm",
+        "w_mm": 100,
+        "h_mm": 100,
+        "area_cm2": 100,
+        "qty_5":   22.00,
+        "qty_10":  28.00,
+        "qty_25":  42.00,
+        "qty_50":  62.00
+      },
+      {
+        "label": "160x100mm",
+        "w_mm": 160,
+        "h_mm": 100,
+        "area_cm2": 160,
+        "qty_5":   32.00,
+        "qty_10":  42.00,
+        "qty_25":  62.00,
+        "qty_50":  92.00
+      },
+      {
+        "label": "200x150mm",
+        "w_mm": 200,
+        "h_mm": 150,
+        "area_cm2": 300,
+        "qty_5":   55.00,
+        "qty_10":  72.00,
+        "qty_25": 110.00,
+        "qty_50": 162.00
+      }
+    ]
+  },
+
+  "validation_checklist": [
+    "50x50mm, 2L, IS, qty 5  → target ~£14",
+    "100x100mm, 2L, IS, qty 5  → target ~£22",
+    "100x100mm, 2L, IS, qty 10 → target ~£28",
+    "100x100mm, 2L, IS, qty 25 → target ~£42",
+    "100x100mm, 2L, IS, qty 50 → target ~£62",
+    "160x100mm, 2L, IS, qty 5  → target ~£32",
+    "160x100mm, 2L, IS, qty 50 → target ~£92",
+    "100x100mm, 4L, IS, qty 10 → target ~£78 (28 * 2.80)",
+    "100x100mm, 2L, ENIG, qty 5 → target ~£25 (22 * 1.15)"
+  ]
+}

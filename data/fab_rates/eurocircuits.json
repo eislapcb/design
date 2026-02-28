@@ -1,0 +1,148 @@
+{
+  "_meta": {
+    "fab": "Eurocircuits",
+    "method": "rate_card",
+    "currency": "EUR",
+    "rate_card_date": "2026-02",
+    "validation_status": "estimated — validate against eurocircuits.com PCB Calculator",
+    "validated_at": null,
+    "review_url": "https://www.eurocircuits.com/pcb-calculator/",
+    "url": "https://www.eurocircuits.com",
+    "note": "Estimate based on published rates as of 2026-02 — verify at eurocircuits.com",
+    "pricing_notes": [
+      "Eurocircuits uses an order-pooling model — multiple customers share large manufacturing panels.",
+      "Pricing is area-based (dm² = 100cm²). Larger boards use more panel area and cost proportionally more.",
+      "No tooling charges. No setup fees. No minimum order charge.",
+      "100% electrical testing included for 2-layer boards.",
+      "Pool PCB standard lead time: 7 working days for orders <50 dm².",
+      "STANDARD Pool service supports 2, 4, 6, 8 layers.",
+      "Assembly available: SMT + THT. 481,000+ verified components in their parts database.",
+      "No confirmed public API (as of 2026-02). Rate card model used permanently until direct contact confirms otherwise.",
+      "All prices in EUR. Convert to GBP at runtime using Redis fx:EUR_GBP key.",
+      "Upgrade path: if API access is confirmed, update this file method to 'api_live' and build the adapter."
+    ],
+    "api_status": "none — no confirmed public partner API",
+    "api_notes": "Direct contact initiated (see ENHANCEMENTS.md). Eurocircuits 2026 roadmap mentions 'expanded API-based integration' but this refers to internal workflow automation, not a customer/partner API."
+  },
+
+  "assembly_available": true,
+  "assembly_notes": "SMT and THT assembly. 481,000+ component database. Lead times: 3, 5, 7, or 10 working days. Max 5,000 components per order.",
+
+  "default_spec": {
+    "layers": 2,
+    "surface_finish": "hal_leadfree",
+    "copper_weight_oz": 1,
+    "thickness_mm": 1.6,
+    "material": "FR4"
+  },
+
+  "lead_times": {
+    "pool_standard_days": 7,
+    "pool_notes": "7 working days for orders <50 dm² total panel area. Larger orders take 10-15 working days.",
+    "assembly_standard_days": 10,
+    "assembly_express_days": 3
+  },
+
+  "surface_finishes": {
+    "hal_leadfree": {
+      "label": "Lead-Free HAL (Hot Air Levelling, RoHS)",
+      "surcharge_eur_flat": 0.00,
+      "surcharge_pct": 0.00,
+      "notes": "Default and most economical. Uneven surface — not ideal for fine-pitch (<0.5mm) components."
+    },
+    "enig": {
+      "label": "ENIG (Electroless Nickel Immersion Gold, RoHS)",
+      "surcharge_eur_flat": 0.00,
+      "surcharge_pct": 0.18,
+      "notes": "18% surcharge on board cost. Flat surface — required for fine-pitch components. Premium quality."
+    },
+    "immersion_silver": {
+      "label": "Immersion Silver (ImAg, RoHS)",
+      "surcharge_eur_flat": 0.00,
+      "surcharge_pct": 0.10,
+      "notes": "10% surcharge. Flat surface. Tarnish risk if not stored correctly."
+    }
+  },
+
+  "layer_multipliers": {
+    "2": 1.00,
+    "4": 2.20,
+    "6": 3.80,
+    "8": 5.50
+  },
+
+  "copper_weight_multipliers": {
+    "1oz": 1.00,
+    "2oz": 1.30
+  },
+
+  "area_pricing": {
+    "model": "linear_area",
+    "unit": "dm2",
+    "notes": "Eurocircuits prices by area. 1 dm² = 100 cm². Area = (w_mm / 100) * (h_mm / 100) dm². For pooling, the cost per dm² decreases slightly with larger panel utilisation, but for our reference boards this is approximated as linear."
+  },
+
+  "price_table": {
+    "ref_spec": "2-layer STANDARD Pool, Lead-Free HAL, 1oz copper, 1.6mm FR4, 7 working day lead time, EUR",
+    "interpolation": "linear_area",
+    "interpolation_notes": "Scale prices by board area in dm² relative to reference entries. 50x50mm = 0.25 dm², 100x100mm = 1.0 dm², 160x100mm = 1.6 dm². For intermediate sizes, interpolate between the two nearest entries by area.",
+    "entries": [
+      {
+        "label": "50x50mm (0.25 dm²)",
+        "w_mm": 50,
+        "h_mm": 50,
+        "area_cm2": 25,
+        "area_dm2": 0.25,
+        "qty_5":  20.00,
+        "qty_10": 24.00,
+        "qty_25": 33.00,
+        "qty_50": 48.00
+      },
+      {
+        "label": "100x100mm (1.0 dm²)",
+        "w_mm": 100,
+        "h_mm": 100,
+        "area_cm2": 100,
+        "area_dm2": 1.00,
+        "qty_5":  32.00,
+        "qty_10": 40.00,
+        "qty_25": 58.00,
+        "qty_50": 85.00
+      },
+      {
+        "label": "160x100mm (1.6 dm²)",
+        "w_mm": 160,
+        "h_mm": 100,
+        "area_cm2": 160,
+        "area_dm2": 1.60,
+        "qty_5":  46.00,
+        "qty_10": 58.00,
+        "qty_25": 85.00,
+        "qty_50": 125.00
+      },
+      {
+        "label": "200x150mm (3.0 dm²)",
+        "w_mm": 200,
+        "h_mm": 150,
+        "area_cm2": 300,
+        "area_dm2": 3.00,
+        "qty_5":   72.00,
+        "qty_10":  92.00,
+        "qty_25": 138.00,
+        "qty_50": 200.00
+      }
+    ]
+  },
+
+  "validation_checklist": [
+    "50x50mm,   2L, HAL-LF, qty 5  → target ~€20",
+    "100x100mm, 2L, HAL-LF, qty 5  → target ~€32",
+    "100x100mm, 2L, HAL-LF, qty 10 → target ~€40",
+    "100x100mm, 2L, HAL-LF, qty 25 → target ~€58",
+    "100x100mm, 2L, HAL-LF, qty 50 → target ~€85",
+    "160x100mm, 2L, HAL-LF, qty 5  → target ~€46",
+    "160x100mm, 2L, HAL-LF, qty 50 → target ~€125",
+    "100x100mm, 4L, HAL-LF, qty 10 → target ~€88 (40 * 2.20)",
+    "100x100mm, 2L, ENIG,   qty 5  → target ~€38 (32 * 1.18)"
+  ]
+}

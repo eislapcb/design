@@ -1,0 +1,173 @@
+{
+  "_meta": {
+    "fab": "PCBWay",
+    "method": "rate_card",
+    "currency": "USD",
+    "rate_card_date": "2026-02",
+    "validation_status": "partially validated — $5/100x100mm/2L/5pc confirmed; other entries estimated",
+    "validated_at": null,
+    "review_url": "https://www.pcbway.com/HighQualityOrderOnline.aspx",
+    "assembly_review_url": "https://www.pcbway.com/quotesmt.aspx",
+    "url": "https://www.pcbway.com",
+    "note": "Estimate based on published rates as of 2026-02 — verify at pcbway.com",
+    "pricing_notes": [
+      "PCBWay uses a dynamic quote calculator — prices are indicative.",
+      "$5 for 100x100mm, 2-layer, HASL-LF, 5 pcs is a confirmed published anchor price.",
+      "Boards ≤100x100mm fall in the cheapest area tier (same unit price as smaller boards).",
+      "Boards >110mm on either axis move to higher area tiers (~2-3x cost).",
+      "No separate tooling fee — embedded in prototype pricing.",
+      "Assembly: ~$0.002 per solder joint. Starting from $29 for 1-20 piece runs.",
+      "Payment method can affect price by ±5-10%.",
+      "Express 24H available for 1-2 layer only; 48H for 4-layer (with size/qty restrictions).",
+      "All prices in USD. Convert to GBP at runtime using Redis fx:USD_GBP key."
+    ]
+  },
+
+  "assembly_available": true,
+  "assembly_notes": "SMT, THT, and mixed assembly available. No tooling fee. BOM must be validated against JLCPCB/PCBWay component library before quoting assembly.",
+
+  "default_spec": {
+    "layers": 2,
+    "surface_finish": "hasl_leadfree",
+    "copper_weight_oz": 1,
+    "thickness_mm": 1.6,
+    "material": "FR4"
+  },
+
+  "lead_times": {
+    "standard_days": 7,
+    "express_48h_days": 2,
+    "express_24h_days": 1,
+    "express_notes": "24H for 1-2 layer only. 48H for 4-layer (limited specs). Payment must be confirmed before 18:00 CST."
+  },
+
+  "surface_finishes": {
+    "hasl_leaded": {
+      "label": "HASL (leaded)",
+      "surcharge_usd_flat": 0.00,
+      "surcharge_pct": 0.00,
+      "notes": "Not recommended for new designs (RoHS)."
+    },
+    "hasl_leadfree": {
+      "label": "HASL Lead-Free (RoHS)",
+      "surcharge_usd_flat": 0.00,
+      "surcharge_pct": 0.00,
+      "notes": "Default. Most cost-effective RoHS option."
+    },
+    "enig": {
+      "label": "ENIG (Electroless Nickel Immersion Gold)",
+      "surcharge_usd_flat": 5.00,
+      "surcharge_pct": 0.00,
+      "notes": "Flat $5 surcharge for prototype quantities. Higher for larger orders."
+    },
+    "immersion_silver": {
+      "label": "Immersion Silver (RoHS)",
+      "surcharge_usd_flat": 3.00,
+      "surcharge_pct": 0.00,
+      "notes": "Good flatness. $3 flat surcharge."
+    },
+    "immersion_tin": {
+      "label": "Immersion Tin (RoHS)",
+      "surcharge_usd_flat": 2.00,
+      "surcharge_pct": 0.00,
+      "notes": "$2 flat surcharge."
+    },
+    "osp": {
+      "label": "OSP (Organic Solderability Preservative)",
+      "surcharge_usd_flat": 0.00,
+      "surcharge_pct": 0.00,
+      "notes": "Similar cost to HASL-LF. Short shelf life."
+    }
+  },
+
+  "layer_multipliers": {
+    "2": 1.00,
+    "4": 2.00,
+    "6": 3.50
+  },
+
+  "copper_weight_multipliers": {
+    "1oz": 1.00,
+    "2oz": 1.25
+  },
+
+  "express_multipliers": {
+    "48h": 1.50,
+    "24h": 2.50
+  },
+
+  "assembly_pricing": {
+    "solder_joint_usd": 0.002,
+    "minimum_usd": 29.00,
+    "notes": "Assembly quote requires BOM. Request via pcbway.com/quotesmt.aspx for accurate pricing."
+  },
+
+  "price_table": {
+    "ref_spec": "2-layer, HASL Lead-Free, 1oz copper, 1.6mm FR4, standard lead time (7 days), USD",
+    "interpolation": "linear_area",
+    "interpolation_notes": "For boards ≤100x100mm use the 100x100mm entry (same tier). For boards >100mm on either axis, scale linearly by area from the nearest larger reference entry. Apply layer_multipliers and surface_finish surcharges on top.",
+    "area_tier_break_cm2": 100,
+    "entries": [
+      {
+        "label": "50x50mm",
+        "w_mm": 50,
+        "h_mm": 50,
+        "area_cm2": 25,
+        "qty_5":    5.00,
+        "qty_10":   7.00,
+        "qty_25":  12.00,
+        "qty_50":  18.00,
+        "qty_100": 30.00
+      },
+      {
+        "label": "100x100mm",
+        "w_mm": 100,
+        "h_mm": 100,
+        "area_cm2": 100,
+        "qty_5":    5.00,
+        "qty_10":   8.50,
+        "qty_25":  16.00,
+        "qty_50":  27.00,
+        "qty_100": 42.00,
+        "validated": true,
+        "validation_note": "qty_5 = $5.00 confirmed from pcbway.com published prototype pricing"
+      },
+      {
+        "label": "160x100mm",
+        "w_mm": 160,
+        "h_mm": 100,
+        "area_cm2": 160,
+        "qty_5":   12.00,
+        "qty_10":  18.00,
+        "qty_25":  32.00,
+        "qty_50":  50.00,
+        "qty_100": 80.00
+      },
+      {
+        "label": "200x150mm",
+        "w_mm": 200,
+        "h_mm": 150,
+        "area_cm2": 300,
+        "qty_5":   22.00,
+        "qty_10":  32.00,
+        "qty_25":  58.00,
+        "qty_50":  90.00,
+        "qty_100": 140.00
+      }
+    ]
+  },
+
+  "validation_checklist": [
+    "100x100mm, 2L, HASL-LF, qty 5   → CONFIRMED $5.00",
+    "100x100mm, 2L, HASL-LF, qty 10  → target ~$8.50",
+    "100x100mm, 2L, HASL-LF, qty 25  → target ~$16",
+    "100x100mm, 2L, HASL-LF, qty 50  → target ~$27",
+    "100x100mm, 2L, HASL-LF, qty 100 → target ~$42",
+    "50x50mm,   2L, HASL-LF, qty 5   → target ~$5 (same tier)",
+    "160x100mm, 2L, HASL-LF, qty 5   → target ~$12",
+    "160x100mm, 2L, HASL-LF, qty 50  → target ~$50",
+    "100x100mm, 4L, HASL-LF, qty 5   → target ~$10 (5 * 2.00)",
+    "100x100mm, 4L, HASL-LF, qty 10  → target ~$17 (8.50 * 2.00)",
+    "100x100mm, 2L, ENIG,    qty 5   → target ~$10 (5 + 5 flat)"
+  ]
+}
