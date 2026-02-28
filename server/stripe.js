@@ -22,7 +22,8 @@
 const Stripe  = require('stripe');
 const { v4: uuidv4 } = require('uuid');
 const { getDesignFee, getServiceSurchargePence, applyMarginPence } = require('./pricing');
-const notifier = require('./notifier');
+const notifier     = require('./notifier');
+const ordermanager = require('./ordermanager');
 
 // ─── Stripe client ────────────────────────────────────────────────────────────
 
@@ -387,29 +388,58 @@ async function handleDesignFeePaid(session) {
 // ─── Manufacturing payment paid ───────────────────────────────────────────────
 
 async function handleManufacturingPaid(session) {
-  const { job_id, fab, quantity, customer_price_gbp } = session.metadata;
+  const { job_id, fab, quantity, customer_price_gbp, user_id } = session.metadata;
   const shipping = session.shipping_details;
+  const qty = parseInt(quantity, 10);
 
-  console.log(`[webhook] Manufacturing paid — job_id=${job_id} fab=${fab} qty=${quantity}`);
+  console.log(`[webhook] Manufacturing paid — job_id=${job_id} fab=${fab} qty=${qty}`);
 
-  // TODO (Session 16): Trigger ordermanager.js
-  // await ordermanager.placeOrder({ jobId: job_id, fab, quantity: parseInt(quantity), shipping });
+  // Look up raw price from fab_quotes.json for the internal record
+  let rawPriceGbp = null;
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const quotesPath = path.join(
+      path.resolve(process.env.JOBS_DIR || './jobs'),
+      job_id,
+      'fab_quotes.json'
+    );
+    if (fs.existsSync(quotesPath)) {
+      const fabQuotes = JSON.parse(fs.readFileSync(quotesPath, 'utf8'));
+      const fabQuote = (fabQuotes.quotes || []).find(q => q.fab === fab);
+      if (fabQuote?.quotes?.[qty]) {
+        rawPriceGbp = fabQuote.quotes[qty].raw_gbp;
+      }
+    }
+  } catch {} // non-critical
+
+  // Place the manufacturing order
+  const orderResult = await ordermanager.placeOrder({
+    designId:         job_id,
+    fab,
+    quantity:         qty,
+    customerPriceGbp: parseFloat(customer_price_gbp) || null,
+    rawPriceGbp,
+    stripeSessionId:  session.id,
+    userId:           user_id || null,
+    shipping,
+  });
+
+  console.log(`[webhook] Order ${orderResult.orderId} — status: ${orderResult.status}`);
 
   // Best-effort "order placed" email
   try {
     const info = await notifier.getCustomerInfoFromMetadata(session);
     if (info) {
       notifier.sendOrderPlacedEmail({
-        to:            info.email,
-        name:          info.name,
+        to:       info.email,
+        name:     info.name,
         fab,
-        quantity:      parseInt(quantity, 10),
-        orderRef:      null, // populated by ordermanager in Session 16
+        quantity: qty,
+        orderRef: orderResult.fabOrderRef || null,
       }).catch(() => {});
     }
   } catch {} // best-effort
-
-  console.log(`[webhook] Manufacturing order queued for manual fulfilment — job_id=${job_id}`);
 }
 
 // ─── Credit pack purchased ────────────────────────────────────────────────────

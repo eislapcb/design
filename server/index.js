@@ -12,6 +12,7 @@ const { register, login, logout, changePassword, requireAuth } = require('./acco
 const { createDesignCheckout, createManufacturingCheckout, createCreditCheckout, handleWebhook } = require('./stripe');
 const { enqueue }                = require('./queue');
 const { readJobFile, jobDir }    = require('./worker');
+const { getOrdersByDesign, updateOrderStatus } = require('./ordermanager');
 
 const app  = express();
 const PORT = process.env.PORT || 3001; // ops hub runs on 3000
@@ -578,6 +579,112 @@ app.post('/api/internal/approve-review', requireServiceKey, async (req, res) => 
   }
 });
 
+// ─── Manufacturing order routes ──────────────────────────────────────────────
+
+/**
+ * GET /api/jobs/:id/orders
+ * Returns manufacturing orders for a design (customer-facing — raw prices stripped).
+ */
+app.get('/api/jobs/:id/orders', requireAuth, async (req, res) => {
+  try {
+    const design = await getOwnedDesign(req.params.id, req.user?.id);
+    const orders = await getOrdersByDesign(design.id);
+
+    // Strip internal fields
+    const safeOrders = orders.map(o => ({
+      id:               o.id,
+      fab:              o.fab,
+      quantity:         o.quantity,
+      status:           o.status,
+      fab_order_ref:    o.fab_order_ref,
+      customer_price_gbp: o.customer_price_gbp,
+      created_at:       o.created_at,
+    }));
+
+    res.json({ success: true, orders: safeOrders });
+  } catch (err) {
+    res.status(err.status || 500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * POST /api/jobs/:id/reorder
+ * Re-place a manufacturing order for a completed design.
+ * Generates fresh quotes and creates a new Stripe checkout session.
+ * Body: { fab, quantity }
+ */
+app.post('/api/jobs/:id/reorder', requireAuth, async (req, res) => {
+  try {
+    const design = await getOwnedDesign(req.params.id, req.user?.id);
+
+    if (!['files_ready', 'complete'].includes(design.status)) {
+      return res.status(409).json({
+        success: false,
+        error: `Cannot reorder — design status is '${design.status}'`,
+      });
+    }
+
+    const { fab, quantity } = req.body;
+    if (!fab || !quantity) {
+      return res.status(400).json({ error: 'fab and quantity are required' });
+    }
+
+    // Read fresh quotes
+    const fabQuotes = readJobFile(design.id, 'fab_quotes.json');
+    if (!fabQuotes) {
+      return res.status(409).json({ error: 'No quotes available for this design' });
+    }
+
+    const fabQuote = (fabQuotes.quotes || []).find(q => q.fab === fab);
+    const qty = parseInt(quantity, 10);
+    const qtyQuote = fabQuote?.quotes?.[qty];
+
+    if (!qtyQuote) {
+      return res.status(400).json({ error: `No quote for ${fab} × ${qty}` });
+    }
+
+    // Create manufacturing checkout with reorder pricing
+    const result = await createManufacturingCheckout({
+      jobId:            design.id,
+      fab,
+      quantity:         qty,
+      rawPriceGbp:      qtyQuote.raw_gbp,
+      jobType:          'reorder',
+      quoteGeneratedAt: fabQuotes.generated_at,
+      userId:           req.user?.id || null,
+      userEmail:        req.user?.email || null,
+    });
+
+    res.json({ success: true, url: result.url, sessionId: result.sessionId });
+  } catch (err) {
+    const isExpired = err.message?.includes('expired');
+    res.status(isExpired ? 410 : 500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * POST /api/internal/update-order
+ * Ops hub updates order tracking info (e.g. shipped, tracking number).
+ * Body: { orderId, status, trackingRef?, fabOrderRef? }
+ */
+app.post('/api/internal/update-order', requireServiceKey, async (req, res) => {
+  try {
+    const { orderId, status, trackingRef, fabOrderRef } = req.body;
+    if (!orderId || !status) {
+      return res.status(400).json({ error: 'orderId and status are required' });
+    }
+
+    const fields = {};
+    if (trackingRef)  fields.tracking_ref  = trackingRef;
+    if (fabOrderRef)  fields.fab_order_ref = fabOrderRef;
+
+    await updateOrderStatus(orderId, status, fields);
+    res.json({ success: true, message: `Order ${orderId} → ${status}` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── 404 handler ─────────────────────────────────────────────────────────────
 
 app.use((req, res) => {
@@ -610,7 +717,10 @@ app.listen(PORT, () => {
   console.log(`  POST /api/jobs/:id/adjust-placement`);
   console.log(`  GET  /api/jobs/:id/quotes`);
   console.log(`  GET  /api/jobs/:id/download`);
+  console.log(`  GET  /api/jobs/:id/orders`);
+  console.log(`  POST /api/jobs/:id/reorder`);
   console.log(`  POST /api/internal/approve-review`);
+  console.log(`  POST /api/internal/update-order`);
 });
 
 module.exports = app;
