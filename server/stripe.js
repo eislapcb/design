@@ -370,8 +370,14 @@ async function handleDesignFeePaid(session) {
 
   console.log(`[webhook] Design created — id=${design.id} status=paid`);
 
-  // TODO (Session 9): Enqueue job in BullMQ worker
-  // await jobQueue.add('process_design', { designId: design.id, boardConfig: boardCfg, capabilities: capList });
+  // Enqueue processing job in BullMQ (requires Redis)
+  const { enqueue } = require('./queue');
+  const queued = await enqueue('process_design', { designId: design.id });
+  if (queued) {
+    console.log(`[webhook] Enqueued process_design for ${design.id}`);
+  } else {
+    console.warn(`[webhook] Could not enqueue — Redis unavailable. Design ${design.id} must be processed manually.`);
+  }
 }
 
 // ─── Manufacturing payment paid ───────────────────────────────────────────────

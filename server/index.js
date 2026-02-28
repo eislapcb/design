@@ -10,6 +10,8 @@ const { resolve }      = require('./resolver');
 const { parseIntent }  = require('./nlparser');
 const { register, login, logout, changePassword, requireAuth } = require('./accounts');
 const { createDesignCheckout, createManufacturingCheckout, createCreditCheckout, handleWebhook } = require('./stripe');
+const { enqueue }                = require('./queue');
+const { readJobFile, jobDir }    = require('./worker');
 
 const app  = express();
 const PORT = process.env.PORT || 3001; // ops hub runs on 3000
@@ -302,6 +304,207 @@ app.post('/api/checkout/credits', requireAuth, async (req, res) => {
   }
 });
 
+// ─── Job routes ───────────────────────────────────────────────────────────────
+//
+// All routes require the caller to own the design (userId match in Supabase).
+// Supabase admin client is created inline to avoid circular imports.
+
+async function getOwnedDesign(designId, userId) {
+  const { createClient } = require('@supabase/supabase-js');
+  const admin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+  const { data, error } = await admin
+    .from('designs')
+    .select('*')
+    .eq('id', designId)
+    .single();
+  if (error || !data) throw Object.assign(new Error('Design not found'), { status: 404 });
+  if (userId && data.user_id !== userId) throw Object.assign(new Error('Forbidden'), { status: 403 });
+  return data;
+}
+
+/**
+ * GET /api/jobs/:id/status
+ * Returns current pipeline status for a design.
+ */
+app.get('/api/jobs/:id/status', requireAuth, async (req, res) => {
+  try {
+    const design = await getOwnedDesign(req.params.id, req.user?.id);
+    res.json({
+      success:   true,
+      designId:  design.id,
+      status:    design.status,
+      updatedAt: design.updated_at,
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * GET /api/jobs/:id/review-summary
+ * Returns placement layout + validation warnings for the customer review screen.
+ * Only available when status is awaiting_placement_approval.
+ */
+app.get('/api/jobs/:id/review-summary', requireAuth, async (req, res) => {
+  try {
+    const design = await getOwnedDesign(req.params.id, req.user?.id);
+
+    if (!['awaiting_placement_approval', 'placing', 'failed'].includes(design.status)) {
+      return res.status(409).json({
+        success: false,
+        error:   `Cannot review — design status is '${design.status}'`,
+      });
+    }
+
+    const placement = readJobFile(design.id, 'placement.json');
+    const warnings  = readJobFile(design.id, 'validation_warnings.json');
+
+    if (!placement) {
+      return res.status(404).json({ success: false, error: 'Placement data not ready' });
+    }
+
+    res.json({
+      success:    true,
+      designId:   design.id,
+      status:     design.status,
+      placement,
+      warnings:   warnings || { warnings: [], auto_resolved: [] },
+      svgUrl:     `/api/jobs/${design.id}/preview.svg`,
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * GET /api/jobs/:id/preview.svg
+ * Streams the placement preview SVG file.
+ */
+app.get('/api/jobs/:id/preview.svg', requireAuth, async (req, res) => {
+  try {
+    const design = await getOwnedDesign(req.params.id, req.user?.id);
+    const svgPath = path.join(jobDir(design.id), 'placement_preview.svg');
+    if (!fs.existsSync(svgPath)) {
+      return res.status(404).json({ error: 'Preview SVG not ready' });
+    }
+    res.setHeader('Content-Type', 'image/svg+xml');
+    fs.createReadStream(svgPath).pipe(res);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/jobs/:id/approve-placement
+ * Customer approves the placement. Advances to routing.
+ */
+app.post('/api/jobs/:id/approve-placement', requireAuth, async (req, res) => {
+  try {
+    const design = await getOwnedDesign(req.params.id, req.user?.id);
+
+    if (design.status !== 'awaiting_placement_approval') {
+      return res.status(409).json({
+        success: false,
+        error:   `Cannot approve — design status is '${design.status}'`,
+      });
+    }
+
+    await enqueue('approve-placement', { designId: design.id });
+    res.json({ success: true, message: 'Placement approved — routing queued' });
+  } catch (err) {
+    res.status(err.status || 500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * POST /api/jobs/:id/adjust-placement
+ * Customer submits position/rotation overrides. Re-renders SVG.
+ * Body: { adjustments: { U1: { x_mm, y_mm, rotation_deg }, ... } }
+ */
+app.post('/api/jobs/:id/adjust-placement', requireAuth, async (req, res) => {
+  try {
+    const design = await getOwnedDesign(req.params.id, req.user?.id);
+
+    if (design.status !== 'awaiting_placement_approval') {
+      return res.status(409).json({
+        success: false,
+        error:   `Cannot adjust — design status is '${design.status}'`,
+      });
+    }
+
+    const { adjustments } = req.body;
+    if (!adjustments || typeof adjustments !== 'object') {
+      return res.status(400).json({ success: false, error: 'adjustments object required' });
+    }
+
+    await enqueue('adjust-placement', { designId: design.id, adjustments });
+    res.json({ success: true, message: 'Adjustments queued — preview will update shortly' });
+  } catch (err) {
+    res.status(err.status || 500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * GET /api/jobs/:id/quotes
+ * Returns manufacturing quotes.
+ * Only available when status is 'quoting' or 'files_ready'.
+ * Stub: returns placeholder — real fab quoting in Session 16.
+ */
+app.get('/api/jobs/:id/quotes', requireAuth, async (req, res) => {
+  try {
+    const design = await getOwnedDesign(req.params.id, req.user?.id);
+
+    if (!['quoting', 'files_ready', 'complete'].includes(design.status)) {
+      return res.status(409).json({
+        success: false,
+        error:   `Quotes not available — design status is '${design.status}'`,
+      });
+    }
+
+    const quotes = readJobFile(design.id, 'quotes.json');
+    res.json({
+      success:  true,
+      designId: design.id,
+      quotes:   quotes || [],
+      note:     quotes ? undefined : 'Quoting in progress — check back shortly',
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * GET /api/jobs/:id/download
+ * Returns the output ZIP (Gerbers, BOM, pick-and-place).
+ * Only available when status is 'files_ready' or 'complete'.
+ */
+app.get('/api/jobs/:id/download', requireAuth, async (req, res) => {
+  try {
+    const design = await getOwnedDesign(req.params.id, req.user?.id);
+
+    if (!['files_ready', 'complete'].includes(design.status)) {
+      return res.status(409).json({
+        success: false,
+        error:   `Files not ready — design status is '${design.status}'`,
+      });
+    }
+
+    const zipPath = path.join(jobDir(design.id), 'output.zip');
+    if (!fs.existsSync(zipPath)) {
+      return res.status(404).json({ success: false, error: 'Output ZIP not found' });
+    }
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="eisla-${design.id}.zip"`);
+    fs.createReadStream(zipPath).pipe(res);
+  } catch (err) {
+    res.status(err.status || 500).json({ success: false, error: err.message });
+  }
+});
+
 // ─── 404 handler ─────────────────────────────────────────────────────────────
 
 app.use((req, res) => {
@@ -327,6 +530,13 @@ app.listen(PORT, () => {
   console.log(`  POST /api/manufacturing-checkout`);
   console.log(`  POST /api/checkout/credits`);
   console.log(`  POST /api/webhook`);
+  console.log(`  GET  /api/jobs/:id/status`);
+  console.log(`  GET  /api/jobs/:id/review-summary`);
+  console.log(`  GET  /api/jobs/:id/preview.svg`);
+  console.log(`  POST /api/jobs/:id/approve-placement`);
+  console.log(`  POST /api/jobs/:id/adjust-placement`);
+  console.log(`  GET  /api/jobs/:id/quotes`);
+  console.log(`  GET  /api/jobs/:id/download`);
 });
 
 module.exports = app;
