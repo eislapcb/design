@@ -24,11 +24,19 @@ Output (in job_dir):
 """
 
 import json
+import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
 import pcbnew
+
+# KiCad CLI binary — same directory as KiCad Python interpreter
+KICAD_CLI = os.environ.get(
+    "KICAD_CLI",
+    str(Path(sys.executable).parent / "kicad-cli.exe")
+)
 
 
 # ─── DRC report parsing ───────────────────────────────────────────────────────
@@ -139,30 +147,60 @@ def main():
     else:
         print(f"[drc] WARNING: board.ses not found — running DRC on unrouted board")
 
-    # ── Run DRC ───────────────────────────────────────────────────────────
-    print(f"[drc] Running DRC ...")
-    pcbnew.WriteDRCReport(board, str(rpt_path), pcbnew.EDA_UNITS_MM, True)
+    # ── Run DRC via kicad-cli (headless, avoids wxWidgets hang) ─────────
+    print(f"[drc] Running DRC via kicad-cli ...")
+    drc_cmd = [
+        KICAD_CLI, "pcb", "drc",
+        "--output", str(out_path),
+        "--format", "json",
+        "--units", "mm",
+        "--severity-all",
+        "--all-track-errors",
+        str(pcb_path),
+    ]
+    result = subprocess.run(drc_cmd, capture_output=True, text=True, timeout=120)
+    if result.stdout:
+        print(result.stdout.strip())
+    if result.stderr:
+        print(result.stderr.strip(), file=sys.stderr)
 
-    if not rpt_path.exists():
+    if not out_path.exists():
         print("ERROR: DRC report file was not created")
         sys.exit(1)
 
-    # ── Parse report ──────────────────────────────────────────────────────
-    report = parse_drc_report(rpt_path)
+    # ── Parse JSON report ────────────────────────────────────────────────
+    with open(out_path, encoding="utf-8") as f:
+        drc_json = json.load(f)
 
+    violations  = drc_json.get("violations", [])
+    unconnected = drc_json.get("unconnected_items", [])
+    error_count   = sum(1 for v in violations if v.get("severity") == "error")
+    warning_count = sum(1 for v in violations if v.get("severity") == "warning")
+    unrouted_count = len(unconnected)
+    clean = (error_count == 0 and unrouted_count == 0)
+
+    # Write normalised summary for downstream consumers
+    report = {
+        "error_count":    error_count,
+        "warning_count":  warning_count,
+        "unrouted_count": unrouted_count,
+        "errors":   [v for v in violations if v.get("severity") == "error"],
+        "warnings": [v for v in violations if v.get("severity") == "warning"],
+        "clean":    clean,
+    }
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
 
     # ── Summary ───────────────────────────────────────────────────────────
-    status = "CLEAN" if report["clean"] else "VIOLATIONS FOUND"
+    status = "CLEAN" if clean else "VIOLATIONS FOUND"
     print(f"[drc] DRC {status}: "
-          f"{report['error_count']} error(s), "
-          f"{report['warning_count']} warning(s), "
-          f"{report['unrouted_count']} unrouted net(s)")
+          f"{error_count} error(s), "
+          f"{warning_count} warning(s), "
+          f"{unrouted_count} unrouted net(s)")
     print(f"[drc] Report saved to {out_path}")
 
     # Exit 1 if there are hard DRC errors (warnings are non-fatal)
-    if report["error_count"] > 0 or report["unrouted_count"] > 0:
+    if error_count > 0 or unrouted_count > 0:
         sys.exit(1)
 
 

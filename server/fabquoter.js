@@ -58,6 +58,7 @@ function convertQuote(rawQuote, fxRate, jobType, boardSpec) {
   const quotesGbp = {};
 
   for (const [qtyStr, rawPrice] of Object.entries(rawQuote.quotes)) {
+    if (rawPrice == null || isNaN(rawPrice)) continue;
     const qty     = parseInt(qtyStr, 10);
     const rawGbp  = round2(rawPrice * fxRate);
     const custGbp = applyMargin(rawGbp, jobType, qty);

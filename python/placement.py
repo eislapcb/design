@@ -341,7 +341,7 @@ def simulated_annealing(components, placement, w, h, mcu_ref, time_cap=10.0):
         T *= alpha
 
     improvement_pct = max(0.0, (init_s - best_s) / init_s * 100) if init_s > 0 else 0.0
-    print(f"  SA: {itr} iterations, T={T:.2f}, score {init_s:.1f} → {best_s:.1f} ({improvement_pct:.1f}% improvement)")
+    print(f"  SA: {itr} iterations, T={T:.2f}, score {init_s:.1f} -> {best_s:.1f} ({improvement_pct:.1f}% improvement)")
     return best, init_s, best_s, itr
 
 

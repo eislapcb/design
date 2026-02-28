@@ -134,16 +134,16 @@ def build_board(placement, netlist, db):
         seg = pcbnew.PCB_SHAPE(board)
         seg.SetShape(pcbnew.SHAPE_T_SEGMENT)
         seg.SetLayer(edge_layer)
-        seg.SetStart(pcbnew.FromMM(corners[i][0]), pcbnew.FromMM(corners[i][1]))
-        seg.SetEnd(pcbnew.FromMM(corners[i + 1][0]), pcbnew.FromMM(corners[i + 1][1]))
+        seg.SetStart(pcbnew.VECTOR2I(pcbnew.FromMM(corners[i][0]), pcbnew.FromMM(corners[i][1])))
+        seg.SetEnd(pcbnew.VECTOR2I(pcbnew.FromMM(corners[i + 1][0]), pcbnew.FromMM(corners[i + 1][1])))
         seg.SetWidth(pcbnew.FromMM(0.05))
         board.Add(seg)
 
     # ── Board design settings ──────────────────────────────────────────────
     ds = board.GetDesignSettings()
-    ds.SetDefaultMicViaDrill(pcbnew.FromMM(0.2))
-    ds.SetMinTrackWidth(pcbnew.FromMM(0.15))
-    ds.SetMinClearance(pcbnew.FromMM(0.15))
+    ds.m_MicroViasMinDrill = pcbnew.FromMM(0.2)
+    ds.m_TrackMinWidth = pcbnew.FromMM(0.15)
+    ds.m_MinClearance = pcbnew.FromMM(0.15)
 
     # ── Net registration ───────────────────────────────────────────────────
     nets_dict = netlist.get("nets", {})
@@ -152,7 +152,7 @@ def build_board(placement, netlist, db):
 
     for net_name in sorted(nets_dict.keys()):
         ni = pcbnew.NETINFO_ITEM(board, net_name)
-        netinfo.AppendNet(ni)
+        board.Add(ni)
         net_objects[net_name] = ni
 
     # ── Place footprints ───────────────────────────────────────────────────
