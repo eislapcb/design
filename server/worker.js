@@ -37,7 +37,9 @@ const execFileAsync = promisify(execFile);
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const JOBS_DIR  = path.resolve(process.env.JOBS_DIR  || './jobs');
-const PYTHON    = process.env.KICAD_PYTHON            || 'python';
+// KiCad Python for pcbnew API (Stage 3b). Falls back to system Python for other scripts.
+const PYTHON       = process.env.PYTHON      || 'python';
+const KICAD_PYTHON = process.env.KICAD_PYTHON || 'C:/Program Files/KiCad/9.0/bin/python.exe';
 const PY_DIR    = path.join(__dirname, '..', 'python');
 const PLACEMENT_TIMEOUT_H = parseInt(process.env.PLACEMENT_APPROVAL_TIMEOUT_HOURS || '24', 10);
 
@@ -96,10 +98,11 @@ function readJobFile(designId, filename) {
  * Run a Python script in the job directory.
  * Returns { stdout, stderr }.
  */
-async function runPython(script, args = [], timeoutMs = 60_000) {
+async function runPython(script, args = [], timeoutMs = 60_000, { kicad = false } = {}) {
   const scriptPath = path.join(PY_DIR, script);
+  const interpreter = kicad ? KICAD_PYTHON : PYTHON;
   try {
-    const result = await execFileAsync(PYTHON, [scriptPath, ...args], {
+    const result = await execFileAsync(interpreter, [scriptPath, ...args], {
       timeout: timeoutMs,
       cwd: path.resolve('.'),
     });
@@ -149,6 +152,18 @@ async function stagePlacement(designId) {
   await runPython('placement.py', [jobDir(designId)], 30_000); // 30s timeout
 }
 
+// ─── Stage 3b — Netlist generation ────────────────────────────────────────────
+
+async function stageNetlist(designId) {
+  await runPython('netlist.py', [jobDir(designId)]);
+}
+
+// ─── Stage 3c — KiCad PCB file (requires KiCad Python / pcbnew) ──────────────
+
+async function stageKicadPcb(designId) {
+  await runPython('kicad_pcb.py', [jobDir(designId)], 60_000, { kicad: true });
+}
+
 // ─── Stage 4 — SVG preview ────────────────────────────────────────────────────
 
 async function stageSvgPreview(designId) {
@@ -172,6 +187,12 @@ async function processDesign(job) {
     // Stage 3 — Placement
     await updateStatus(designId, 'placing');
     await stagePlacement(designId);
+
+    // Stage 3b — Netlist
+    await stageNetlist(designId);
+
+    // Stage 3c — KiCad PCB file (pcbnew API)
+    await stageKicadPcb(designId);
 
     // Stage 4 — SVG preview
     await stageSvgPreview(designId);
@@ -207,12 +228,21 @@ async function approvePlacement(job) {
 
   await updateStatus(designId, 'routing');
 
-  // TODO (Session 11): Run FreeRouting
-  // await runFreeRouting(designId);
+  // TODO (Session 11): DSN export → FreeRouting → import .ses
+  // await stageDsnExport(designId);
+  // await stageFreeRouting(designId);
   console.log(`[worker] Routing stub — FreeRouting integration in Session 11`);
 
-  // For now: mark as failed (placeholder — remove in Session 11)
-  // In Session 11 this will advance to 'generating_schematic' → 'packaging' → 'files_ready' → 'quoting' → 'complete'
+  // Session 10: run schematic generation now (post-routing in production;
+  // running here so the design package includes a schematic from Session 10 onward)
+  try {
+    await runPython('schematic.py', [jobDir(designId)]);
+  } catch (err) {
+    console.warn(`[worker] Schematic generation failed (non-fatal): ${err.message}`);
+  }
+
+  // TODO (Session 12): postprocess.py (Gerbers + P&P + ZIP)
+  // For now: mark as failed (routing unimplemented — remove in Session 11)
   await updateStatus(designId, 'failed');
 }
 
