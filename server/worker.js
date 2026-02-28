@@ -37,11 +37,14 @@ const execFileAsync = promisify(execFile);
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const JOBS_DIR  = path.resolve(process.env.JOBS_DIR  || './jobs');
-// KiCad Python for pcbnew API (Stage 3b). Falls back to system Python for other scripts.
+// KiCad Python for pcbnew API (Stages 3b/3c, 11). Falls back to system Python for other scripts.
 const PYTHON       = process.env.PYTHON      || 'python';
 const KICAD_PYTHON = process.env.KICAD_PYTHON || 'C:/Program Files/KiCad/9.0/bin/python.exe';
+const JAVA         = process.env.JAVA_BIN     || 'java';
 const PY_DIR    = path.join(__dirname, '..', 'python');
+const FR_JAR    = path.resolve(process.env.FREEROUTING_JAR || './freerouting/freerouting.jar');
 const PLACEMENT_TIMEOUT_H = parseInt(process.env.PLACEMENT_APPROVAL_TIMEOUT_HOURS || '24', 10);
+const FREEROUTING_TIMEOUT_MS = parseInt(process.env.FREEROUTING_TIMEOUT_MS || String(90_000), 10);
 
 // Lazy-load supabaseAdmin to avoid circular import issues
 let _supa;
@@ -217,6 +220,60 @@ async function processDesign(job) {
   }
 }
 
+// ─── Stage 11a — DSN export ───────────────────────────────────────────────────
+
+async function stageDsnExport(designId) {
+  await runPython('dsn_export.py', [jobDir(designId)], 30_000, { kicad: true });
+}
+
+// ─── Stage 11b — FreeRouting (Java subprocess) ────────────────────────────────
+
+async function stageFreeRouting(designId) {
+  const dir = jobDir(designId);
+  const dsn = path.join(dir, 'board.dsn');
+  const ses = path.join(dir, 'board.ses');
+
+  if (!fs.existsSync(FR_JAR)) {
+    throw new Error(`freerouting.jar not found at ${FR_JAR}`);
+  }
+  if (!fs.existsSync(dsn)) {
+    throw new Error(`board.dsn not found in ${dir}`);
+  }
+
+  console.log(`[worker] Running FreeRouting for ${designId} ...`);
+
+  await execFileAsync(JAVA, [
+    '-jar', FR_JAR,
+    '-de', dsn,
+    '-do', ses,
+  ], { timeout: FREEROUTING_TIMEOUT_MS });
+
+  if (!fs.existsSync(ses)) {
+    throw new Error('FreeRouting did not produce board.ses');
+  }
+
+  const sizeKb = Math.round(fs.statSync(ses).size / 1024);
+  console.log(`[worker] FreeRouting complete: board.ses ${sizeKb} KB`);
+}
+
+// ─── Stage 11c — DRC (imports .ses, runs DRC, writes drc_report.json) ─────────
+
+async function stageDrc(designId) {
+  // drc.py exits 1 on violations — catch so we can store status without crashing pipeline
+  try {
+    await runPython('drc.py', [jobDir(designId)], 60_000, { kicad: true });
+  } catch (err) {
+    // If exit code is non-zero, DRC found errors — store in job file and continue
+    console.warn(`[worker] DRC found violations for ${designId}: ${err.message}`);
+    const drcReport = readJobFile(designId, 'drc_report.json');
+    if (drcReport && (drcReport.error_count > 0 || drcReport.unrouted_count > 0)) {
+      // Non-fatal — customer will see DRC warnings in the download
+      return;
+    }
+    throw err;
+  }
+}
+
 // ─── Placement approval ───────────────────────────────────────────────────────
 
 async function approvePlacement(job) {
@@ -226,24 +283,34 @@ async function approvePlacement(job) {
   // Cancel auto-approve (if customer approved manually before timeout)
   await removeJob(`auto-approve-${designId}`);
 
-  await updateStatus(designId, 'routing');
-
-  // TODO (Session 11): DSN export → FreeRouting → import .ses
-  // await stageDsnExport(designId);
-  // await stageFreeRouting(designId);
-  console.log(`[worker] Routing stub — FreeRouting integration in Session 11`);
-
-  // Session 10: run schematic generation now (post-routing in production;
-  // running here so the design package includes a schematic from Session 10 onward)
   try {
-    await runPython('schematic.py', [jobDir(designId)]);
-  } catch (err) {
-    console.warn(`[worker] Schematic generation failed (non-fatal): ${err.message}`);
-  }
+    // Stage 11a — DSN export
+    await updateStatus(designId, 'routing');
+    await stageDsnExport(designId);
 
-  // TODO (Session 12): postprocess.py (Gerbers + P&P + ZIP)
-  // For now: mark as failed (routing unimplemented — remove in Session 11)
-  await updateStatus(designId, 'failed');
+    // Stage 11b — FreeRouting
+    await stageFreeRouting(designId);
+
+    // Stage 11c — Import .ses + DRC
+    await stageDrc(designId);
+
+    // Schematic generation (post-routing)
+    try {
+      await runPython('schematic.py', [jobDir(designId)]);
+    } catch (err) {
+      console.warn(`[worker] Schematic generation failed (non-fatal): ${err.message}`);
+    }
+
+    // TODO (Session 12): postprocess.py (Gerbers + P&P + ZIP)
+    // In Session 12: advance to 'generating_schematic' → 'packaging' → 'files_ready' → 'quoting'
+    await updateStatus(designId, 'packaging');
+    console.log(`[worker] Routing complete for ${designId} — awaiting Session 12 post-processing`);
+
+  } catch (err) {
+    console.error(`[worker] Routing failed for ${designId}:`, err.message);
+    await updateStatus(designId, 'failed');
+    throw err;
+  }
 }
 
 // ─── Adjust placement (re-render SVG with overrides) ─────────────────────────
