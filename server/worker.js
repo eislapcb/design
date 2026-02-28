@@ -55,24 +55,27 @@ function supa() {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-async function updateStatus(designId, status) {
+function supaAdmin() {
   const { createClient } = require('@supabase/supabase-js');
-  const admin = createClient(
+  return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
-  const { error } = await admin.from('designs').update({ status }).eq('id', designId);
+}
+
+async function updateStatus(designId, status) {
+  const { error } = await supaAdmin().from('designs').update({ status }).eq('id', designId);
   if (error) console.error(`[worker] Status update failed for ${designId}:`, error.message);
   else console.log(`[worker] ${designId} → ${status}`);
 }
 
+async function updateDesignField(designId, fields) {
+  const { error } = await supaAdmin().from('designs').update(fields).eq('id', designId);
+  if (error) console.error(`[worker] Design update failed for ${designId}:`, error.message);
+}
+
 async function getDesign(designId) {
-  const { createClient } = require('@supabase/supabase-js');
-  const admin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
-  const { data, error } = await admin.from('designs').select('*').eq('id', designId).single();
+  const { data, error } = await supaAdmin().from('designs').select('*').eq('id', designId).single();
   if (error) throw new Error(`Design not found: ${error.message}`);
   return data;
 }
@@ -130,17 +133,22 @@ async function stageIntake(designId) {
     repeat_customer: false,
   });
 
-  // Write input files
-  writeJobFile(designId, 'resolved.json', resolved);
-  writeJobFile(designId, 'board.json', {
+  const boardJson = {
     ...boardCfg,
     dimensions_mm: boardCfg.dimensions_mm || [100, 80],
     layers:        boardCfg.layers        || resolved.recommended_layers || 2,
     power_source:  boardCfg.power_source  || 'usb',
     description:   design.description     || '',
-  });
+  };
 
-  return resolved;
+  // Write input files to disk
+  writeJobFile(designId, 'resolved.json', resolved);
+  writeJobFile(designId, 'board.json', boardJson);
+
+  // Gap 1 fix: write resolved data back to Supabase so ops hub can read it
+  await updateDesignField(designId, { resolved });
+
+  return { resolved, design };
 }
 
 // ─── Stage 2 — Validation ─────────────────────────────────────────────────────
@@ -181,7 +189,8 @@ async function processDesign(job) {
 
   try {
     // Stage 1 — Intake
-    await stageIntake(designId);
+    const { design } = await stageIntake(designId);
+    const tier = design.tier || 1;
 
     // Stage 2 — Validate
     await updateStatus(designId, 'validating');
@@ -200,7 +209,20 @@ async function processDesign(job) {
     // Stage 4 — SVG preview
     await stageSvgPreview(designId);
 
-    // Done with automated stages — hand off to customer for approval
+    // Gap 3 fix: upload key artifacts to Supabase Storage for ops hub access
+    await uploadJobArtifacts(designId);
+
+    // Gap 2 fix: T2/T3 require engineer review before customer sees placement
+    if (tier >= 2) {
+      await updateStatus(designId, 'awaiting_engineer_review');
+      console.log(`[worker] Design ${designId} (T${tier}) awaiting engineer review`);
+      // TODO (Session 13): notifier.sendEngineerReviewEmail(designId)
+      // Pipeline pauses here. Ops hub engineer calls POST /api/internal/approve-review
+      // which enqueues 'engineer-reviewed' to advance to customer approval.
+      return;
+    }
+
+    // T1: skip engineer review — go straight to customer approval
     await updateStatus(designId, 'awaiting_placement_approval');
 
     // Schedule auto-approve
@@ -211,13 +233,85 @@ async function processDesign(job) {
 
     // TODO (Session 13): notifier.sendPlacementReadyEmail(designId)
 
-    console.log(`[worker] Design ${designId} awaiting placement approval`);
+    console.log(`[worker] Design ${designId} (T1) awaiting placement approval`);
 
   } catch (err) {
     console.error(`[worker] Design ${designId} failed:`, err.message);
     await updateStatus(designId, 'failed');
     throw err;
   }
+}
+
+// ─── Gap 3: Upload job artifacts to Supabase Storage ──────────────────────────
+
+async function uploadJobArtifacts(designId) {
+  const admin = supaAdmin();
+  const dir   = jobDir(designId);
+  const bucket = 'job-artifacts';
+
+  // Files to upload for ops hub / customer access
+  const artifacts = [
+    'placement_preview.svg',
+    'placement.json',
+    'validation_warnings.json',
+    'engineer_review_flags.json',
+    'resolved.json',
+    'board.json',
+  ];
+
+  for (const name of artifacts) {
+    const filePath = path.join(dir, name);
+    if (!fs.existsSync(filePath)) continue;
+
+    const content = fs.readFileSync(filePath);
+    const storagePath = `${designId}/${name}`;
+    const contentType = name.endsWith('.svg') ? 'image/svg+xml' : 'application/json';
+
+    const { error } = await admin.storage
+      .from(bucket)
+      .upload(storagePath, content, { contentType, upsert: true });
+
+    if (error) {
+      // Non-fatal — log and continue. Storage bucket may not exist yet.
+      console.warn(`[worker] Upload ${name} failed: ${error.message}`);
+    }
+  }
+
+  console.log(`[worker] Artifacts uploaded for ${designId}`);
+}
+
+async function uploadOutputZip(designId) {
+  const admin = supaAdmin();
+  const zipPath = path.join(jobDir(designId), 'output.zip');
+  if (!fs.existsSync(zipPath)) return;
+
+  const content = fs.readFileSync(zipPath);
+  const { error } = await admin.storage
+    .from('job-artifacts')
+    .upload(`${designId}/output.zip`, content, {
+      contentType: 'application/zip',
+      upsert: true,
+    });
+
+  if (error) console.warn(`[worker] Upload output.zip failed: ${error.message}`);
+  else console.log(`[worker] output.zip uploaded for ${designId}`);
+}
+
+// ─── Engineer review completion (T2/T3 only) ─────────────────────────────────
+
+async function engineerReviewed(job) {
+  const { designId } = job.data;
+  console.log(`[worker] Engineer review complete for ${designId} — advancing to customer approval`);
+
+  await updateStatus(designId, 'awaiting_placement_approval');
+
+  // Schedule auto-approve
+  await enqueue('auto-approve-placement', { designId }, {
+    delay: PLACEMENT_TIMEOUT_H * 3_600_000,
+    jobId: `auto-approve-${designId}`,
+  });
+
+  // TODO (Session 13): notifier.sendPlacementReadyEmail(designId)
 }
 
 // ─── Stage 11a — DSN export ───────────────────────────────────────────────────
@@ -301,10 +395,18 @@ async function approvePlacement(job) {
       console.warn(`[worker] Schematic generation failed (non-fatal): ${err.message}`);
     }
 
-    // TODO (Session 12): postprocess.py (Gerbers + P&P + ZIP)
-    // In Session 12: advance to 'generating_schematic' → 'packaging' → 'files_ready' → 'quoting'
+    // Stage 12 — Post-processing (Gerbers, BOM, P&P, ZIP)
     await updateStatus(designId, 'packaging');
-    console.log(`[worker] Routing complete for ${designId} — awaiting Session 12 post-processing`);
+    await runPython('postprocess.py', [jobDir(designId)], 120_000, { kicad: true });
+
+    // Upload output.zip to Supabase Storage
+    await uploadOutputZip(designId);
+
+    // Advance to files_ready
+    await updateStatus(designId, 'files_ready');
+    // TODO (Session 13): notifier.sendFilesReadyEmail(designId)
+    // TODO (Session 16): fabquoter.js → status 'quoting' → 'complete'
+    console.log(`[worker] Design ${designId} files ready for download`);
 
   } catch (err) {
     console.error(`[worker] Routing failed for ${designId}:`, err.message);
@@ -342,6 +444,8 @@ function startWorker() {
         return approvePlacement(job);
       case 'adjust-placement':
         return adjustPlacement(job);
+      case 'engineer-reviewed':
+        return engineerReviewed(job);
       default:
         console.warn(`[worker] Unknown job name: ${job.name}`);
     }

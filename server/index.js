@@ -505,6 +505,56 @@ app.get('/api/jobs/:id/download', requireAuth, async (req, res) => {
   }
 });
 
+// ─── Internal routes (ops hub → design system) ──────────────────────────────
+//
+// These endpoints are called by the ops hub, not by customers.
+// Auth: service-role key in x-service-key header.
+
+function requireServiceKey(req, res, next) {
+  const key = req.headers['x-service-key'];
+  if (!key || key !== process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return res.status(401).json({ error: 'Invalid service key' });
+  }
+  next();
+}
+
+/**
+ * POST /api/internal/approve-review
+ * Ops hub engineer approves a T2/T3 design. Advances to customer placement approval.
+ * Body: { designId }
+ */
+app.post('/api/internal/approve-review', requireServiceKey, async (req, res) => {
+  try {
+    const { designId } = req.body;
+    if (!designId) return res.status(400).json({ error: 'designId required' });
+
+    const { createClient } = require('@supabase/supabase-js');
+    const admin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+    const { data: design, error } = await admin
+      .from('designs')
+      .select('id, status')
+      .eq('id', designId)
+      .single();
+
+    if (error || !design) {
+      return res.status(404).json({ error: 'Design not found' });
+    }
+    if (design.status !== 'awaiting_engineer_review') {
+      return res.status(409).json({
+        error: `Cannot approve review — status is '${design.status}'`,
+      });
+    }
+
+    await enqueue('engineer-reviewed', { designId });
+    res.json({ success: true, message: 'Engineer review approved — advancing to customer approval' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── 404 handler ─────────────────────────────────────────────────────────────
 
 app.use((req, res) => {
@@ -537,6 +587,7 @@ app.listen(PORT, () => {
   console.log(`  POST /api/jobs/:id/adjust-placement`);
   console.log(`  GET  /api/jobs/:id/quotes`);
   console.log(`  GET  /api/jobs/:id/download`);
+  console.log(`  POST /api/internal/approve-review`);
 });
 
 module.exports = app;
