@@ -449,9 +449,8 @@ app.post('/api/jobs/:id/adjust-placement', requireAuth, async (req, res) => {
 
 /**
  * GET /api/jobs/:id/quotes
- * Returns manufacturing quotes.
+ * Returns manufacturing quotes (customer-facing prices only — raw fab prices stripped).
  * Only available when status is 'quoting' or 'files_ready'.
- * Stub: returns placeholder — real fab quoting in Session 16.
  */
 app.get('/api/jobs/:id/quotes', requireAuth, async (req, res) => {
   try {
@@ -464,12 +463,36 @@ app.get('/api/jobs/:id/quotes', requireAuth, async (req, res) => {
       });
     }
 
-    const quotes = readJobFile(design.id, 'quotes.json');
+    const fabQuotes = readJobFile(design.id, 'fab_quotes.json');
+    if (!fabQuotes) {
+      return res.json({
+        success:  true,
+        designId: design.id,
+        quotes:   [],
+        note:     'Quoting in progress — check back shortly',
+      });
+    }
+
+    // Strip raw_gbp from each quote — never expose raw fab prices
+    const safeQuotes = (fabQuotes.quotes || []).map(q => ({
+      fab:                q.fab,
+      method:             q.method,
+      assembly_available: q.assembly_available,
+      note:               q.note,
+      url:                q.url,
+      quotes: Object.fromEntries(
+        Object.entries(q.quotes || {}).map(([qty, v]) => [
+          qty,
+          { customer_gbp: v.customer_gbp, lead_days: v.lead_days },
+        ])
+      ),
+    }));
+
     res.json({
-      success:  true,
-      designId: design.id,
-      quotes:   quotes || [],
-      note:     quotes ? undefined : 'Quoting in progress — check back shortly',
+      success:      true,
+      designId:     design.id,
+      generated_at: fabQuotes.generated_at,
+      quotes:       safeQuotes,
     });
   } catch (err) {
     res.status(err.status || 500).json({ success: false, error: err.message });

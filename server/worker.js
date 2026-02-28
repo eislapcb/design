@@ -13,11 +13,11 @@
  *   Stage 4  — SVG preview (python/svg_preview.py)        [S9]
  *              → status: awaiting_placement_approval
  *   Stage 5  — Placement approval (customer or auto)      [S8]
- *   Stage 6  — Routing (FreeRouting)                      [S11 stub]
- *   Stage 7  — DRC (KiCad pcbnew)                         [S11 stub]
- *   Stage 8  — Schematic generation (python/schematic.py) [S12 stub]
- *   Stage 9  — Post-processing / Gerbers / ZIP            [S12 stub]
- *   Stage 10 — Fab quoting (server/fabquoter.js)          [S16 stub]
+ *   Stage 6  — Routing (FreeRouting)                      [S11]
+ *   Stage 7  — DRC (KiCad pcbnew)                         [S11]
+ *   Stage 8  — Schematic generation (python/schematic.py) [S10]
+ *   Stage 9  — Post-processing / Gerbers / ZIP            [S12]
+ *   Stage 10 — Fab quoting (server/fabquoter.js)          [S14-16]
  */
 
 require('dotenv').config();
@@ -32,6 +32,7 @@ const { getConnection, QUEUE_NAME, enqueue, removeJob } = require('./queue');
 const { getProfile }  = require('./accounts');
 const { resolve }     = require('./resolver');
 const notifier        = require('./notifier');
+const { getAllQuotes } = require('./fabquoter');
 
 const execFileAsync = promisify(execFile);
 
@@ -404,11 +405,22 @@ async function approvePlacement(job) {
     // Upload output.zip to Supabase Storage
     await uploadOutputZip(designId);
 
+    // Stage 14-16 — Fab quoting (all 4 fabs in parallel)
+    await updateStatus(designId, 'quoting');
+    try {
+      const boardJson = readJobFile(designId, 'board.json') || {};
+      const design = await getDesign(designId);
+      const jobType = design.reorder_of ? 'reorder' : 'new';
+      await getAllQuotes(boardJson, jobDir(designId), { jobType });
+    } catch (err) {
+      // Non-fatal — customer can still download files without quotes
+      console.warn(`[worker] Fab quoting failed (non-fatal): ${err.message}`);
+    }
+
     // Advance to files_ready
     await updateStatus(designId, 'files_ready');
     // Best-effort email — never fails the pipeline
     notifier.notifyCustomer(designId, 'files_ready').catch(() => {});
-    // TODO (Session 16): fabquoter.js → status 'quoting' → 'complete'
     console.log(`[worker] Design ${designId} files ready for download`);
 
   } catch (err) {

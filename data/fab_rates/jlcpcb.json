@@ -1,0 +1,129 @@
+{
+  "_meta": {
+    "fab": "JLCPCB",
+    "method": "rate_card_fallback",
+    "currency": "USD",
+    "rate_card_date": "2026-02",
+    "validation_status": "estimated from jlcpcb.com — used only when live API is unavailable",
+    "validated_at": null,
+    "review_url": "https://jlcpcb.com/quote",
+    "url": "https://jlcpcb.com",
+    "note": "Fallback estimate — live API quote preferred. Verify at jlcpcb.com",
+    "pricing_notes": [
+      "JLCPCB has a full REST API (live quotes preferred over this rate card).",
+      "This rate card is used ONLY when the API is unavailable or credentials are not configured.",
+      "$2 for 100x100mm, 2-layer, HASL-LF, 5 pcs is their published anchor price.",
+      "Boards ≤100x100mm are the same price tier.",
+      "Assembly available: SMT (LCSC library). Extended parts incur ~$3 setup fee each.",
+      "All prices in USD. Convert to GBP at runtime."
+    ]
+  },
+
+  "assembly_available": true,
+  "assembly_notes": "SMT assembly. LCSC component library. Basic parts = no extra fee. Extended parts = ~$3 setup each.",
+
+  "default_spec": {
+    "layers": 2,
+    "surface_finish": "hasl_leadfree",
+    "copper_weight_oz": 1,
+    "thickness_mm": 1.6,
+    "material": "FR4"
+  },
+
+  "lead_times": {
+    "standard_days": 5,
+    "express_notes": "1-2 day express available for 1-2 layer boards."
+  },
+
+  "surface_finishes": {
+    "hasl_leadfree": {
+      "label": "HASL Lead-Free (RoHS)",
+      "surcharge_usd_flat": 0.00,
+      "surcharge_pct": 0.00,
+      "notes": "Default. Cheapest option."
+    },
+    "enig": {
+      "label": "ENIG",
+      "surcharge_usd_flat": 7.50,
+      "surcharge_pct": 0.00,
+      "notes": "Flat surcharge."
+    },
+    "osp": {
+      "label": "OSP",
+      "surcharge_usd_flat": 0.00,
+      "surcharge_pct": 0.00,
+      "notes": "Same price as HASL-LF."
+    }
+  },
+
+  "layer_multipliers": {
+    "2": 1.00,
+    "4": 3.50,
+    "6": 6.00
+  },
+
+  "copper_weight_multipliers": {
+    "1oz": 1.00,
+    "2oz": 1.40
+  },
+
+  "price_table": {
+    "ref_spec": "2-layer, HASL Lead-Free, 1oz copper, 1.6mm FR4, standard lead time (5 days), USD",
+    "interpolation": "linear_area",
+    "interpolation_notes": "For boards ≤100x100mm use $2 base. Above 100cm², scale linearly by area.",
+    "entries": [
+      {
+        "label": "50x50mm",
+        "w_mm": 50,
+        "h_mm": 50,
+        "area_cm2": 25,
+        "qty_5":    2.00,
+        "qty_10":   2.00,
+        "qty_25":   5.00,
+        "qty_50":  10.00,
+        "qty_100": 17.00
+      },
+      {
+        "label": "100x100mm",
+        "w_mm": 100,
+        "h_mm": 100,
+        "area_cm2": 100,
+        "qty_5":    2.00,
+        "qty_10":   2.00,
+        "qty_25":   7.50,
+        "qty_50":  13.00,
+        "qty_100": 22.00
+      },
+      {
+        "label": "160x100mm",
+        "w_mm": 160,
+        "h_mm": 100,
+        "area_cm2": 160,
+        "qty_5":    5.00,
+        "qty_10":   8.00,
+        "qty_25":  15.00,
+        "qty_50":  25.00,
+        "qty_100": 40.00
+      },
+      {
+        "label": "200x150mm",
+        "w_mm": 200,
+        "h_mm": 150,
+        "area_cm2": 300,
+        "qty_5":   10.00,
+        "qty_10":  15.00,
+        "qty_25":  28.00,
+        "qty_50":  45.00,
+        "qty_100": 70.00
+      }
+    ]
+  },
+
+  "validation_checklist": [
+    "100x100mm, 2L, HASL-LF, qty 5  → confirmed $2.00 (published anchor)",
+    "100x100mm, 2L, HASL-LF, qty 10 → target ~$2.00",
+    "100x100mm, 4L, HASL-LF, qty 5  → target ~$7.00 (2 * 3.50)",
+    "160x100mm, 2L, HASL-LF, qty 5  → target ~$5.00",
+    "100x100mm, 2L, ENIG,    qty 5  → target ~$9.50 (2 + 7.50 flat)"
+  ]
+}
