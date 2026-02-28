@@ -31,6 +31,7 @@ const path           = require('path');
 const { getConnection, QUEUE_NAME, enqueue, removeJob } = require('./queue');
 const { getProfile }  = require('./accounts');
 const { resolve }     = require('./resolver');
+const notifier        = require('./notifier');
 
 const execFileAsync = promisify(execFile);
 
@@ -216,7 +217,6 @@ async function processDesign(job) {
     if (tier >= 2) {
       await updateStatus(designId, 'awaiting_engineer_review');
       console.log(`[worker] Design ${designId} (T${tier}) awaiting engineer review`);
-      // TODO (Session 13): notifier.sendEngineerReviewEmail(designId)
       // Pipeline pauses here. Ops hub engineer calls POST /api/internal/approve-review
       // which enqueues 'engineer-reviewed' to advance to customer approval.
       return;
@@ -231,7 +231,8 @@ async function processDesign(job) {
       jobId: `auto-approve-${designId}`,
     });
 
-    // TODO (Session 13): notifier.sendPlacementReadyEmail(designId)
+    // Best-effort email — never fails the pipeline
+    notifier.notifyCustomer(designId, 'placement_ready').catch(() => {});
 
     console.log(`[worker] Design ${designId} (T1) awaiting placement approval`);
 
@@ -311,7 +312,8 @@ async function engineerReviewed(job) {
     jobId: `auto-approve-${designId}`,
   });
 
-  // TODO (Session 13): notifier.sendPlacementReadyEmail(designId)
+  // Best-effort email — never fails the pipeline
+  notifier.notifyCustomer(designId, 'placement_ready').catch(() => {});
 }
 
 // ─── Stage 11a — DSN export ───────────────────────────────────────────────────
@@ -404,7 +406,8 @@ async function approvePlacement(job) {
 
     // Advance to files_ready
     await updateStatus(designId, 'files_ready');
-    // TODO (Session 13): notifier.sendFilesReadyEmail(designId)
+    // Best-effort email — never fails the pipeline
+    notifier.notifyCustomer(designId, 'files_ready').catch(() => {});
     // TODO (Session 16): fabquoter.js → status 'quoting' → 'complete'
     console.log(`[worker] Design ${designId} files ready for download`);
 

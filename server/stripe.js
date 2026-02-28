@@ -22,6 +22,7 @@
 const Stripe  = require('stripe');
 const { v4: uuidv4 } = require('uuid');
 const { getDesignFee, getServiceSurchargePence, applyMarginPence } = require('./pricing');
+const notifier = require('./notifier');
 
 // ─── Stripe client ────────────────────────────────────────────────────────────
 
@@ -378,6 +379,9 @@ async function handleDesignFeePaid(session) {
   } else {
     console.warn(`[webhook] Could not enqueue — Redis unavailable. Design ${design.id} must be processed manually.`);
   }
+
+  // Best-effort "job created" email
+  notifier.notifyCustomer(design.id, 'job_created').catch(() => {});
 }
 
 // ─── Manufacturing payment paid ───────────────────────────────────────────────
@@ -390,6 +394,20 @@ async function handleManufacturingPaid(session) {
 
   // TODO (Session 16): Trigger ordermanager.js
   // await ordermanager.placeOrder({ jobId: job_id, fab, quantity: parseInt(quantity), shipping });
+
+  // Best-effort "order placed" email
+  try {
+    const info = await notifier.getCustomerInfoFromMetadata(session);
+    if (info) {
+      notifier.sendOrderPlacedEmail({
+        to:            info.email,
+        name:          info.name,
+        fab,
+        quantity:      parseInt(quantity, 10),
+        orderRef:      null, // populated by ordermanager in Session 16
+      }).catch(() => {});
+    }
+  } catch {} // best-effort
 
   console.log(`[webhook] Manufacturing order queued for manual fulfilment — job_id=${job_id}`);
 }
