@@ -18,6 +18,7 @@ Output (in job_dir):
 """
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -62,6 +63,19 @@ def main():
     if not head.startswith("(pcb"):
         print(f"ERROR: board.dsn does not look like a valid DSN file (starts with: {head[:32]!r})")
         sys.exit(1)
+
+    # Fix smd_smd clearance — KiCad exports a smaller value than the
+    # general clearance, but our DRC applies the general clearance uniformly.
+    # Match any smd_smd clearance and set it to match the general clearance.
+    with open(dsn_path, encoding="utf-8", errors="ignore") as f:
+        dsn_text = f.read()
+    dsn_text = re.sub(
+        r'\(clearance\s+[\d.]+\s+\(type smd_smd\)\)',
+        '(clearance 150 (type smd_smd))',
+        dsn_text,
+    )
+    with open(dsn_path, "w", encoding="utf-8") as f:
+        f.write(dsn_text)
 
     print(f"[dsn_export] board.dsn written ({size_kb} KB) — ready for FreeRouting")
 

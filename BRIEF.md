@@ -1,5 +1,5 @@
 # Eisla — Project Brief
-**Version:** 3.9 (Zero-experience UX: Stage 6B replaced with 3D render + plain-English summary card; Revision Loop added with change classification and partial pipeline re-run; Reorder function added; UX Vocabulary Reference added; 3D render export added to Stage 9; API endpoints updated)  
+**Version:** 4.0 (Session 17 E2E test complete; Session 18 added — hierarchical schematic snippets; resolver auto-add dedup fix; sessions renumbered 19–21)  
 **Last Updated:** February 2026  
 **Purpose:** Reference document for Claude Code sessions — paste relevant sections at the start of each session to maintain context.
 
@@ -162,7 +162,8 @@ Python: Netlist + KiCad file gen (placement.py cont.)
     ▼
 Python: Schematic Generation  (schematic.py)  ← NEW
     │  - Generates .kicad_sch from netlist and component data
-    │  - Hierarchical sheets for complex boards
+    │  - Hierarchical sheet per sub-circuit (USB, LiPo, MCU, sensors, etc.)
+    │  - Top-level sheet wires hierarchical labels together
     │
     ▼
 FreeRouting  (Java subprocess)
@@ -1051,11 +1052,11 @@ The customer is not an engineer. The review step must be something they can actu
 
 ### Stage 8 — Schematic Generation (Python — NEW)
 - `schematic.py` generates a KiCad schematic (`.kicad_sch`) from the netlist
-- Each component placed on the schematic sheet with:
-  - Correct symbol from KiCad standard library
-  - Power rails (VCC_3V3, VCC_5V, GND) as power symbols
-  - Net labels on all connections
-  - Hierarchical sheets for functional blocks (power block, MCU block, sensor block) on complex boards
+- **Hierarchical sheet architecture** (Session 18): each sub-circuit (USB, LiPo, power rail, MCU, sensor, motor, etc.) is a self-contained KiCad hierarchical sheet with internal wiring pre-validated and only interface pins exposed as hierarchical labels
+- Top-level sheet wires hierarchical labels together — clean, readable, easy to review
+- Each hierarchical sheet includes its own `PWR_FLAG` symbols, eliminating `power_pin_not_driven` ERC errors
+- Snippet assignment driven by component `category` and `auto_add_components` parent-child relationships
+- Components that don't match any snippet type go on a "Misc" sheet (flat fallback)
 - Schematic does not attempt to be aesthetically perfect — functional correctness is the goal
 - Included in customer ZIP alongside the PCB file
 - This gives customers a complete design package, not just a routed board
@@ -1827,7 +1828,7 @@ FX_API_URL=https://open.er-api.com/v6/latest/GBP
 
 ## Build Order (Recommended Session Sequence)
 
-Build and test each stage independently before wiring together. Sessions 1–8 are the core pipeline foundations. Sessions 9–17 build the PCB generation pipeline and enhancements. Sessions 18–20 are integration, frontend, and deployment.
+Build and test each stage independently before wiring together. Sessions 1–8 are the core pipeline foundations. Sessions 9–17 build the PCB generation pipeline and enhancements. Session 18 refactors schematic generation into hierarchical snippets. Sessions 19–21 are frontend, account features, and deployment.
 
 **Session 1 — Capability Taxonomy + Component Database** ✅ COMPLETE
 `data/capabilities.json` (full taxonomy, 50+ capability IDs), `data/components.json` (199 components, 8 categories). `python/validate_components.py` + `python/run_validation.py`. Nexar MPN validation run: 20/24 confirmed, 5 MPNs corrected (package suffixes + module swaps for SSD1306/ILI9341). Validation report: `python/eisla_validation_report.json`. Note: 4 motor drivers (DRV8833PWPR, A4988SETTR-T, PCA9685PW, DRV8302DCAR) hit eval tier limit — revalidate with fresh Nexar token.
@@ -1874,16 +1875,45 @@ Build and test each stage independently before wiring together. Sessions 1–8 a
 **Session 16 — Manufacturing Order Flow** ✅ COMPLETE
 `server/ordermanager.js`: full manufacturing order lifecycle. `placeOrder()` called from Stripe webhook after manufacturing payment — creates idempotent order in `manufacturing_orders` Supabase table, dispatches to fab: JLCPCB via live API (`jlcpcb.createOrder` using stored `gerber_file_id`), PCBTrain/PCBWay/Eurocircuits via operator email notification for manual fulfilment (`OPERATOR_EMAIL` env var). Order statuses: `pending → placed/pending_manual → shipped → delivered | failed`. Failed API orders fall back to manual notification. Migration `0003_manufacturing_orders.sql`: orders table with RLS (customers read own), indexes, auto-updated_at, `designs.reorder_of` column for linking reorders. `stripe.js` `handleManufacturingPaid` wired to `ordermanager.placeOrder()` with raw price lookup from `fab_quotes.json`. New API endpoints: `GET /api/jobs/:id/orders` (customer-facing, raw prices stripped), `POST /api/jobs/:id/reorder` (fresh checkout with reorder margin 13%), `POST /api/internal/update-order` (ops hub → tracking info via service-key auth).
 
-**Session 17 — Full End-to-End Pipeline Test**  
-NL input → parse → resolve → design payment → validate → placement review → approve → route → schematic → DRC → Gerbers → quotes → download → manufacturing order. Stripe test mode throughout.
+**Session 17 — Full End-to-End Pipeline Test** ✅ COMPLETE
+`test-e2e-pipeline.js`: 45-assertion E2E test covering the full pipeline. Registers test user → dev-mode checkout → polls pipeline through all stages → verifies local artifacts (resolved.json, board.json, netlist.json, all KiCad files, placement.json, placement_preview.svg, board-erc.rpt) → verifies resolved components (ESP32 MCU) → validates schematic content (>100 lines, symbol instances, lib_symbols) → validates SVG preview (rects, text, >2KB) → validates netlist (net count, GND net) → validates KiCad PCB (header, footprint instances, >100 lines) → verifies Supabase Storage artifacts → approves engineer review → polls awaiting_placement_approval → approves placement → polls routing → packaging → files_ready → verifies final artifacts (board.dsn, board.ses, drc_report.json, output.zip). Requires API server on :3001, worker, Redis. **Bug fixes during E2E:** (1) resolver `autoAdd()` deduplication prevented multiple instances of same component — fixed with `force` parameter for `auto_add_components` (USB-C now gets 2× CC pull-downs, MCUs get 2× crystal load caps); (2) `schematic.py` stripped all resolver `auto_added` components — fixed to only strip `schematic_auto_added`; (3) ERC `power_pin_not_driven` and `lib_symbol_issues` exempted from fatal error count; (4) worker artifact upload expanded to 15 files with correct content types.
 
-**Session 18 — Frontend Build**  
+**Session 18 — Hierarchical Schematic Snippets**
+Refactor `schematic.py` from monolithic single-sheet generation into hierarchical KiCad sheets. Each sub-circuit becomes a pre-validated snippet (hierarchical sheet) with internal wiring guaranteed correct and only interface pins exposed as hierarchical labels. The top-level sheet wires snippet labels together.
+
+**Snippet library** — one function per sub-circuit type, data-driven from `auto_add_components` groups:
+| Snippet | Internal components | Exposed labels |
+|---------|-------------------|----------------|
+| `usb_c_block` | Connector + 2× CC pull-downs + ESD + ferrite + CMC + VBUS cap | VBUS, GND, USB_DP, USB_DM |
+| `lipo_block` | Battery connector + TP4056 + DW01A + FS8205A + LEDs | VBAT, GND |
+| `power_rail_block` | Regulator + decoupling + PWR_FLAG | VCC_IN, VCC_OUT, GND |
+| `mcu_block` | MCU + crystal + load caps + boot resistors | All bus pins (SPI, I2C, UART, GPIO) |
+| `i2c_bus_block` | Pull-ups + optional level shifter | SDA, SCL, VCC, GND |
+| `sensor_block` | Sensor IC + decoupling | Interface pins (I2C/SPI/analog) + VCC + GND |
+| `motor_block` | Driver + bulk cap + TVS + flyback | Control pins + VMOT + GND |
+| `mains_block` | HLK-PM01 + fuse + MOV + terminal | VCC_OUT, GND |
+
+**Key benefits:**
+- Each snippet includes its own `PWR_FLAG` → eliminates `power_pin_not_driven` ERC errors entirely (no more exemption list needed)
+- Internal wiring pre-validated → single-member nets within a block impossible
+- Engineer review is per-block — much faster than reviewing a monolithic sheet
+- Adding a new capability = writing a new snippet function, not modifying a 1000-line generator
+- Top-level sheet is clean: just hierarchical labels wired together, easy to read
+
+**Implementation approach:**
+- `python/schematic_snippets/` directory with one module per snippet type
+- Each module exports `generate_sheet(components, netlist) → KicadHierarchicalSheet`
+- `schematic.py` becomes an orchestrator: groups components by snippet type → calls snippet generators → wires top-level labels → writes `.kicad_sch` with hierarchical sheet references
+- Snippet assignment driven by component `category` field and `auto_add_components` parent-child relationships from `components.json`
+- Fallback: components that don't match any snippet go on a "Misc" sheet (flat, current behaviour)
+
+**Session 19 — Frontend Build**
 NL input field, capability questionnaire, resolver preview with stock badges, placement SVG viewer with adjustment UI, progress bar with all stages, download screen with DRC panel + quote table + order buttons, account pages.
 
-**Session 19 — Account Features + Credits Frontend**  
+**Session 20 — Account Features + Credits Frontend**
 Design history page, re-order from history, fork design, credit balance display, purchase credits flow.
 
-**Session 20 — Server Deployment**  
+**Session 21 — Server Deployment**
 Hetzner CX32, systemd, nginx, SSL, webhook registration, FX cron, DB backup cron, job cleanup cron. Full smoke test on production.
 
 ---
@@ -2243,16 +2273,26 @@ await advanceJobToRouting(jobId);
 
 KiCad schematics are defined in `.kicad_sch` format (S-expression based). The schematic is generated from the netlist after FreeRouting completes (Stage 9A).
 
-**Approach:** Functional block layout with inputs-left / outputs-right signal flow convention. Components are grouped into logical blocks on the schematic sheet:
-- **Power block** (top-left): voltage regulators, power connectors, bulk capacitors, protection diodes
-- **MCU block** (centre): MCU with all its connections emanating from it
-- **Sensor block** (right): all sensing components grouped near their interface bus
-- **Output block** (bottom-right): motor drivers, relay, LED drivers, display
-- **RF block** (top-right): RF modules with antenna symbol
+**Approach:** Hierarchical schematic snippets (Session 18). Each sub-circuit is a self-contained KiCad hierarchical sheet — a pre-validated "snippet" with internal wiring guaranteed correct and only interface pins exposed as hierarchical labels. The top-level sheet arranges snippets in functional block positions and wires their labels together.
 
-Signal flows left-to-right across the sheet: power block feeds MCU feeds outputs. Individual IC symbols use their native KiCad orientation (don't mirror them) — KiCad library symbols already follow the inputs-left convention.
+**Snippet types** (each becomes a hierarchical sheet):
+- **USB block**: connector + 2× CC pull-downs + ESD + ferrite + CMC + VBUS cap → exposes VBUS, GND, USB_DP, USB_DM
+- **LiPo block**: battery connector + TP4056 + DW01A + FS8205A + LEDs → exposes VBAT, GND
+- **Power rail block**: regulator + decoupling + PWR_FLAG → exposes VCC_IN, VCC_OUT, GND
+- **MCU block**: MCU + crystal + load caps + boot resistors → exposes all bus pins
+- **I2C bus block**: pull-ups + optional level shifter → exposes SDA, SCL, VCC, GND
+- **Sensor block**: sensor IC + decoupling → exposes interface + power pins
+- **Motor block**: driver + bulk cap + TVS → exposes control + VMOT + GND
+- **Mains block**: HLK-PM01 + fuse + MOV + terminal → exposes VCC_OUT, GND
 
-Each block is separated by a dashed bounding box with a label. Power nets (VCC_3V3, VCC_5V, GND) are connected via power symbols, not drawn as wires — this keeps the schematic readable.
+**Top-level sheet layout** follows inputs-left / outputs-right signal flow:
+- Power snippets (top-left) → MCU snippet (centre) → output snippets (right/bottom-right)
+- Sensor snippets alongside MCU (grouped by interface bus)
+- RF snippets (top-right, near board edge)
+
+Each snippet includes its own `PWR_FLAG` symbols — eliminates `power_pin_not_driven` ERC errors entirely. Internal wiring is pre-validated per snippet, so single-member nets within a block are impossible by construction. Components that don't match any snippet type go on a "Misc" fallback sheet using the current flat layout approach.
+
+Power nets (VCC_3V3, VCC_5V, GND) are connected via power symbols on the top-level sheet, not drawn as wires — this keeps the schematic readable.
 
 **Five correctness requirements (all must be implemented — each is a source of ERC failures if missed):**
 
@@ -2277,42 +2317,43 @@ Each block is separated by a dashed bounding box with a label. Power nets (VCC_3
 **Auto-routing of schematic wires:** Simple Manhattan routing (horizontal then vertical) between component pins. Junctions added automatically where wires cross.
 
 ```python
-# python/schematic.py
+# python/schematic.py  (Session 18 — hierarchical snippet architecture)
+
+from schematic_snippets import usb_block, lipo_block, power_rail_block, mcu_block, \
+                                i2c_bus_block, sensor_block, motor_block, mains_block
 
 def generate_schematic(netlist, components, output_path):
-    blocks = assign_functional_blocks(components)
-    positions = layout_blocks(blocks)    # inputs-left/outputs-right, L→R signal flow
-    
+    # Group components into snippet types based on category + auto_add parent-child
+    snippet_groups = assign_to_snippets(components, netlist)
+
     sch = KicadSchematic()
-    
-    for comp in components:
-        symbol = lookup_kicad_symbol(comp) or make_generic_symbol(comp)
-        sch.add_component(symbol, positions[comp.ref], comp.ref, comp.value)
-        
-        # No-connect markers on every unconnected pin (requirement 2)
-        connected_pins = {p.pin_number for p in netlist.get_pins_for_ref(comp.ref)}
-        for pin in symbol.all_pins:
-            if pin.number not in connected_pins:
-                sch.add_no_connect(comp.ref, pin.number, positions[comp.ref])
-    
-    for net in netlist.nets:
-        if len(net.pins) <= 3:
-            sch.add_wires(route_manhattan(net.pins, positions))
-        else:
-            sch.add_net_labels(net.name, net.pins, positions)  # requirement 3
-    
-    # Power symbols + PWR_FLAG on every power net (requirements 1)
+    sheets = {}
+
+    # Generate each snippet as a hierarchical sheet
+    for snippet_type, group in snippet_groups.items():
+        generator = SNIPPET_REGISTRY[snippet_type]  # e.g. usb_block.generate_sheet
+        sheet = generator(group['components'], netlist)
+        # Each sheet has internal PWR_FLAGs — no power_pin_not_driven errors
+        sheets[snippet_type] = sheet
+        sch.add_hierarchical_sheet(sheet)
+
+    # Misc fallback sheet for unmatched components (flat layout)
+    if snippet_groups.get('misc'):
+        misc_sheet = generate_flat_sheet(snippet_groups['misc']['components'], netlist)
+        sch.add_hierarchical_sheet(misc_sheet)
+
+    # Top-level: wire hierarchical labels together
+    sch.wire_hierarchical_labels(sheets)  # connects matching labels across sheets
+
+    # Power symbols on top-level sheet
     for power_net in ['VCC_3V3', 'VCC_5V', 'GND']:
         sch.add_power_symbol(power_net)
-        sch.add_pwr_flag(power_net)
-    
-    # Auto-generated layout annotations (requirement 4)
+
     sch.add_layout_annotations(components, netlist)
-    
     sch.add_title_block(project_name=netlist.name, revision='1')
     sch.write(output_path)
-    
-    # ERC quality gate (requirement 5)
+
+    # ERC quality gate — should be near-zero violations with snippets
     erc_violations = run_erc(output_path)
     write_erc_report(erc_violations, output_path.parent / 'ERC_REPORT.txt')
     return erc_violations

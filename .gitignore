@@ -7,3 +7,16 @@ jobs/*/
 .DS_Store
 freerouting/freerouting.jar
 .claude/
+
+# Build artifacts
+frontend/.next/
+python/__pycache__/
+
+# Test/scratch outputs
+audit_courtyard_report.json
+board-erc.rpt
+sim7080g_fp.txt
+
+# Redis for Windows (local dev only)
+redis.zip
+redis/

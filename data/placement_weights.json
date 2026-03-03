@@ -1,0 +1,37 @@
+{
+  "defaults": {
+    "overlap": 200.0,
+    "overlap_floor": 100.0,
+    "zone_priority_scale": 0.3,
+    "boundary": 100.0,
+    "antenna_keepout": 200.0,
+    "proximity": 5.0,
+    "crystal": 50.0,
+    "crystal_threshold_mm": 5.0,
+    "decoupling": 30.0,
+    "block_cohesion_passive": 0.3,
+    "block_cohesion_active": 1.5,
+    "block_separation_min_mm": 15.0,
+    "block_separation_penalty": 2.0
+  },
+  "learned": {
+    "overlap": 200.0,
+    "overlap_floor": 100.0,
+    "zone_priority_scale": 0.3,
+    "boundary": 100.0,
+    "antenna_keepout": 200.0,
+    "proximity": 5.0,
+    "crystal": 50.0,
+    "crystal_threshold_mm": 5.0,
+    "decoupling": 30.0,
+    "block_cohesion_passive": 0.3,
+    "block_cohesion_active": 1.5,
+    "block_separation_min_mm": 15.0,
+    "block_separation_penalty": 2.0
+  },
+  "stats": {
+    "total_profiles": 0,
+    "clean_profiles": 0,
+    "weight_history": []
+  }
+}

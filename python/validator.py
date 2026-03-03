@@ -507,9 +507,9 @@ def check_fine_pitch(resolved_components):
         affected = [rc["component_id"] for rc in fine_comps]
         return [finding(
             "fine_pitch_assembly",
-            f"Fine-pitch component detected — requires reflow assembly",
-            "QFN or fine-pitch packages detected. These cannot be hand-soldered reliably. "
-            "Professional SMT assembly with solder paste and reflow oven is required.",
+            f"Fine-pitch component detected — reflow assembly confirmed",
+            "QFN or fine-pitch packages detected. All Eisla boards are "
+            "assembled with pick-and-place and reflow soldering.",
             affected=affected,
             severity="info",
         )]

@@ -46,7 +46,7 @@ const JAVA         = process.env.JAVA_BIN     || 'java';
 const PY_DIR    = path.join(__dirname, '..', 'python');
 const FR_JAR    = path.resolve(process.env.FREEROUTING_JAR || './freerouting/freerouting.jar');
 const PLACEMENT_TIMEOUT_H = parseInt(process.env.PLACEMENT_APPROVAL_TIMEOUT_HOURS || '24', 10);
-const FREEROUTING_TIMEOUT_MS = parseInt(process.env.FREEROUTING_TIMEOUT_MS || String(90_000), 10);
+const FREEROUTING_TIMEOUT_MS = parseInt(process.env.FREEROUTING_TIMEOUT_MS || String(180_000), 10);
 
 // Lazy-load supabaseAdmin to avoid circular import issues
 let _supa;
@@ -125,8 +125,11 @@ async function runPython(script, args = [], timeoutMs = 60_000, { kicad = false 
 
 async function stageIntake(designId) {
   const design = await getDesign(designId);
-  const caps   = Array.isArray(design.capabilities) ? design.capabilities : [];
-  const boardCfg = design.resolved?.board_config || {};
+  // Capabilities may be stored directly or inside the resolved JSONB
+  const caps   = Array.isArray(design.capabilities) ? design.capabilities
+               : Array.isArray(design.resolved?.capabilities) ? design.resolved.capabilities
+               : [];
+  const boardCfg = design.resolved?.board || design.resolved?.board_config || {};
 
   // Re-run resolver to get full resolved output
   const resolved = resolve({
@@ -135,10 +138,12 @@ async function stageIntake(designId) {
     repeat_customer: false,
   });
 
+  // All Eisla boards are 4-layer as standard (BRIEF.md §Pricing).
+  const MIN_LAYERS = 4;
   const boardJson = {
     ...boardCfg,
     dimensions_mm: boardCfg.dimensions_mm || [100, 80],
-    layers:        boardCfg.layers        || resolved.recommended_layers || 2,
+    layers:        Math.max(boardCfg.layers || resolved.recommended_layers || MIN_LAYERS, MIN_LAYERS),
     power_source:  boardCfg.power_source  || 'usb',
     description:   design.description     || '',
   };
@@ -159,19 +164,89 @@ async function stageValidate(designId) {
   await runPython('validator.py', [jobDir(designId)]);
 }
 
-// ─── Stage 3 — Placement ──────────────────────────────────────────────────────
+// ─── Stage 3 — Schematic (assigns refs, generates netlist + schematic) ────────
 
-async function stagePlacement(designId) {
-  await runPython('placement.py', [jobDir(designId)], 30_000); // 30s timeout
+async function stageSchematic(designId) {
+  await runPython('schematic.py', [jobDir(designId)]);
 }
 
-// ─── Stage 3b — Netlist generation ────────────────────────────────────────────
+// ─── Stage 3a — ERC (electrical rules check on generated schematic) ──────────
+
+const KICAD_CLI = process.env.KICAD_CLI || 'C:/Program Files/KiCad/9.0/bin/kicad-cli';
+
+async function stageErc(designId) {
+  const dir = jobDir(designId);
+  const sch = path.join(dir, 'board.kicad_sch');
+  const rpt = path.join(dir, 'board-erc.rpt');
+
+  if (!fs.existsSync(sch)) {
+    throw new Error(`board.kicad_sch not found in ${dir}`);
+  }
+
+  console.log(`[worker] Running ERC for ${designId} ...`);
+
+  try {
+    await execFileAsync(KICAD_CLI, [
+      'sch', 'erc', '--exit-code-violations', '-o', rpt, sch,
+    ], { timeout: 30_000 });
+    console.log(`[worker] ERC passed for ${designId}`);
+  } catch (err) {
+    // kicad-cli exits non-zero when violations exist — parse the report
+    if (fs.existsSync(rpt)) {
+      const report = fs.readFileSync(rpt, 'utf8');
+      const errMatch = report.match(/Errors\s+(\d+)/);
+      const totalErrors = errMatch ? parseInt(errMatch[1], 10) : 0;
+      const warnMatch = report.match(/Warnings\s+(\d+)/);
+      const warnCount = warnMatch ? parseInt(warnMatch[1], 10) : 0;
+
+      // power_pin_not_driven is expected — our schematic uses power labels
+      // without explicit PWR_FLAG symbols. Count only non-exempt errors.
+      const ERC_EXEMPT = ['power_pin_not_driven', 'lib_symbol_issues'];
+      const lines = report.split('\n');
+      let exemptErrors = 0;
+      for (const line of lines) {
+        for (const ex of ERC_EXEMPT) {
+          if (line.includes(`[${ex}]`)) {
+            // Check if the next "; error" or "; warning" line says error
+            const idx = lines.indexOf(line);
+            if (idx + 1 < lines.length && lines[idx + 1].includes('; error')) {
+              exemptErrors++;
+            }
+          }
+        }
+      }
+      const fatalErrors = totalErrors - exemptErrors;
+
+      console.warn(`[worker] ERC: ${totalErrors} error(s) (${exemptErrors} exempt), ${warnCount} warning(s)`);
+      if (fatalErrors > 0) {
+        throw new Error(`ERC found ${fatalErrors} fatal error(s) — schematic has connectivity issues. Fix before proceeding.`);
+      }
+      // Only exempt errors + warnings — continue pipeline
+      return;
+    }
+    throw err;
+  }
+}
+
+// ─── Stage 3b — Netlist (validates / regenerates netlist.json) ────────────────
 
 async function stageNetlist(designId) {
   await runPython('netlist.py', [jobDir(designId)]);
 }
 
-// ─── Stage 3c — KiCad PCB file (requires KiCad Python / pcbnew) ──────────────
+// ─── Stage 3c — Placement (SA optimisation for component positions) ──────────
+
+async function stagePlacement(designId) {
+  await runPython('placement.py', [jobDir(designId)], 30_000); // 30s timeout
+}
+
+// ─── Stage 3c½ — Post-placement validation (quality warnings) ────────────────
+
+async function stagePlacementCheck(designId) {
+  await runPython('placement_check.py', [jobDir(designId)], 10_000);
+}
+
+// ─── Stage 3d — KiCad PCB file (requires KiCad Python / pcbnew) ──────────────
 
 async function stageKicadPcb(designId) {
   await runPython('kicad_pcb.py', [jobDir(designId)], 60_000, { kicad: true });
@@ -198,14 +273,23 @@ async function processDesign(job) {
     await updateStatus(designId, 'validating');
     await stageValidate(designId);
 
-    // Stage 3 — Placement
+    // Stage 3 — Schematic (assigns refs, generates netlist + schematic)
     await updateStatus(designId, 'placing');
-    await stagePlacement(designId);
+    await stageSchematic(designId);
 
-    // Stage 3b — Netlist
+    // Stage 3a — ERC gate (halt on errors, warn on warnings)
+    await stageErc(designId);
+
+    // Stage 3b — Netlist (validates / regenerates netlist.json)
     await stageNetlist(designId);
 
-    // Stage 3c — KiCad PCB file (pcbnew API)
+    // Stage 3c — Placement (SA optimisation for component positions)
+    await stagePlacement(designId);
+
+    // Stage 3c½ — Post-placement validation (quality warnings)
+    await stagePlacementCheck(designId);
+
+    // Stage 3d — KiCad PCB file (pcbnew API)
     await stageKicadPcb(designId);
 
     // Stage 4 — SVG preview
@@ -259,6 +343,15 @@ async function uploadJobArtifacts(designId) {
     'engineer_review_flags.json',
     'resolved.json',
     'board.json',
+    'board.kicad_sch',
+    'board.kicad_pcb',
+    'board.kicad_pro',
+    'board.kicad_prl',
+    'board.dsn',
+    'board.ses',
+    'netlist.json',
+    'drc_report.json',
+    'output.zip',
   ];
 
   for (const name of artifacts) {
@@ -267,7 +360,11 @@ async function uploadJobArtifacts(designId) {
 
     const content = fs.readFileSync(filePath);
     const storagePath = `${designId}/${name}`;
-    const contentType = name.endsWith('.svg') ? 'image/svg+xml' : 'application/json';
+    const ext = path.extname(name);
+    const contentType = ext === '.svg' ? 'image/svg+xml'
+                      : ext === '.zip' ? 'application/zip'
+                      : ext === '.json' ? 'application/json'
+                      : 'application/octet-stream';
 
     const { error } = await admin.storage
       .from(bucket)
@@ -325,6 +422,8 @@ async function stageDsnExport(designId) {
 
 // ─── Stage 11b — FreeRouting (Java subprocess) ────────────────────────────────
 
+const FR_MAX_PASSES = parseInt(process.env.FREEROUTING_MAX_PASSES || '50', 10);
+
 async function stageFreeRouting(designId) {
   const dir = jobDir(designId);
   const dsn = path.join(dir, 'board.dsn');
@@ -337,13 +436,39 @@ async function stageFreeRouting(designId) {
     throw new Error(`board.dsn not found in ${dir}`);
   }
 
-  console.log(`[worker] Running FreeRouting for ${designId} ...`);
+  console.log(`[worker] Running FreeRouting for ${designId} (max ${FR_MAX_PASSES} passes) ...`);
 
-  await execFileAsync(JAVA, [
+  const result = await execFileAsync(JAVA, [
+    '-Xmx4g',    // 4GB heap — prevents OOM on large boards (500+ nets)
     '-jar', FR_JAR,
     '-de', dsn,
     '-do', ses,
+    '-mp', String(FR_MAX_PASSES),
+    '-mt', '1',       // single-threaded — multi-thread optimisation is broken in v2.1.0
+    '-us', 'global',  // global rip-up-and-reroute — better quality than default greedy
+    '-da',            // disable analytics collection
   ], { timeout: FREEROUTING_TIMEOUT_MS });
+
+  // Parse FreeRouting stdout for pass results and unrouted count
+  const frLog = (result.stdout || '') + (result.stderr || '');
+  const passMatches = frLog.match(/pass\s+\d+/gi);
+  const unroutedMatch = frLog.match(/(\d+)\s+(?:incomplete|unrouted)/i);
+  const viasMatch = frLog.match(/(\d+)\s+vias/i);
+
+  if (passMatches) {
+    console.log(`[worker] FreeRouting ran ${passMatches.length} pass(es)`);
+  }
+  if (unroutedMatch) {
+    console.log(`[worker] FreeRouting unrouted: ${unroutedMatch[1]}`);
+  }
+  if (viasMatch) {
+    console.log(`[worker] FreeRouting vias: ${viasMatch[1]}`);
+  }
+
+  // Save routing log for diagnostics
+  try {
+    fs.writeFileSync(path.join(dir, 'freerouting.log'), frLog, 'utf8');
+  } catch (_) { /* non-fatal */ }
 
   if (!fs.existsSync(ses)) {
     throw new Error('FreeRouting did not produce board.ses');
@@ -391,11 +516,11 @@ async function approvePlacement(job) {
     // Stage 11c — Import .ses + DRC
     await stageDrc(designId);
 
-    // Schematic generation (post-routing)
+    // Stage 11d — Placement harvest (best-effort learning from DRC-clean jobs)
     try {
-      await runPython('schematic.py', [jobDir(designId)]);
+      await runPython('placement_harvest.py', [jobDir(designId)], 10_000);
     } catch (err) {
-      console.warn(`[worker] Schematic generation failed (non-fatal): ${err.message}`);
+      console.warn(`[worker] Placement harvest failed (non-fatal): ${err.message}`);
     }
 
     // Stage 12 — Post-processing (Gerbers, BOM, P&P, ZIP)

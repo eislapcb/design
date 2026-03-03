@@ -7,8 +7,8 @@
     "kicad_footprint": "Package_QFP:TQFP-32_7x7mm_P0.8mm",
     "kicad_symbol": "MCU_Microchip_ATmega:ATmega328P-AU",
     "dimensions_mm": {
-      "width": 7,
-      "height": 7
+      "width": 9.85,
+      "height": 9.85
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "centre",
@@ -195,10 +195,10 @@
     "kicad_footprint": "RF_Module:ESP32-WROOM-32",
     "kicad_symbol": "RF_Module:ESP32-WROOM-32",
     "dimensions_mm": {
-      "width": 18,
+      "width": 18.0,
       "height": 25.5
     },
-    "courtyard_clearance_mm": 0.5,
+    "courtyard_clearance_mm": 1.0,
     "placement_zone": "edge_top",
     "placement_priority": 1,
     "antenna_keepout_mm": 5,
@@ -401,7 +401,11 @@
     "lcsc_part_number": "C701341",
     "jlcpcb_basic": false,
     "lcsc_confidence": "verified",
-    "ref_designator_prefix": "U"
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": -10.12
+    }
   },
   "rp2040": {
     "id": "rp2040",
@@ -411,8 +415,8 @@
     "kicad_footprint": "Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm",
     "kicad_symbol": "MCU_RaspberryPi:RP2040",
     "dimensions_mm": {
-      "width": 7,
-      "height": 7
+      "width": 7.81,
+      "height": 7.81
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "centre",
@@ -651,8 +655,8 @@
     "kicad_footprint": "Package_DFN_QFN:Nordic_AQFN-73-1EP_7x7mm_P0.5mm",
     "kicad_symbol": "RF_Bluetooth:nRF52840-QIAA",
     "dimensions_mm": {
-      "width": 7,
-      "height": 7
+      "width": 8.55,
+      "height": 8.55
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "edge_top",
@@ -883,8 +887,8 @@
     "kicad_footprint": "Package_QFP:LQFP-100_14x14mm_P0.5mm",
     "kicad_symbol": "MCU_ST_STM32H7:STM32H743VITx",
     "dimensions_mm": {
-      "width": 14,
-      "height": 14
+      "width": 17.01,
+      "height": 17.01
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "centre",
@@ -1172,8 +1176,8 @@
     "kicad_footprint": "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
     "kicad_symbol": "Regulator_Linear:AMS1117-3.3",
     "dimensions_mm": {
-      "width": 6.5,
-      "height": 3.5
+      "width": 8.35,
+      "height": 6.75
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "power_column",
@@ -1281,11 +1285,11 @@
     "display_name": "TP4056",
     "category": "power",
     "subcategory": "lipo_charger",
-    "kicad_footprint": "Package_SO:SOP-8_3.9x4.9mm_P1.27mm",
+    "kicad_footprint": "Package_SO:HSOP-8-1EP_3.9x4.9mm_P1.27mm_EP2.3x2.3mm",
     "kicad_symbol": "Battery_Management:TP4056",
     "dimensions_mm": {
-      "width": 3.9,
-      "height": 4.9
+      "width": 6.95,
+      "height": 4.95
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "power_column",
@@ -1427,11 +1431,11 @@
     "display_name": "TPS63001DRCR",
     "category": "power",
     "subcategory": "buck_boost",
-    "kicad_footprint": "Package_DFN_QFN:SON-10-1EP_3x3mm_P0.5mm_EP1.45x2.4mm",
+    "kicad_footprint": "Package_DFN_QFN:DFN-10-1EP_3x3mm_P0.5mm_EP1.65x2.38mm",
     "kicad_symbol": "Regulator_Switching:TPS63001",
     "dimensions_mm": {
-      "width": 3,
-      "height": 3
+      "width": 3.81,
+      "height": 3.05
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "power_column",
@@ -1566,8 +1570,8 @@
     "kicad_footprint": "Connector_USB:USB_C_Receptacle_GCT_USB4085",
     "kicad_symbol": "Connector:USB_C_Receptacle_USB2.0",
     "dimensions_mm": {
-      "width": 8.94,
-      "height": 7.3
+      "width": 9.6,
+      "height": 9.22
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_bottom",
@@ -1663,6 +1667,7 @@
     "auto_add_components": [
       "usblc6_2sc6",
       "res_5k1_0402",
+      "res_5k1_0402",
       "cap_10uf_vbus",
       "ferrite_bead_600r",
       "cmc_usb"
@@ -1671,7 +1676,11 @@
     "lcsc_part_number": "C168688",
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 2.98,
+      "y": 4.03
+    }
   },
   "dc_barrel_jack": {
     "id": "dc_barrel_jack",
@@ -1681,8 +1690,8 @@
     "kicad_footprint": "Connector_BarrelJack:BarrelJack_Horizontal",
     "kicad_symbol": "Connector:Barrel_Jack_Switch",
     "dimensions_mm": {
-      "width": 14,
-      "height": 9
+      "width": 15.05,
+      "height": 10.55
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_left",
@@ -1751,7 +1760,11 @@
       "res_10k_gate_pulldown"
     ],
     "auto_add_note": " P-FET reverse polarity protection auto-added (DMG2305UX + 10kΩ gate pulldown).",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": -6.0,
+      "y": 1.0
+    }
   },
   "dht22": {
     "id": "dht22",
@@ -1761,8 +1774,8 @@
     "kicad_footprint": "Sensor:Aosong_DHT11_5.5x12.0_P2.54mm",
     "kicad_symbol": "Sensor:DHT11",
     "dimensions_mm": {
-      "width": 15.1,
-      "height": 25
+      "width": 5.05,
+      "height": 11.55
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "centre",
@@ -1854,7 +1867,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "needs_verify",
     "lcsc_note": "AM2302/DHT22",
-    "ref_designator_prefix": "U"
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 3.81
+    }
   },
   "si7021": {
     "id": "si7021",
@@ -1864,8 +1881,8 @@
     "kicad_footprint": "Package_DFN_QFN:DFN-6-1EP_3x3mm_P1mm_EP1.5x2.4mm",
     "kicad_symbol": "Sensor_Humidity:Si7021",
     "dimensions_mm": {
-      "width": 3,
-      "height": 3
+      "width": 3.75,
+      "height": 3.05
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "centre",
@@ -1943,7 +1960,7 @@
         "note": "Measuring"
       },
       "sleep": {
-        "current_ma": 0.00006,
+        "current_ma": 6e-05,
         "note": "Standby"
       },
       "typical_active_ma": 0.15,
@@ -1963,8 +1980,8 @@
     "kicad_footprint": "Sensor_Motion:InvenSense_QFN-24_4x4mm_P0.5mm",
     "kicad_symbol": "Sensor_Motion:MPU-6050",
     "dimensions_mm": {
-      "width": 4,
-      "height": 4
+      "width": 4.85,
+      "height": 4.85
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "centre",
@@ -2089,11 +2106,11 @@
     "display_name": "VL53L0X",
     "category": "sensor",
     "subcategory": "distance_tof",
-    "kicad_footprint": "OptoDevice:ST_LGA-12_2.4x4.4mm",
+    "kicad_footprint": "Package_LGA:LGA-12_2x2mm_P0.5mm",
     "kicad_symbol": "Sensor_Optical:VL53L0X",
     "dimensions_mm": {
-      "width": 2.4,
-      "height": 4.4
+      "width": 2.05,
+      "height": 2.05
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "edge_right",
@@ -2205,11 +2222,11 @@
     "display_name": "BH1750FVI",
     "category": "sensor",
     "subcategory": "light",
-    "kicad_footprint": "Package_SO:WSOF-6_1.45x1.0mm_P0.5mm",
+    "kicad_footprint": "Package_TO_SOT_SMD:SOT-23-6",
     "kicad_symbol": "Sensor_Optical:BH1750FVI",
     "dimensions_mm": {
-      "width": 1.45,
-      "height": 1
+      "width": 3.75,
+      "height": 3.05
     },
     "courtyard_clearance_mm": 0.2,
     "placement_zone": "centre",
@@ -2298,7 +2315,7 @@
     "display_name": "BME680",
     "category": "sensor",
     "subcategory": "environmental",
-    "kicad_footprint": "Package_LGA:Bosch_LGA-8_3x3mm_P0.8mm",
+    "kicad_footprint": "Package_LGA:Bosch_LGA-8_3x3mm_P0.8mm_ClockwisePinNumbering",
     "kicad_symbol": "Sensor:BME680",
     "dimensions_mm": {
       "width": 3,
@@ -2427,7 +2444,7 @@
     "display_name": "BMP280",
     "category": "sensor",
     "subcategory": "pressure",
-    "kicad_footprint": "Package_LGA:Bosch_LGA-8_2x2.5mm_P0.65mm",
+    "kicad_footprint": "Package_LGA:Bosch_LGA-8_2x2.5mm_P0.65mm_ClockwisePinNumbering",
     "kicad_symbol": "Sensor_Pressure:BMP280",
     "dimensions_mm": {
       "width": 2,
@@ -2551,11 +2568,11 @@
     "display_name": "NEO-6M GPS Module",
     "category": "sensor",
     "subcategory": "gps",
-    "kicad_footprint": "RF_GPS:ublox_NEO-6M",
+    "kicad_footprint": "RF_GPS:ublox_NEO",
     "kicad_symbol": "RF_GPS:NEO-6M",
     "dimensions_mm": {
-      "width": 16,
-      "height": 12.2
+      "width": 13.35,
+      "height": 15.55
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_top",
@@ -2658,11 +2675,11 @@
     "display_name": "RFM95W LoRa Module",
     "category": "comms",
     "subcategory": "lora",
-    "kicad_footprint": "RF_Module:HOPERF_RFM9x_SMD",
+    "kicad_footprint": "RF_Module:HOPERF_RFM9XW_SMD",
     "kicad_symbol": "RF_Module:RFM95W-868S2",
     "dimensions_mm": {
-      "width": 16,
-      "height": 16
+      "width": 17.55,
+      "height": 15.55
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_top",
@@ -2790,8 +2807,8 @@
     "kicad_footprint": "Package_QFP:LQFP-48_7x7mm_P0.5mm",
     "kicad_symbol": "Interface_Ethernet:W5500",
     "dimensions_mm": {
-      "width": 7,
-      "height": 7
+      "width": 9.85,
+      "height": 9.85
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "centre",
@@ -2948,8 +2965,8 @@
     "kicad_footprint": "Package_SO:SOIC-18W_7.5x11.6mm_P1.27mm",
     "kicad_symbol": "Interface_CAN_LIN:MCP2515-xSO",
     "dimensions_mm": {
-      "width": 7.5,
-      "height": 11.6
+      "width": 11.41,
+      "height": 11.61
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "centre",
@@ -3084,8 +3101,8 @@
     "kicad_footprint": "Package_DFN_QFN:QFN-24-1EP_4x4mm_P0.5mm_EP2.6x2.6mm",
     "kicad_symbol": "Interface_USB:CP2102N-A02-GQFN24",
     "dimensions_mm": {
-      "width": 4,
-      "height": 4
+      "width": 4.75,
+      "height": 4.75
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -3221,11 +3238,11 @@
     "display_name": "DRV8833",
     "category": "motor_driver",
     "subcategory": "dc_motor",
-    "kicad_footprint": "Package_SO:HTSSOP-16-1EP_4.4x5mm_P0.65mm",
+    "kicad_footprint": "Package_SO:HTSSOP-16-1EP_4.4x5mm_P0.65mm_EP3x3mm",
     "kicad_symbol": "Motor:DRV8833",
     "dimensions_mm": {
-      "width": 3,
-      "height": 3
+      "width": 7.35,
+      "height": 5.05
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "edge_bottom",
@@ -3370,11 +3387,11 @@
     "display_name": "DRV8825",
     "category": "motor_driver",
     "subcategory": "stepper",
-    "kicad_footprint": "Package_SO:HTSSOP-28-1EP_4.4x9.7mm_P0.65mm_EP3.4x4.4mm",
+    "kicad_footprint": "Package_SO:HTSSOP-28-1EP_4.4x9.7mm_P0.65mm_EP3.4x9.5mm",
     "kicad_symbol": "Motor:DRV8825",
     "dimensions_mm": {
-      "width": 4.4,
-      "height": 9.7
+      "width": 6.85,
+      "height": 9.85
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "edge_bottom",
@@ -3573,8 +3590,8 @@
     "kicad_footprint": "Relay_THT:Relay_SPDT_SANYOU_SRD_Series_Form_C",
     "kicad_symbol": "Relay:SANYOU_SRD_Series_Form_C",
     "dimensions_mm": {
-      "width": 19,
-      "height": 15.5
+      "width": 18.15,
+      "height": 13.95
     },
     "courtyard_clearance_mm": 1,
     "placement_zone": "edge_bottom",
@@ -3646,7 +3663,11 @@
     "lcsc_part_number": "C35449",
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
-    "ref_designator_prefix": "U"
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 8.5,
+      "y": 0.0
+    }
   },
   "ws2812b": {
     "id": "ws2812b",
@@ -3656,8 +3677,8 @@
     "kicad_footprint": "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm",
     "kicad_symbol": "LED:WS2812B",
     "dimensions_mm": {
-      "width": 5,
-      "height": 5
+      "width": 6.45,
+      "height": 5.05
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -3773,7 +3794,11 @@
     "lcsc_part_number": "C253835",
     "jlcpcb_basic": false,
     "lcsc_confidence": "needs_verify",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 3.8,
+      "y": 0.0
+    }
   },
   "ssd1306_oled": {
     "id": "ssd1306_oled",
@@ -3783,8 +3808,8 @@
     "kicad_footprint": "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical",
     "kicad_symbol": "Display_Graphic:SSD1306",
     "dimensions_mm": {
-      "width": 27.3,
-      "height": 27.8
+      "width": 1.59,
+      "height": 9.21
     },
     "courtyard_clearance_mm": 1,
     "placement_zone": "edge_top",
@@ -3865,7 +3890,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "module",
     "lcsc_note": "Off-board module. Not JLCPCB assembled.",
-    "ref_designator_prefix": "U"
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 3.81
+    }
   },
   "hd44780_lcd": {
     "id": "hd44780_lcd",
@@ -3875,8 +3904,8 @@
     "kicad_footprint": "Connector_PinHeader_2.54mm:PinHeader_1x16_P2.54mm_Vertical",
     "kicad_symbol": "Display_Character:HD44780",
     "dimensions_mm": {
-      "width": 80,
-      "height": 36
+      "width": 1.59,
+      "height": 39.71
     },
     "courtyard_clearance_mm": 1,
     "placement_zone": "edge_top",
@@ -3964,7 +3993,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "module",
     "lcsc_note": "Off-board module.",
-    "ref_designator_prefix": "U"
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 19.05
+    }
   },
   "ili9341_tft": {
     "id": "ili9341_tft",
@@ -3974,10 +4007,14 @@
     "kicad_footprint": "Connector_PinHeader_2.54mm:PinHeader_1x09_P2.54mm_Vertical",
     "kicad_symbol": "Display_Graphic:ER-TFT024-3",
     "dimensions_mm": {
-      "width": 42.7,
-      "height": 60.3
+      "width": 2.54,
+      "height": 22.86
     },
-    "courtyard_clearance_mm": 1,
+    "courtyard_clearance_mm": 0.5,
+    "footprint_center_offset_mm": {
+      "x": 0,
+      "y": 10.16
+    },
     "placement_zone": "edge_top",
     "placement_priority": 3,
     "antenna_keepout_mm": 0,
@@ -4088,8 +4125,8 @@
     "kicad_footprint": "Button_Switch_THT:SW_PUSH_6mm_H5mm",
     "kicad_symbol": "Switch:SW_Push",
     "dimensions_mm": {
-      "width": 6,
-      "height": 6
+      "width": 8.55,
+      "height": 6.55
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "any",
@@ -4118,12 +4155,33 @@
     "cost_gbp_unit": 0.05,
     "pins": {
       "count": 2,
-      "notes": "Pin assignment depends on application context."
+      "package": "6x6mm tactile switch",
+      "power": [
+        {
+          "name": "GND",
+          "pins": [
+            "2"
+          ],
+          "net": "GND"
+        }
+      ],
+      "control": [
+        {
+          "name": "BTN",
+          "pin": "1",
+          "note": "Button input, active low"
+        }
+      ],
+      "interfaces": {}
     },
     "lcsc_part_number": "C127509",
     "jlcpcb_basic": true,
     "lcsc_confidence": "high",
-    "ref_designator_prefix": "SW"
+    "ref_designator_prefix": "SW",
+    "footprint_center_offset_mm": {
+      "x": 3.25,
+      "y": 2.25
+    }
   },
   "ec11_rotary_encoder": {
     "id": "ec11_rotary_encoder",
@@ -4133,10 +4191,10 @@
     "kicad_footprint": "Rotary_Encoder:RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm",
     "kicad_symbol": "Device:RotaryEncoder_Switch",
     "dimensions_mm": {
-      "width": 12,
-      "height": 13.4
+      "width": 15.55,
+      "height": 12.25
     },
-    "courtyard_clearance_mm": 0.5,
+    "courtyard_clearance_mm": 1.0,
     "placement_zone": "edge_right",
     "placement_priority": 6,
     "antenna_keepout_mm": 0,
@@ -4162,24 +4220,66 @@
     "satisfies_processing": false,
     "cost_gbp_unit": 0.8,
     "pins": {
-      "count": 2,
-      "notes": "Pin assignment depends on application context."
+      "count": 5,
+      "package": "Through-hole rotary encoder",
+      "power": [
+        {
+          "name": "C",
+          "pins": [
+            "C"
+          ],
+          "net": "GND",
+          "note": "Encoder common"
+        }
+      ],
+      "control": [
+        {
+          "name": "ENC_A",
+          "pin": "A",
+          "note": "Encoder output A"
+        },
+        {
+          "name": "ENC_B",
+          "pin": "B",
+          "note": "Encoder output B"
+        },
+        {
+          "name": "ENC_SW",
+          "pin": "S1",
+          "note": "Push switch"
+        }
+      ],
+      "key_pins": [
+        {
+          "name": "S2",
+          "pins": [
+            "S2"
+          ],
+          "net": "GND",
+          "note": "Switch common"
+        }
+      ],
+      "interfaces": {}
     },
     "lcsc_part_number": "C470753",
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 7.25,
+      "y": 2.5
+    }
   },
   "mpr121": {
     "id": "mpr121",
     "display_name": "MPR121",
     "category": "sensor",
     "subcategory": "capacitive_touch",
-    "kicad_footprint": "Package_DFN_QFN:QFN-20-1EP_3x3mm_P0.5mm_EP1.7x1.7mm",
+    "kicad_footprint": "Package_DFN_QFN:SiliconLabs_QFN-20-1EP_3x3mm_P0.5mm_EP1.8x1.8mm",
     "kicad_symbol": "Sensor_Touch:MPR121",
     "dimensions_mm": {
-      "width": 3,
-      "height": 3
+      "width": 4.05,
+      "height": 4.05
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -4290,8 +4390,8 @@
     "kicad_footprint": "Connector_Card:microSD_HC_Molex_104031-0811",
     "kicad_symbol": "Connector_Card:Micro_SD_Card",
     "dimensions_mm": {
-      "width": 14,
-      "height": 15
+      "width": 12.73,
+      "height": 12.1
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_right",
@@ -4396,8 +4496,8 @@
     "kicad_footprint": "Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm",
     "kicad_symbol": "Timer_RTC:DS3231SN",
     "dimensions_mm": {
-      "width": 7.5,
-      "height": 10.3
+      "width": 11.41,
+      "height": 10.35
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -4522,8 +4622,8 @@
     "kicad_footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
     "kicad_symbol": "Memory_EEPROM:AT24C256",
     "dimensions_mm": {
-      "width": 3.9,
-      "height": 4.9
+      "width": 6.95,
+      "height": 4.95
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -4637,8 +4737,8 @@
     "kicad_footprint": "Package_SO:MSOP-10_3x3mm_P0.5mm",
     "kicad_symbol": "Analog_ADC:ADS1115IDGSR",
     "dimensions_mm": {
-      "width": 3,
-      "height": 3
+      "width": 5.91,
+      "height": 3.05
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "centre",
@@ -4756,8 +4856,8 @@
     "kicad_footprint": "Connector_RJ:RJ45_Amphenol_54602-x08_Horizontal",
     "kicad_symbol": "Connector:RJ45_Shielded_Transformer",
     "dimensions_mm": {
-      "width": 21.3,
-      "height": 16
+      "width": 14.36,
+      "height": 16.79
     },
     "courtyard_clearance_mm": 1,
     "placement_zone": "edge_right",
@@ -4829,7 +4929,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
     "lcsc_note": "RJ45 with magnetics",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 4.45,
+      "y": 5.1
+    }
   },
   "sma_edge_connector": {
     "id": "sma_edge_connector",
@@ -4839,8 +4943,8 @@
     "kicad_footprint": "Connector_Coaxial:SMA_Amphenol_132289_EdgeMount",
     "kicad_symbol": "Connector:Conn_Coaxial",
     "dimensions_mm": {
-      "width": 6.35,
-      "height": 9.5
+      "width": 15.56,
+      "height": 9.21
     },
     "courtyard_clearance_mm": 1,
     "placement_zone": "edge_top",
@@ -4893,7 +4997,11 @@
     "lcsc_part_number": "C496548",
     "jlcpcb_basic": false,
     "lcsc_confidence": "needs_verify",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 5.71,
+      "y": 0.0
+    }
   },
   "cr2032_holder": {
     "id": "cr2032_holder",
@@ -4903,8 +5011,8 @@
     "kicad_footprint": "Battery:BatteryHolder_Keystone_3034_1x20mm",
     "kicad_symbol": "Device:Battery_Cell",
     "dimensions_mm": {
-      "width": 24,
-      "height": 24
+      "width": 22.79,
+      "height": 20.04
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "any",
@@ -4946,8 +5054,8 @@
     "kicad_footprint": "Package_SO:TSSOP-14_4.4x5mm_P0.65mm",
     "kicad_symbol": "74xx:74AHCT125",
     "dimensions_mm": {
-      "width": 4.4,
-      "height": 5
+      "width": 7.25,
+      "height": 5.05
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -5040,8 +5148,8 @@
     "kicad_footprint": "Capacitor_SMD:C_0402_1005Metric",
     "kicad_symbol": "Device:C",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.57,
+      "height": 0.67
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -5100,8 +5208,8 @@
     "kicad_footprint": "Capacitor_SMD:C_0805_2012Metric",
     "kicad_symbol": "Device:C",
     "dimensions_mm": {
-      "width": 2,
-      "height": 1.25
+      "width": 3.15,
+      "height": 1.71
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -5158,8 +5266,8 @@
     "kicad_footprint": "Resistor_SMD:R_0402_1005Metric",
     "kicad_symbol": "Device:R",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.61,
+      "height": 0.69
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -5219,8 +5327,8 @@
     "kicad_footprint": "Resistor_SMD:R_0402_1005Metric",
     "kicad_symbol": "Device:R",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.61,
+      "height": 0.69
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -5277,8 +5385,8 @@
     "kicad_footprint": "Resistor_SMD:R_0402_1005Metric",
     "kicad_symbol": "Device:R",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.61,
+      "height": 0.69
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -5335,8 +5443,8 @@
     "kicad_footprint": "LED_SMD:LED_0805_2012Metric",
     "kicad_symbol": "Device:LED",
     "dimensions_mm": {
-      "width": 2,
-      "height": 1.25
+      "width": 3.11,
+      "height": 1.65
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -5460,8 +5568,8 @@
     "kicad_footprint": "Connector_FFC-FPC:Hirose_FH12-24S-0.5SH_1x24-1MP_P0.50mm_Horizontal",
     "kicad_symbol": "Sensor_Optical:OV2640",
     "dimensions_mm": {
-      "width": 25,
-      "height": 24
+      "width": 16.15,
+      "height": 5.95
     },
     "courtyard_clearance_mm": 1,
     "placement_zone": "edge_top",
@@ -5584,7 +5692,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "module",
     "lcsc_note": "Camera module — not SMT assembled",
-    "ref_designator_prefix": "U"
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 0.95
+    }
   },
   "mcp2562": {
     "id": "mcp2562",
@@ -5594,8 +5706,8 @@
     "kicad_footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
     "kicad_symbol": "Interface_CAN_LIN:MCP2562-E-SN",
     "dimensions_mm": {
-      "width": 3.9,
-      "height": 4.9
+      "width": 6.95,
+      "height": 4.95
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -5694,11 +5806,11 @@
     "display_name": "W25Q32JVSSIQ",
     "category": "sensor",
     "subcategory": "spi_flash",
-    "kicad_footprint": "Package_SO:SOIC-8_5.23x5.23mm_P1.27mm",
+    "kicad_footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
     "kicad_symbol": "Memory_Flash:W25Q32JVSS",
     "dimensions_mm": {
-      "width": 5.23,
-      "height": 5.23
+      "width": 6.95,
+      "height": 4.95
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -5879,14 +5991,18 @@
     "lcsc_part_number": "C131337",
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 1.0,
+      "y": 0.55
+    }
   },
   "sim7080g": {
     "id": "sim7080g",
     "display_name": "SIM7080G",
     "category": "comms",
     "subcategory": "cellular_lpwan",
-    "kicad_footprint": "RF_Cellular:SIMCom_SIM7080",
+    "kicad_footprint": "Eisla:SIMCom_SIM7080G",
     "kicad_symbol": "RF_Cellular:SIM7080G",
     "dimensions_mm": {
       "width": 17.6,
@@ -6043,11 +6159,11 @@
     "display_name": "Nano-SIM Card Holder",
     "category": "connector",
     "subcategory": "sim",
-    "kicad_footprint": "Connector_Card:nanoSIM_Molex_5031821852",
+    "kicad_footprint": "Connector_Card:nanoSIM_GCT_SIM8060-6-0-14-00",
     "kicad_symbol": "Connector_Card:SIM_Card",
     "dimensions_mm": {
-      "width": 12.3,
-      "height": 10.1
+      "width": 13.65,
+      "height": 14.45
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_right",
@@ -6132,11 +6248,11 @@
     "display_name": "U.FL Antenna Connector",
     "category": "connector",
     "subcategory": "antenna",
-    "kicad_footprint": "Connector_Coaxial:U.FL_Hirose_U.FL-R-SMT-1_Solder",
+    "kicad_footprint": "Connector_Coaxial:U.FL_Hirose_U.FL-R-SMT-1_Vertical",
     "kicad_symbol": "Connector:Conn_Coaxial",
     "dimensions_mm": {
-      "width": 3,
-      "height": 3
+      "width": 3.35,
+      "height": 4.05
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_top",
@@ -6201,8 +6317,8 @@
     "kicad_footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
     "kicad_symbol": "Interface_UART:MAX485E",
     "dimensions_mm": {
-      "width": 3.9,
-      "height": 4.9
+      "width": 6.95,
+      "height": 4.95
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -6297,11 +6413,11 @@
     "display_name": "EKMC1603111 PIR Sensor",
     "category": "sensor",
     "subcategory": "pir_motion",
-    "kicad_footprint": "Sensor_Motion:Panasonic_EKMC16xxx",
+    "kicad_footprint": "Eisla:Panasonic_EKMC16xxx",
     "kicad_symbol": "Sensor_Motion:EKMC1601111",
     "dimensions_mm": {
-      "width": 11.6,
-      "height": 9.6
+      "width": 10.45,
+      "height": 10.45
     },
     "courtyard_clearance_mm": 1,
     "placement_zone": "edge_top",
@@ -6384,8 +6500,8 @@
     "kicad_footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
     "kicad_symbol": "Analog_ADC:INA219xD",
     "dimensions_mm": {
-      "width": 3.9,
-      "height": 4.9
+      "width": 6.95,
+      "height": 4.95
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -6500,11 +6616,11 @@
     "display_name": "TSOP38238 IR Receiver",
     "category": "sensor",
     "subcategory": "ir_receiver",
-    "kicad_footprint": "OptoDevice:Vishay_MINICAST-3pin",
+    "kicad_footprint": "OptoDevice:Vishay_MINICAST-3Pin",
     "kicad_symbol": "Sensor_Optical:TSOP382xx",
     "dimensions_mm": {
-      "width": 5,
-      "height": 6.5
+      "width": 6.43,
+      "height": 4.4
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_right",
@@ -6576,7 +6692,11 @@
     "lcsc_part_number": "C8875",
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
-    "ref_designator_prefix": "U"
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 2.54,
+      "y": 1.02
+    }
   },
   "ir_led_940nm": {
     "id": "ir_led_940nm",
@@ -6638,18 +6758,22 @@
     "jlcpcb_basic": false,
     "lcsc_part_number": "C60092",
     "lcsc_confidence": "high",
-    "ref_designator_prefix": "R"
+    "ref_designator_prefix": "R",
+    "footprint_center_offset_mm": {
+      "x": 1.27,
+      "y": 0.0
+    }
   },
   "pn532": {
     "id": "pn532",
     "display_name": "PN532/C106",
     "category": "comms",
     "subcategory": "nfc",
-    "kicad_footprint": "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.55x3.55mm",
+    "kicad_footprint": "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.1x3.1mm",
     "kicad_symbol": "Interface_NFC:PN532",
     "dimensions_mm": {
-      "width": 5,
-      "height": 5
+      "width": 5.81,
+      "height": 5.81
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "centre",
@@ -6804,7 +6928,7 @@
     "display_name": "MAX30102",
     "category": "sensor",
     "subcategory": "heartrate_spo2",
-    "kicad_footprint": "OptoDevice:Maxim_MAX30101_OLGA-14_3.3x5.6mm",
+    "kicad_footprint": "OptoDevice:Maxim_OLGA-14_3.3x5.6mm_P0.8mm",
     "kicad_symbol": "Sensor_Optical:MAX30102",
     "dimensions_mm": {
       "width": 3.3,
@@ -6908,8 +7032,8 @@
     "kicad_footprint": "Package_SO:MSOP-10_3x3mm_P0.5mm",
     "kicad_symbol": "Motor:DRV2605L",
     "dimensions_mm": {
-      "width": 3,
-      "height": 3
+      "width": 5.91,
+      "height": 3.05
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -7020,8 +7144,8 @@
     "kicad_footprint": "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
     "kicad_symbol": "Motor:Motor_DC",
     "dimensions_mm": {
-      "width": 8,
-      "height": 3.4
+      "width": 2.59,
+      "height": 5.14
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "any",
@@ -7053,7 +7177,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "module",
     "lcsc_note": "Mechanical part — not SMT assembled",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 1.27
+    }
   },
   "hx711": {
     "id": "hx711",
@@ -7063,8 +7191,8 @@
     "kicad_footprint": "Package_SO:SOP-16_4.4x10.4mm_P1.27mm",
     "kicad_symbol": "Analog_ADC:HX711",
     "dimensions_mm": {
-      "width": 4.4,
-      "height": 10.4
+      "width": 8.05,
+      "height": 10.45
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -7235,7 +7363,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "module",
     "lcsc_note": "Off-board sensor",
-    "ref_designator_prefix": "U"
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 2.54
+    }
   },
   "res_250r_precision": {
     "id": "res_250r_precision",
@@ -7245,8 +7377,8 @@
     "kicad_footprint": "Resistor_SMD:R_0805_2012Metric",
     "kicad_symbol": "Device:R",
     "dimensions_mm": {
-      "width": 2,
-      "height": 1.25
+      "width": 3.11,
+      "height": 1.65
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -7303,7 +7435,7 @@
     "display_name": "2-Pin Screw Terminal 5.08mm",
     "category": "connector",
     "subcategory": "industrial",
-    "kicad_footprint": "TerminalBlock:TerminalBlock_bornier-2_P5.08mm",
+    "kicad_footprint": "TerminalBlock:TerminalBlock_MaiXu_MX126-5.0-02P_1x02_P5.00mm",
     "kicad_symbol": "Connector:Screw_Terminal_01x02",
     "dimensions_mm": {
       "width": 10.2,
@@ -7358,7 +7490,11 @@
     "lcsc_confidence": "high",
     "lcsc_note": "5.08mm pitch",
     "mains_use_note": "When used as mains input terminal: must be rated 250VAC 10A minimum. Verify LCSC part rating. Label L and N on silkscreen.",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 2.25,
+      "y": -0.1
+    }
   },
   "max3232": {
     "id": "max3232",
@@ -7368,8 +7504,8 @@
     "kicad_footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
     "kicad_symbol": "Interface_UART:MAX3232",
     "dimensions_mm": {
-      "width": 3.9,
-      "height": 9.9
+      "width": 6.95,
+      "height": 9.95
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -7464,11 +7600,11 @@
     "display_name": "DB9 Female Connector (right angle)",
     "category": "connector",
     "subcategory": "serial",
-    "kicad_footprint": "Connector_Dsub:DSUB-9_Female_Horizontal_P2.77x2.84mm_EdgePinOffset7.70mm_Housed_MountingHolesOffset9.12mm",
+    "kicad_footprint": "Connector_Dsub:DSUB-9_Socket_Horizontal_P2.77x2.84mm_EdgePinOffset7.70mm_Housed_MountingHolesOffset9.12mm",
     "kicad_symbol": "Connector:DB9_Female",
     "dimensions_mm": {
-      "width": 30.8,
-      "height": 12.5
+      "width": 29.91,
+      "height": 17.97
     },
     "courtyard_clearance_mm": 1,
     "placement_zone": "edge_right",
@@ -7504,7 +7640,11 @@
     "lcsc_part_number": "C429947",
     "jlcpcb_basic": false,
     "lcsc_confidence": "needs_verify",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": -5.54,
+      "y": 7.65
+    }
   },
   "max490": {
     "id": "max490",
@@ -7514,8 +7654,8 @@
     "kicad_footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
     "kicad_symbol": "Interface_UART:MAX490E",
     "dimensions_mm": {
-      "width": 3.9,
-      "height": 4.9
+      "width": 6.95,
+      "height": 4.95
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -7598,8 +7738,8 @@
     "kicad_footprint": "Package_TO_SOT_SMD:SOT-23-6",
     "kicad_symbol": "Analog_DAC:MCP4725xxx-xCH",
     "dimensions_mm": {
-      "width": 2.9,
-      "height": 1.6
+      "width": 3.65,
+      "height": 2.95
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -7700,8 +7840,8 @@
     "kicad_footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
     "kicad_symbol": "Amplifier_Operational:LM358",
     "dimensions_mm": {
-      "width": 3.9,
-      "height": 4.9
+      "width": 6.95,
+      "height": 4.95
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -7779,8 +7919,8 @@
     "kicad_footprint": "Package_TO_SOT_SMD:SOT-23",
     "kicad_symbol": "Transistor_FET:Si2302CDS",
     "dimensions_mm": {
-      "width": 2.9,
-      "height": 1.3
+      "width": 3.61,
+      "height": 3.15
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -7858,8 +7998,8 @@
     "kicad_footprint": "Package_TO_SOT_SMD:SOT-23",
     "kicad_symbol": "Transistor_FET:AO3401A",
     "dimensions_mm": {
-      "width": 2.9,
-      "height": 1.3
+      "width": 3.61,
+      "height": 3.15
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -7929,8 +8069,8 @@
     "kicad_footprint": "TestPoint:TestPoint_Pad_1.5x1.5mm",
     "kicad_symbol": "Connector:TestPoint",
     "dimensions_mm": {
-      "width": 1.5,
-      "height": 1.5
+      "width": 2.05,
+      "height": 2.05
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -7966,11 +8106,11 @@
     "display_name": "Test Point Loop (Keystone 5000)",
     "category": "passive",
     "subcategory": "test_point",
-    "kicad_footprint": "TestPoint:TestPoint_Loop_D2.60mm_Drill1.0mm_Beaded",
+    "kicad_footprint": "TestPoint:TestPoint_Loop_D2.60mm_Drill0.9mm_Beaded",
     "kicad_symbol": "Connector:TestPoint",
     "dimensions_mm": {
-      "width": 2.6,
-      "height": 5
+      "width": 3.05,
+      "height": 3.05
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "any",
@@ -8009,8 +8149,8 @@
     "kicad_footprint": "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD",
     "kicad_symbol": "Connector:Conn_ARM_JTAG_SWD_10",
     "dimensions_mm": {
-      "width": 5.1,
-      "height": 3.8
+      "width": 7.63,
+      "height": 6.41
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_bottom",
@@ -8055,8 +8195,8 @@
     "kicad_footprint": "Connector:Tag-Connect_TC2050-IDC-NL_2x05_P1.27mm_Vertical",
     "kicad_symbol": "Connector:Conn_ARM_JTAG_SWD_10",
     "dimensions_mm": {
-      "width": 10.7,
-      "height": 4.1
+      "width": 9.71,
+      "height": 3.65
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_bottom",
@@ -8173,7 +8313,11 @@
     "lcsc_part_number": "C706887",
     "jlcpcb_basic": false,
     "lcsc_confidence": "needs_verify",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 1.27,
+      "y": 2.54
+    }
   },
   "ld2410c": {
     "id": "ld2410c",
@@ -8183,8 +8327,8 @@
     "kicad_footprint": "Connector_PinHeader_1.27mm:PinHeader_1x05_P1.27mm_Vertical",
     "kicad_symbol": "Connector_Generic:Conn_01x05",
     "dimensions_mm": {
-      "width": 13,
-      "height": 17.8
+      "width": 1.15,
+      "height": 5.41
     },
     "courtyard_clearance_mm": 1,
     "placement_zone": "edge_top",
@@ -8281,7 +8425,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "needs_verify",
     "lcsc_note": "Hi-Link mmWave radar",
-    "ref_designator_prefix": "U"
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 2.54
+    }
   },
   "ld2412": {
     "id": "ld2412",
@@ -8291,8 +8439,8 @@
     "kicad_footprint": "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical",
     "kicad_symbol": "Connector_Generic:Conn_01x05",
     "dimensions_mm": {
-      "width": 24,
-      "height": 32
+      "width": 1.59,
+      "height": 11.75
     },
     "courtyard_clearance_mm": 1,
     "placement_zone": "edge_top",
@@ -8375,18 +8523,22 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "needs_verify",
     "lcsc_note": "Newer variant — may not be on LCSC yet",
-    "ref_designator_prefix": "U"
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 5.08
+    }
   },
   "inmp441": {
     "id": "inmp441",
     "display_name": "INMP441 I2S MEMS Microphone",
     "category": "sensor",
     "subcategory": "microphone",
-    "kicad_footprint": "Package_LGA:Knowles_LGA-5_3.76x2.95mm",
+    "kicad_footprint": "Sensor_Audio:Knowles_LGA-6_4.72x3.76mm",
     "kicad_symbol": "Audio:INMP441",
     "dimensions_mm": {
-      "width": 3.76,
-      "height": 2.95
+      "width": 3.81,
+      "height": 4.77
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "edge_top",
@@ -8478,11 +8630,11 @@
     "display_name": "MAX98357A I2S DAC+Amp",
     "category": "passive",
     "subcategory": "audio_amp",
-    "kicad_footprint": "Package_DFN_QFN:QFN-16-1EP_3x3mm_P0.5mm_EP1.68x1.68mm",
+    "kicad_footprint": "Package_DFN_QFN:QFN-16-1EP_3x3mm_P0.5mm_EP1.45x1.45mm",
     "kicad_symbol": "Audio:MAX98357A",
     "dimensions_mm": {
-      "width": 3,
-      "height": 3
+      "width": 3.81,
+      "height": 3.81
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -8634,7 +8786,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
     "lcsc_note": "JST PH 2-pin",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 1.0,
+      "y": 0.55
+    }
   },
   "epaper_2_9inch": {
     "id": "epaper_2_9inch",
@@ -8644,8 +8800,8 @@
     "kicad_footprint": "Connector_FFC-FPC:Hirose_FH12-24S-0.5SH_1x24-1MP_P0.50mm_Horizontal",
     "kicad_symbol": "Connector_Generic:Conn_01x24",
     "dimensions_mm": {
-      "width": 20,
-      "height": 4.5
+      "width": 17.15,
+      "height": 6.95
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_top",
@@ -8747,7 +8903,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "module",
     "lcsc_note": "E-paper display module — not SMT",
-    "ref_designator_prefix": "U"
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 0.95
+    }
   },
   "ct_clamp_jack": {
     "id": "ct_clamp_jack",
@@ -8757,8 +8917,8 @@
     "kicad_footprint": "Connector_Audio:Jack_3.5mm_CUI_SJ-3523-SMT_Horizontal",
     "kicad_symbol": "Connector:AudioJack3",
     "dimensions_mm": {
-      "width": 12,
-      "height": 5
+      "width": 10.25,
+      "height": 17.05
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_left",
@@ -8805,8 +8965,8 @@
     "kicad_footprint": "Package_SO:SSOP-28_5.3x10.2mm_P0.65mm",
     "kicad_symbol": "Interface_Expansion:MCP23017_SS",
     "dimensions_mm": {
-      "width": 5.3,
-      "height": 10.2
+      "width": 8.95,
+      "height": 10.25
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -8962,8 +9122,8 @@
     "kicad_footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
     "kicad_symbol": "Interface_Expansion:PCF8574",
     "dimensions_mm": {
-      "width": 3.9,
-      "height": 9.9
+      "width": 6.95,
+      "height": 9.95
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -9095,8 +9255,8 @@
     "kicad_footprint": "Crystal:Crystal_SMD_HC49-SD",
     "kicad_symbol": "Device:Crystal",
     "dimensions_mm": {
-      "width": 11.4,
-      "height": 4.9
+      "width": 13.05,
+      "height": 5.25
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -9222,11 +9382,11 @@
     "display_name": "32MHz Crystal 2016 SMD",
     "category": "passive",
     "subcategory": "crystal",
-    "kicad_footprint": "Crystal:Crystal_SMD_2016-2Pin_2.0x1.6mm",
+    "kicad_footprint": "Crystal:Crystal_SMD_TXC_9HT11-2Pin_2.0x1.2mm",
     "kicad_symbol": "Device:Crystal",
     "dimensions_mm": {
-      "width": 2,
-      "height": 1.6
+      "width": 2.55,
+      "height": 1.75
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -9352,11 +9512,11 @@
     "display_name": "32.768kHz Crystal 1610 SMD",
     "category": "passive",
     "subcategory": "crystal",
-    "kicad_footprint": "Crystal:Crystal_SMD_1610-2Pin_1.6x1.0mm",
+    "kicad_footprint": "Crystal:Crystal_SMD_MicroCrystal_CM9V-T1A-2Pin_1.6x1.0mm",
     "kicad_symbol": "Device:Crystal",
     "dimensions_mm": {
-      "width": 1.6,
-      "height": 1
+      "width": 2.15,
+      "height": 1.55
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -9426,8 +9586,8 @@
     "kicad_footprint": "Capacitor_SMD:C_0402_1005Metric",
     "kicad_symbol": "Device:C",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.57,
+      "height": 0.67
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -9486,8 +9646,8 @@
     "kicad_footprint": "Capacitor_SMD:C_0402_1005Metric",
     "kicad_symbol": "Device:C",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.57,
+      "height": 0.67
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -9545,8 +9705,8 @@
     "kicad_footprint": "Package_TO_SOT_SMD:SOT-23-6",
     "kicad_symbol": "Power_Protection:USBLC6-2SC6",
     "dimensions_mm": {
-      "width": 2.9,
-      "height": 1.6
+      "width": 3.85,
+      "height": 3.15
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -9602,8 +9762,8 @@
     "kicad_footprint": "Package_TO_SOT_SMD:SOT-23",
     "kicad_symbol": "Power_Protection:SM712",
     "dimensions_mm": {
-      "width": 2.9,
-      "height": 1.3
+      "width": 3.61,
+      "height": 3.15
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -9659,8 +9819,8 @@
     "kicad_footprint": "Package_TO_SOT_SMD:SOT-23",
     "kicad_symbol": "Power_Protection:PESD2CAN",
     "dimensions_mm": {
-      "width": 2.9,
-      "height": 1.3
+      "width": 3.61,
+      "height": 3.15
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -9716,8 +9876,8 @@
     "kicad_footprint": "Fuse:Fuse_1206_3216Metric",
     "kicad_symbol": "Device:Polyfuse",
     "dimensions_mm": {
-      "width": 3.2,
-      "height": 1.6
+      "width": 4.11,
+      "height": 1.81
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -9772,8 +9932,8 @@
     "kicad_footprint": "Resistor_SMD:R_0805_2012Metric",
     "kicad_symbol": "Device:R",
     "dimensions_mm": {
-      "width": 2,
-      "height": 1.25
+      "width": 3.11,
+      "height": 1.65
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -9831,8 +9991,8 @@
     "kicad_footprint": "Button_Switch_SMD:SW_SPST_TL3342",
     "kicad_symbol": "Switch:SW_Push",
     "dimensions_mm": {
-      "width": 3,
-      "height": 4
+      "width": 8.05,
+      "height": 5.55
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "edge_bottom",
@@ -9873,8 +10033,8 @@
     "kicad_footprint": "Button_Switch_SMD:SW_SPST_TL3342",
     "kicad_symbol": "Switch:SW_Push",
     "dimensions_mm": {
-      "width": 3,
-      "height": 4
+      "width": 8.05,
+      "height": 5.55
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "edge_bottom",
@@ -9915,8 +10075,8 @@
     "kicad_footprint": "LED_SMD:LED_0402_1005Metric",
     "kicad_symbol": "Device:LED",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.61,
+      "height": 0.69
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "edge_bottom",
@@ -9972,8 +10132,8 @@
     "kicad_footprint": "Resistor_SMD:R_0402_1005Metric",
     "kicad_symbol": "Device:R",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.61,
+      "height": 0.69
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -10030,8 +10190,8 @@
     "kicad_footprint": "LED_SMD:LED_0402_1005Metric",
     "kicad_symbol": "Device:LED",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.61,
+      "height": 0.69
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "edge_bottom",
@@ -10129,8 +10289,8 @@
     "kicad_footprint": "Capacitor_SMD:C_0402_1005Metric",
     "kicad_symbol": "Device:C",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.57,
+      "height": 0.67
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -10187,8 +10347,8 @@
     "kicad_footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
     "kicad_symbol": "Analog_ADC:MAX31855KASA",
     "dimensions_mm": {
-      "width": 3.9,
-      "height": 4.9
+      "width": 6.95,
+      "height": 4.95
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -10275,8 +10435,8 @@
     "kicad_footprint": "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
     "kicad_symbol": "Connector:Conn_01x02_Pin",
     "dimensions_mm": {
-      "width": 5.1,
-      "height": 5
+      "width": 2.59,
+      "height": 5.14
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_left",
@@ -10310,7 +10470,11 @@
     "lcsc_part_number": "C492585",
     "jlcpcb_basic": false,
     "lcsc_confidence": "needs_verify",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 1.27
+    }
   },
   "hcsr04_connector": {
     "id": "hcsr04_connector",
@@ -10360,7 +10524,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "header",
     "lcsc_note": "Standard 4-pin header",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 3.81
+    }
   },
   "reed_switch_connector": {
     "id": "reed_switch_connector",
@@ -10408,7 +10576,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "header",
     "lcsc_note": "Standard 2-pin header",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 1.0,
+      "y": 0.55
+    }
   },
   "flow_sensor_connector": {
     "id": "flow_sensor_connector",
@@ -10456,7 +10628,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "header",
     "lcsc_note": "Standard 3-pin header",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 2.54
+    }
   },
   "mfrc522": {
     "id": "mfrc522",
@@ -10466,8 +10642,8 @@
     "kicad_footprint": "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.1x3.1mm",
     "kicad_symbol": "Interface_NFC:MFRC522",
     "dimensions_mm": {
-      "width": 5,
-      "height": 5
+      "width": 5.81,
+      "height": 5.81
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "centre",
@@ -10577,11 +10753,11 @@
     "display_name": "TCS34725FN Color Sensor",
     "category": "sensor",
     "subcategory": "color",
-    "kicad_footprint": "Package_DFN_QFN:DFN-6-1EP_2x2mm_P0.65mm_EP0.4x1.6mm",
+    "kicad_footprint": "Package_DFN_QFN:DFN-6-1EP_2x2mm_P0.65mm_EP1.01x1.7mm",
     "kicad_symbol": "Sensor_Optical:TCS34725FN",
     "dimensions_mm": {
-      "width": 2,
-      "height": 2
+      "width": 2.75,
+      "height": 2.05
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "edge_top",
@@ -10730,7 +10906,11 @@
     "lcsc_part_number": "C8379",
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 5.08,
+      "y": -0.3
+    }
   },
   "screw_terminal_4pin": {
     "id": "screw_terminal_4pin",
@@ -10740,8 +10920,8 @@
     "kicad_footprint": "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MPT-0,5-4-2.54_1x04_P2.54mm_Horizontal",
     "kicad_symbol": "Connector:Screw_Terminal_01x04",
     "dimensions_mm": {
-      "width": 15.24,
-      "height": 8
+      "width": 10.68,
+      "height": 6.25
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_left",
@@ -10791,7 +10971,11 @@
     "lcsc_part_number": "C8380",
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 3.81,
+      "y": 0.0
+    }
   },
   "header_4pin_i2c": {
     "id": "header_4pin_i2c",
@@ -10837,7 +11021,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
     "lcsc_note": "1x4 2.54mm",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 3.81
+    }
   },
   "header_3pin_servo": {
     "id": "header_3pin_servo",
@@ -10887,7 +11075,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
     "lcsc_note": "1x3 2.54mm",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 2.54
+    }
   },
   "header_8pin_spi_display": {
     "id": "header_8pin_spi_display",
@@ -10933,7 +11125,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
     "lcsc_note": "1x8 2.54mm",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 8.89
+    }
   },
   "header_16pin_lcd": {
     "id": "header_16pin_lcd",
@@ -10979,7 +11175,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
     "lcsc_note": "1x16 2.54mm",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 19.05
+    }
   },
   "jst_ph_2pin_power": {
     "id": "jst_ph_2pin_power",
@@ -11022,7 +11222,11 @@
     "lcsc_part_number": "C131337",
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 1.0,
+      "y": 0.55
+    }
   },
   "fpc_24pin_camera": {
     "id": "fpc_24pin_camera",
@@ -11032,8 +11236,8 @@
     "kicad_footprint": "Connector_FFC-FPC:Hirose_FH12-24S-0.5SH_1x24-1MP_P0.50mm_Horizontal",
     "kicad_symbol": "Connector_Generic:Conn_01x24",
     "dimensions_mm": {
-      "width": 13,
-      "height": 5
+      "width": 17.15,
+      "height": 6.95
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_top",
@@ -11072,7 +11276,11 @@
     "lcsc_part_number": "C262632",
     "jlcpcb_basic": false,
     "lcsc_confidence": "needs_verify",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 0.95
+    }
   },
   "schottky_ss14": {
     "id": "schottky_ss14",
@@ -11082,8 +11290,8 @@
     "kicad_footprint": "Diode_SMD:D_SMA",
     "kicad_symbol": "Device:D_Schottky",
     "dimensions_mm": {
-      "width": 4.6,
-      "height": 2.6
+      "width": 6.55,
+      "height": 3.05
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -11139,8 +11347,8 @@
     "kicad_footprint": "Capacitor_SMD:C_1206_3216Metric",
     "kicad_symbol": "Device:C_Polarized",
     "dimensions_mm": {
-      "width": 3.2,
-      "height": 1.6
+      "width": 4.15,
+      "height": 1.85
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -11197,8 +11405,8 @@
     "kicad_footprint": "Package_TO_SOT_SMD:SOT-23-6",
     "kicad_symbol": "Regulator_Switching:MT3608",
     "dimensions_mm": {
-      "width": 2.9,
-      "height": 1.6
+      "width": 3.65,
+      "height": 2.95
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -11310,11 +11518,11 @@
     "display_name": "22µH Power Inductor 4x4mm",
     "category": "passive",
     "subcategory": "inductor",
-    "kicad_footprint": "Inductor_SMD:L_Bourns_SRN4018",
+    "kicad_footprint": "Inductor_SMD:L_Bourns-SRN4018",
     "kicad_symbol": "Device:L",
     "dimensions_mm": {
-      "width": 4,
-      "height": 4
+      "width": 4.61,
+      "height": 4.05
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -11368,8 +11576,8 @@
     "kicad_footprint": "Resistor_SMD:R_0402_1005Metric",
     "kicad_symbol": "Device:R",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.61,
+      "height": 0.69
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -11427,8 +11635,8 @@
     "kicad_footprint": "Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal",
     "kicad_symbol": "Connector:Conn_01x04_Pin",
     "dimensions_mm": {
-      "width": 6,
-      "height": 4.25
+      "width": 6.85,
+      "height": 5.61
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_right",
@@ -11471,8 +11679,8 @@
     "kicad_footprint": "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical",
     "kicad_symbol": "Connector:Conn_01x04_Pin",
     "dimensions_mm": {
-      "width": 11.5,
-      "height": 4.5
+      "width": 9.95,
+      "height": 4.55
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_right",
@@ -11506,7 +11714,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "needs_verify",
     "lcsc_note": "Compatible JST SH",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 3.0,
+      "y": 0.55
+    }
   },
   "screw_terminal_5pin": {
     "id": "screw_terminal_5pin",
@@ -11564,7 +11776,11 @@
     "lcsc_part_number": "C8381",
     "jlcpcb_basic": false,
     "lcsc_confidence": "needs_verify",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 10.16,
+      "y": -0.3
+    }
   },
   "uart_header_4pin": {
     "id": "uart_header_4pin",
@@ -11612,18 +11828,22 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
     "lcsc_note": "1x4 2.54mm",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 3.81
+    }
   },
   "gps_antenna_sma": {
     "id": "gps_antenna_sma",
     "display_name": "GPS Active Antenna SMA Connector",
     "category": "connector",
     "subcategory": "antenna",
-    "kicad_footprint": "Connector_Coaxial:SMA_Amphenol_132291_EdgeMount",
+    "kicad_footprint": "Connector_Coaxial:SMA_Amphenol_132289_EdgeMount",
     "kicad_symbol": "Connector:Conn_Coaxial",
     "dimensions_mm": {
-      "width": 6.35,
-      "height": 6.35
+      "width": 15.56,
+      "height": 9.21
     },
     "courtyard_clearance_mm": 1,
     "placement_zone": "edge_top",
@@ -11675,7 +11895,11 @@
     "lcsc_part_number": "C496548",
     "jlcpcb_basic": false,
     "lcsc_confidence": "needs_verify",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 5.71,
+      "y": 0.0
+    }
   },
   "motor_screw_terminal": {
     "id": "motor_screw_terminal",
@@ -11737,7 +11961,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
     "lcsc_note": "2-pin screw terminal",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 2.54,
+      "y": -0.3
+    }
   },
   "servo_connector_3pin": {
     "id": "servo_connector_3pin",
@@ -11783,7 +12011,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "header",
     "lcsc_note": "Standard 3-pin header",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 2.54
+    }
   },
   "led_strip_connector": {
     "id": "led_strip_connector",
@@ -11852,7 +12084,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "header",
     "lcsc_note": "Standard 3-pin header + terminal",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 2.54
+    }
   },
   "mmwave_header_5pin": {
     "id": "mmwave_header_5pin",
@@ -11901,7 +12137,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
     "lcsc_note": "1x5 2.54mm",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 5.08
+    }
   },
   "load_cell_connector": {
     "id": "load_cell_connector",
@@ -11911,8 +12151,8 @@
     "kicad_footprint": "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical",
     "kicad_symbol": "Connector:Conn_01x04_Pin",
     "dimensions_mm": {
-      "width": 11.5,
-      "height": 4.5
+      "width": 9.95,
+      "height": 4.55
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "edge_left",
@@ -11946,7 +12186,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "header",
     "lcsc_note": "4-pin header",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 3.0,
+      "y": 0.55
+    }
   },
   "soil_probe_connector": {
     "id": "soil_probe_connector",
@@ -11994,7 +12238,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
     "lcsc_note": "1x3 2.54mm",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 2.54
+    }
   },
   "output_0_10v_terminal": {
     "id": "output_0_10v_terminal",
@@ -12056,7 +12304,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "high",
     "lcsc_note": "2-pin screw terminal",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 2.54,
+      "y": -0.3
+    }
   },
   "cap_1000uf_electrolytic": {
     "id": "cap_1000uf_electrolytic",
@@ -12066,8 +12318,8 @@
     "kicad_footprint": "Capacitor_SMD:CP_Elec_8x10.5",
     "kicad_symbol": "Device:CP",
     "dimensions_mm": {
-      "width": 8,
-      "height": 10.5
+      "width": 11.35,
+      "height": 8.05
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "any",
@@ -12125,11 +12377,11 @@
     "display_name": "HLK-PM01 AC-DC 5V/3W Module",
     "category": "power",
     "subcategory": "ac_dc",
-    "kicad_footprint": "Converter_ACDC:Converter_ACDC_HiLink_HLK-PMxx",
+    "kicad_footprint": "Converter_ACDC:Converter_ACDC_Hi-Link_HLK-PMxx",
     "kicad_symbol": "Converter_ACDC:HLK-PM01",
     "dimensions_mm": {
-      "width": 34,
-      "height": 20
+      "width": 33.35,
+      "height": 19.05
     },
     "courtyard_clearance_mm": 2,
     "placement_zone": "edge_left",
@@ -12237,7 +12489,11 @@
       "clearance_mm": 3,
       "rules_file": "mains_safety_rules.json"
     },
-    "ref_designator_prefix": "U"
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 14.54,
+      "y": 2.5
+    }
   },
   "res_20k_0402": {
     "id": "res_20k_0402",
@@ -12247,8 +12503,8 @@
     "kicad_footprint": "Resistor_SMD:R_0402_1005Metric",
     "kicad_symbol": "Device:R",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.61,
+      "height": 0.69
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -12302,11 +12558,11 @@
     "display_name": "Fiducial Marker 1mm",
     "category": "passive",
     "subcategory": "fiducial",
-    "kicad_footprint": "Fiducial:Fiducial_1mm_Dia_2mm_Outer",
+    "kicad_footprint": "Fiducial:Fiducial_1mm_Mask2mm",
     "kicad_symbol": "Mechanical:Fiducial",
     "dimensions_mm": {
-      "width": 2,
-      "height": 2
+      "width": 0.55,
+      "height": 0.55
     },
     "courtyard_clearance_mm": 1,
     "placement_zone": "corner",
@@ -12360,8 +12616,8 @@
     "kicad_footprint": "Capacitor_SMD:C_0805_2012Metric",
     "kicad_symbol": "Device:C",
     "dimensions_mm": {
-      "width": 2,
-      "height": 1.25
+      "width": 3.15,
+      "height": 1.71
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -12418,8 +12674,8 @@
     "kicad_footprint": "Capacitor_SMD:CP_Elec_6.3x5.4",
     "kicad_symbol": "Device:CP",
     "dimensions_mm": {
-      "width": 6.3,
-      "height": 5.4
+      "width": 8.65,
+      "height": 6.15
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "any",
@@ -12481,8 +12737,8 @@
     "kicad_footprint": "Diode_SMD:D_SMA",
     "kicad_symbol": "Device:D_Schottky",
     "dimensions_mm": {
-      "width": 4.6,
-      "height": 2.6
+      "width": 6.55,
+      "height": 3.05
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -12538,8 +12794,8 @@
     "kicad_footprint": "Resistor_SMD:R_0402_1005Metric",
     "kicad_symbol": "Device:R",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.61,
+      "height": 0.69
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -12596,8 +12852,8 @@
     "kicad_footprint": "LED_SMD:LED_0402_1005Metric",
     "kicad_symbol": "Device:LED",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.61,
+      "height": 0.69
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "edge_bottom",
@@ -12654,8 +12910,8 @@
     "kicad_footprint": "Inductor_SMD:L_0805_2012Metric",
     "kicad_symbol": "Device:FerriteBead",
     "dimensions_mm": {
-      "width": 2,
-      "height": 1.25
+      "width": 3.25,
+      "height": 1.45
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -12748,7 +13004,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "needs_verify",
     "lcsc_note": "2x20 2.54mm",
-    "ref_designator_prefix": "J"
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 1.27,
+      "y": 11.43
+    }
   },
   "inductor_2n2_0402": {
     "id": "inductor_2n2_0402",
@@ -12758,8 +13018,8 @@
     "kicad_footprint": "Inductor_SMD:L_0402_1005Metric",
     "kicad_symbol": "Device:L",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.61,
+      "height": 0.69
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -12815,8 +13075,8 @@
     "kicad_footprint": "Capacitor_SMD:C_0402_1005Metric",
     "kicad_symbol": "Device:C",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.57,
+      "height": 0.67
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -12873,8 +13133,8 @@
     "kicad_footprint": "Diode_SMD:D_SOD-123",
     "kicad_symbol": "Device:D",
     "dimensions_mm": {
-      "width": 2.7,
-      "height": 1.6
+      "width": 4.45,
+      "height": 2.05
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -12931,8 +13191,8 @@
     "kicad_footprint": "Inductor_SMD:L_0805_2012Metric",
     "kicad_symbol": "Device:EMI_Filter_CommonMode",
     "dimensions_mm": {
-      "width": 3.2,
-      "height": 2.5
+      "width": 3.05,
+      "height": 1.25
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -13000,8 +13260,8 @@
     "kicad_footprint": "Inductor_SMD:L_1210_3225Metric",
     "kicad_symbol": "Device:EMI_Filter_CommonMode",
     "dimensions_mm": {
-      "width": 3.2,
-      "height": 2.5
+      "width": 4.11,
+      "height": 2.71
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -13067,8 +13327,8 @@
     "kicad_footprint": "Capacitor_SMD:CP_Elec_6.3x5.4",
     "kicad_symbol": "Device:CP",
     "dimensions_mm": {
-      "width": 6.3,
-      "height": 5.4
+      "width": 8.65,
+      "height": 6.15
     },
     "courtyard_clearance_mm": 0.5,
     "placement_zone": "any",
@@ -13129,8 +13389,8 @@
     "kicad_footprint": "Inductor_SMD:L_1206_3216Metric",
     "kicad_symbol": "Device:FerriteBead",
     "dimensions_mm": {
-      "width": 3.2,
-      "height": 1.6
+      "width": 4.25,
+      "height": 1.95
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -13181,11 +13441,11 @@
     "display_name": "TPD4E05U06 4-Ch ESD Protection",
     "category": "passive",
     "subcategory": "tvs_esd",
-    "kicad_footprint": "Package_SON:USON-6_1.45x1mm_P0.5mm",
+    "kicad_footprint": "Package_SON:Fairchild_MicroPak-6_1.0x1.45mm_P0.5mm",
     "kicad_symbol": "Power_Protection:TPD4E05U06",
     "dimensions_mm": {
-      "width": 1.45,
-      "height": 1
+      "width": 1.51,
+      "height": 1.7
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -13244,8 +13504,8 @@
     "kicad_footprint": "Resistor_SMD:R_0402_1005Metric",
     "kicad_symbol": "Device:R",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.61,
+      "height": 0.69
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -13303,8 +13563,8 @@
     "kicad_footprint": "Capacitor_SMD:C_0402_1005Metric",
     "kicad_symbol": "Device:C",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.57,
+      "height": 0.67
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -13362,8 +13622,8 @@
     "kicad_footprint": "Inductor_SMD:L_0805_2012Metric",
     "kicad_symbol": "Device:FerriteBead",
     "dimensions_mm": {
-      "width": 2,
-      "height": 1.25
+      "width": 3.25,
+      "height": 1.45
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -13417,8 +13677,8 @@
     "kicad_footprint": "Capacitor_SMD:C_0805_2012Metric",
     "kicad_symbol": "Device:C",
     "dimensions_mm": {
-      "width": 2,
-      "height": 1.25
+      "width": 3.15,
+      "height": 1.71
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -13489,8 +13749,8 @@
     "kicad_footprint": "Resistor_SMD:R_0805_2012Metric",
     "kicad_symbol": "Device:R",
     "dimensions_mm": {
-      "width": 2,
-      "height": 1.25
+      "width": 3.11,
+      "height": 1.65
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -13548,8 +13808,8 @@
     "kicad_footprint": "Package_TO_SOT_SMD:SOT-23",
     "kicad_symbol": "Power_Protection:SP0502BAHT",
     "dimensions_mm": {
-      "width": 2.9,
-      "height": 1.3
+      "width": 3.61,
+      "height": 3.15
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -13606,8 +13866,8 @@
     "kicad_footprint": "Inductor_SMD:L_1210_3225Metric",
     "kicad_symbol": "Device:FerriteBead",
     "dimensions_mm": {
-      "width": 3.2,
-      "height": 2.5
+      "width": 4.11,
+      "height": 2.71
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -13661,8 +13921,8 @@
     "kicad_footprint": "Resistor_SMD:R_0402_1005Metric",
     "kicad_symbol": "Device:R",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.61,
+      "height": 0.69
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -13722,8 +13982,8 @@
     "kicad_footprint": "Resistor_SMD:R_0805_2012Metric",
     "kicad_symbol": "Device:R",
     "dimensions_mm": {
-      "width": 2,
-      "height": 1.25
+      "width": 3.11,
+      "height": 1.65
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -13781,8 +14041,8 @@
     "kicad_footprint": "Diode_SMD:D_SOD-123",
     "kicad_symbol": "Device:D_Zener",
     "dimensions_mm": {
-      "width": 2.7,
-      "height": 1.6
+      "width": 4.45,
+      "height": 2.05
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -13839,8 +14099,8 @@
     "kicad_footprint": "Package_TO_SOT_SMD:SOT-23-6",
     "kicad_symbol": "Battery_Management:DW01A",
     "dimensions_mm": {
-      "width": 2.9,
-      "height": 1.6
+      "width": 3.85,
+      "height": 3.15
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -13929,11 +14189,11 @@
     "display_name": "FS8205A Dual N-FET Battery Switch",
     "category": "power",
     "subcategory": "battery_protection",
-    "kicad_footprint": "Package_TO_SOT_SMD:TSSOP-8_4.4x3mm_P0.65mm",
+    "kicad_footprint": "Package_SO:TSSOP-8_4.4x3mm_P0.65mm",
     "kicad_symbol": "Transistor_FET:Si8752",
     "dimensions_mm": {
-      "width": 4.4,
-      "height": 3
+      "width": 7.25,
+      "height": 3.05
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -14019,8 +14279,8 @@
     "kicad_footprint": "Resistor_SMD:R_0402_1005Metric",
     "kicad_symbol": "Device:R",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.61,
+      "height": 0.69
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -14078,8 +14338,8 @@
     "kicad_footprint": "LED_SMD:LED_0402_1005Metric",
     "kicad_symbol": "Device:LED",
     "dimensions_mm": {
-      "width": 1,
-      "height": 0.5
+      "width": 1.61,
+      "height": 0.69
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "edge_bottom",
@@ -14136,8 +14396,8 @@
     "kicad_footprint": "Fuse:Fuse_1812_4532Metric",
     "kicad_symbol": "Device:Polyfuse",
     "dimensions_mm": {
-      "width": 4.5,
-      "height": 3.2
+      "width": 5.45,
+      "height": 3.45
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -14198,11 +14458,11 @@
     "display_name": "Fuse Holder 5x20mm PCB Mount",
     "category": "connector",
     "subcategory": "fuse_holder",
-    "kicad_footprint": "Fuse:Fuseholder5x20_horiz_open_lateralconnection",
+    "kicad_footprint": "Fuse:Fuseholder_Clip-5x20mm_Keystone_3512_Inline_P23.62x7.27mm_D1.02x1.57mm_Horizontal",
     "kicad_symbol": "Device:Fuse",
     "dimensions_mm": {
-      "width": 25,
-      "height": 8
+      "width": 24.37,
+      "height": 4.91
     },
     "courtyard_clearance_mm": 1,
     "placement_zone": "edge_left",
@@ -14282,7 +14542,11 @@
         "size_mm": "5x20"
       }
     },
-    "ref_designator_prefix": "F"
+    "ref_designator_prefix": "F",
+    "footprint_center_offset_mm": {
+      "x": 11.81,
+      "y": 0.0
+    }
   },
   "cap_10uf_vbus": {
     "id": "cap_10uf_vbus",
@@ -14292,8 +14556,8 @@
     "kicad_footprint": "Capacitor_SMD:C_0805_2012Metric",
     "kicad_symbol": "Device:C",
     "dimensions_mm": {
-      "width": 2,
-      "height": 1.25
+      "width": 3.15,
+      "height": 1.71
     },
     "courtyard_clearance_mm": 0.15,
     "placement_zone": "any",
@@ -14356,11 +14620,11 @@
     "display_name": "LSM6DS3TR-C",
     "category": "sensor",
     "subcategory": "imu",
-    "kicad_footprint": "Sensor_Motion:LGA-14L_3x2.5mm_P0.5mm",
+    "kicad_footprint": "Sensor_Motion:InvenSense_QFN-24_3x3mm_P0.4mm",
     "kicad_symbol": "Sensor_Motion:LSM6DS3TR-C",
     "dimensions_mm": {
-      "width": 3,
-      "height": 2.5
+      "width": 3.65,
+      "height": 3.65
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "centre",
@@ -14461,8 +14725,8 @@
     "kicad_footprint": "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical",
     "kicad_symbol": "Connector:Conn_01x04_Pin",
     "dimensions_mm": {
-      "width": 35,
-      "height": 18
+      "width": 1.59,
+      "height": 9.21
     },
     "courtyard_clearance_mm": 1,
     "placement_zone": "edge_top",
@@ -14520,7 +14784,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "module",
     "lcsc_note": "Off-board OLED module",
-    "ref_designator_prefix": "U"
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 3.81
+    }
   },
   "st7789_tft": {
     "id": "st7789_tft",
@@ -14530,8 +14798,8 @@
     "kicad_footprint": "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical",
     "kicad_symbol": "Connector:Conn_01x08_Pin",
     "dimensions_mm": {
-      "width": 40,
-      "height": 25
+      "width": 1.59,
+      "height": 19.37
     },
     "courtyard_clearance_mm": 1,
     "placement_zone": "edge_top",
@@ -14606,7 +14874,11 @@
     "jlcpcb_basic": false,
     "lcsc_confidence": "module",
     "lcsc_note": "Off-board TFT module",
-    "ref_designator_prefix": "U"
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 8.89
+    }
   },
   "eeprom_25lc256": {
     "id": "eeprom_25lc256",
@@ -14616,8 +14888,8 @@
     "kicad_footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
     "kicad_symbol": "Memory_EEPROM:25LCxxx",
     "dimensions_mm": {
-      "width": 4.9,
-      "height": 3.9
+      "width": 6.95,
+      "height": 4.95
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -14705,7 +14977,7 @@
     "display_name": "SGP30 VOC/eCO2 Sensor",
     "category": "sensor",
     "subcategory": "gas",
-    "kicad_footprint": "Package_DFN_QFN:DFN-6-1EP_2.45x2.45mm_P0.95mm_EP0.71x1.6mm",
+    "kicad_footprint": "Package_DFN_QFN:DFN-6-1EP_2x2mm_P0.5mm_EP0.61x1.42mm",
     "kicad_symbol": "Sensor:SGP30",
     "dimensions_mm": {
       "width": 2.45,
@@ -14785,8 +15057,8 @@
     "kicad_footprint": "Package_TO_SOT_SMD:SOT-23",
     "kicad_symbol": "Transistor_FET:DMG2305UX",
     "dimensions_mm": {
-      "width": 2.9,
-      "height": 1.6
+      "width": 3.51,
+      "height": 3.05
     },
     "courtyard_clearance_mm": 0.2,
     "placement_zone": "any",
@@ -15016,8 +15288,8 @@
     "auto_add_note": "Auto-suggested when I2C address conflict detected between two selected components.",
     "id": "tca9548a",
     "dimensions_mm": {
-      "length": 7.8,
-      "width": 4.4,
+      "length": 7.85,
+      "width": 7.25,
       "height": 1.2
     },
     "courtyard_clearance_mm": 0.25,
@@ -15167,8 +15439,8 @@
     "auto_add_note": "Suggested for bidirectional I2C level shifting between 3.3V and 5V buses.",
     "id": "txb0104",
     "dimensions_mm": {
-      "length": 5,
-      "width": 4.4,
+      "length": 5.05,
+      "width": 7.25,
       "height": 1.2
     },
     "courtyard_clearance_mm": 0.25,
@@ -15330,8 +15602,8 @@
     },
     "id": "txb0108",
     "dimensions_mm": {
-      "length": 6.5,
-      "width": 4.4,
+      "length": 6.55,
+      "width": 7.25,
       "height": 1.2
     },
     "courtyard_clearance_mm": 0.25,
@@ -15423,8 +15695,8 @@
     },
     "id": "ap2112k_3v3",
     "dimensions_mm": {
-      "length": 2.9,
-      "width": 1.6,
+      "length": 2.95,
+      "width": 3.65,
       "height": 1.2
     },
     "courtyard_clearance_mm": 0.25,
@@ -15510,12 +15782,6 @@
           "pin": 4,
           "name": "GND",
           "net": "GND"
-        },
-        {
-          "pin": 5,
-          "name": "SW",
-          "net": "SW",
-          "note": "Switching node — connect to inductor"
         }
       ],
       "gpio": [
@@ -15536,13 +15802,17 @@
         }
       ],
       "interfaces": {},
-      "notes": "For 3.3V output: R_top=100kΩ, R_bot=49.9kΩ. For 5V output: R_top=100kΩ, R_bot=24.9kΩ. Inductor: 10µH, Schottky: SS14."
+      "notes": "For 3.3V output: R_top=100kΩ, R_bot=49.9kΩ. For 5V output: R_top=100kΩ, R_bot=24.9kΩ. Inductor: 10µH, Schottky: SS14.",
+      "output": {
+        "SW": "5",
+        "net": "3V3",
+        "note": "Buck converter output via inductor to 3V3 rail"
+      }
     },
     "id": "mp2359",
     "dimensions_mm": {
-      "length": 2.9,
-      "width": 1.6,
-      "height": 1.45
+      "width": 3.6,
+      "height": 2.9
     },
     "courtyard_clearance_mm": 0.25,
     "placement_zone": "any",
@@ -15664,8 +15934,8 @@
     },
     "id": "mcp6002",
     "dimensions_mm": {
-      "length": 4.9,
-      "width": 3.9,
+      "length": 4.95,
+      "width": 6.95,
       "height": 1.75
     },
     "courtyard_clearance_mm": 0.25,
@@ -15709,7 +15979,7 @@
     "lcsc_confidence": "needs_verify",
     "cost_gbp": 0.05,
     "datasheet_url": "",
-    "kicad_footprint": "Inductor_SMD:L_4x4mm_H1.8mm",
+    "kicad_footprint": "Inductor_SMD:L_Vishay_IFSC-1515AH_4x4x1.8mm",
     "capabilities": [],
     "auto_add_rule": "resolver_auto_add_buck_converter",
     "pins": {
@@ -15780,8 +16050,8 @@
     },
     "id": "res_49k9_0402",
     "dimensions_mm": {
-      "length": 1,
-      "width": 0.5,
+      "length": 0.69,
+      "width": 1.61,
       "height": 0.35
     },
     "courtyard_clearance_mm": 0.15,
@@ -15834,8 +16104,8 @@
     },
     "id": "res_24k9_0402",
     "dimensions_mm": {
-      "length": 1,
-      "width": 0.5,
+      "length": 0.69,
+      "width": 1.61,
       "height": 0.35
     },
     "courtyard_clearance_mm": 0.15,
@@ -15887,8 +16157,8 @@
     },
     "id": "cap_100nf_bst",
     "dimensions_mm": {
-      "length": 1,
-      "width": 0.5,
+      "length": 0.67,
+      "width": 1.57,
       "height": 0.35
     },
     "courtyard_clearance_mm": 0.15,
@@ -15929,8 +16199,8 @@
     "kicad_footprint": "Varistor:RV_Disc_D12mm_W4.2mm_P7.5mm",
     "kicad_symbol": "Device:Varistor",
     "dimensions_mm": {
-      "length": 12,
-      "width": 4.2,
+      "length": 2.75,
+      "width": 10.55,
       "height": 17
     },
     "courtyard_clearance_mm": 1,
@@ -15972,7 +16242,11 @@
       ],
       "notes": "Non-polarised. Clamps at ~470V peak. Absorbs up to 56J per surge. Will eventually degrade after repeated surges — fuse provides backup protection if MOV fails short."
     },
-    "ref_designator_prefix": "RV"
+    "ref_designator_prefix": "RV",
+    "footprint_center_offset_mm": {
+      "x": 3.75,
+      "y": 0.82
+    }
   },
   "bat54s": {
     "id": "bat54s",
@@ -15992,8 +16266,8 @@
     "kicad_footprint": "Package_TO_SOT_SMD:SOT-23",
     "kicad_symbol": "Diode:BAT54S",
     "dimensions_mm": {
-      "length": 2.9,
-      "width": 1.3,
+      "length": 3.15,
+      "width": 3.61,
       "height": 1
     },
     "courtyard_clearance_mm": 0.15,
@@ -16093,7 +16367,11 @@
       "notes": "POLARISED — observe polarity marking. 105°C rated for thermal reliability near motor drivers."
     },
     "datasheet_url": "",
-    "ref_designator_prefix": "C"
+    "ref_designator_prefix": "C",
+    "footprint_center_offset_mm": {
+      "x": 2.5,
+      "y": 0.0
+    }
   },
   "tvs_vmot_15v": {
     "id": "tvs_vmot_15v",
@@ -16124,8 +16402,8 @@
     "kicad_footprint": "Diode_SMD:D_SMB",
     "kicad_symbol": "Diode:SMBJ15A",
     "dimensions_mm": {
-      "length": 4.6,
-      "width": 3.6,
+      "length": 4.25,
+      "width": 7.05,
       "height": 2.4
     },
     "supply_voltage": "15V standoff",
@@ -16181,8 +16459,8 @@
     "kicad_footprint": "Diode_SMD:D_SMB",
     "kicad_symbol": "Diode:SMBJ28A",
     "dimensions_mm": {
-      "length": 4.6,
-      "width": 3.6,
+      "length": 4.25,
+      "width": 7.05,
       "height": 2.4
     },
     "supply_voltage": "28V standoff",
@@ -16238,8 +16516,8 @@
     "kicad_footprint": "Resistor_SMD:R_0402_1005Metric",
     "kicad_symbol": "Device:R",
     "dimensions_mm": {
-      "length": 1,
-      "width": 0.5,
+      "length": 0.69,
+      "width": 1.61,
       "height": 0.35
     },
     "supply_voltage": "N/A",
@@ -16281,8 +16559,8 @@
     "kicad_footprint": "Capacitor_SMD:C_0402_1005Metric",
     "kicad_symbol": "Device:C",
     "dimensions_mm": {
-      "length": 1,
-      "width": 0.5,
+      "length": 0.67,
+      "width": 1.57,
       "height": 0.35
     },
     "courtyard_clearance_mm": 0.15,
@@ -16317,5 +16595,3706 @@
       ]
     },
     "ref_designator_prefix": "C"
+  },
+  "tb6612fng": {
+    "id": "tb6612fng",
+    "display_name": "TB6612FNG Dual Motor Driver",
+    "category": "motor_driver",
+    "subcategory": "dc_motor",
+    "kicad_footprint": "Package_SO:SSOP-24_5.3x8.2mm_P0.65mm",
+    "kicad_symbol": "Motor:TB6612FNG",
+    "dimensions_mm": {
+      "width": 8.95,
+      "height": 8.25
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "edge_bottom",
+    "placement_priority": 4,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VM",
+        "max_distance_mm": 3
+      },
+      {
+        "value": "10uF",
+        "package": "0805",
+        "pin": "VM",
+        "max_distance_mm": 5
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 2,
+    "supply_voltage": "5V",
+    "interfaces": [
+      "GPIO",
+      "PWM"
+    ],
+    "digikey_pn": "TB6612FNG(O,8,EL)-ND",
+    "mpn": "TB6612FNG",
+    "lcsc_pn": "C90658",
+    "datasheet_url": "https://toshiba.semicon-storage.com/info/TB6612FNG_datasheet_en_20141001.pdf",
+    "ipc610_notes": "SSOP-24. Dual H-bridge, 1.2A continuous/3.2A peak per channel. VM 4.5-13.5V.",
+    "capabilities": [
+      "motor_dc",
+      "motor_stepper"
+    ],
+    "capability_score": {
+      "motor_dc": 10,
+      "motor_stepper": 7
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 1.2,
+    "output_connector": "screw_terminal_4pin",
+    "safety_warnings": [
+      "Motor power rail MUST be isolated from logic power"
+    ],
+    "connection_hints": {
+      "template": "pwm_output",
+      "power": "5v_device",
+      "pins": {
+        "AIN1": "gpio",
+        "AIN2": "gpio",
+        "BIN1": "gpio",
+        "BIN2": "gpio",
+        "PWMA": "pwm",
+        "PWMB": "pwm",
+        "STBY": "gpio"
+      },
+      "notes": "Dual H-bridge. Direction via AIN/BIN, speed via PWM. STBY must be HIGH to run."
+    },
+    "pins": {
+      "count": 24,
+      "package": "SSOP-24",
+      "power": [
+        {
+          "name": "VM",
+          "pins": [
+            "22"
+          ],
+          "net": "VMOT",
+          "note": "4.5-13.5V motor supply"
+        },
+        {
+          "name": "VCC",
+          "pins": [
+            "21"
+          ],
+          "net": "3V3",
+          "note": "2.7-5.5V logic supply"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "1",
+            "2",
+            "11",
+            "12",
+            "13",
+            "24"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "MOTOR_A": {
+          "AIN1": "20",
+          "AIN2": "19",
+          "PWMA": "23",
+          "AO1": "3",
+          "AO2": "4"
+        },
+        "MOTOR_B": {
+          "BIN1": "16",
+          "BIN2": "17",
+          "PWMB": "14",
+          "BO1": "9",
+          "BO2": "10"
+        }
+      },
+      "control": [
+        {
+          "name": "STBY",
+          "pin": "18",
+          "config": "pull_up",
+          "note": "Standby — HIGH to enable"
+        }
+      ],
+      "notes": "Dual H-bridge. AIN1/AIN2 for direction, PWMA for speed. STBY must be HIGH."
+    },
+    "power_modes": {
+      "active": {
+        "current_ma": 2
+      },
+      "sleep": {
+        "current_ma": 0.001
+      },
+      "typical_active_ma": 2,
+      "peak_current_ma": 6400
+    },
+    "power_draw_ma": 2,
+    "auto_add_components": [
+      "cap_470uf_vmot",
+      "tvs_vmot_15v"
+    ],
+    "lcsc_part_number": "C90658",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "high",
+    "ref_designator_prefix": "U"
+  },
+  "l293d": {
+    "id": "l293d",
+    "display_name": "L293D Quad Half-H Driver",
+    "category": "motor_driver",
+    "subcategory": "dc_motor",
+    "kicad_footprint": "Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm",
+    "kicad_symbol": "Driver_Motor:L293D",
+    "dimensions_mm": {
+      "width": 10.91,
+      "height": 9.85
+    },
+    "courtyard_clearance_mm": 0.5,
+    "placement_zone": "edge_bottom",
+    "placement_priority": 4,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VSS",
+        "max_distance_mm": 3
+      },
+      {
+        "value": "100uF",
+        "package": "0805",
+        "pin": "VS",
+        "max_distance_mm": 5
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 24,
+    "supply_voltage": "5V",
+    "interfaces": [
+      "GPIO"
+    ],
+    "digikey_pn": "497-2936-5-ND",
+    "mpn": "L293DD",
+    "lcsc_pn": "C113726",
+    "datasheet_url": "https://www.ti.com/lit/ds/symlink/l293d.pdf",
+    "ipc610_notes": "SOIC-16W. Quad half-H with integrated clamp diodes. 600mA/ch, 1.2A peak.",
+    "capabilities": [
+      "motor_dc",
+      "motor_stepper"
+    ],
+    "capability_score": {
+      "motor_dc": 7,
+      "motor_stepper": 5
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 1.6,
+    "output_connector": "screw_terminal_4pin",
+    "connection_hints": {
+      "template": "gpio_output",
+      "power": "5v_device",
+      "pins": {
+        "IN1": "gpio",
+        "IN2": "gpio",
+        "IN3": "gpio",
+        "IN4": "gpio",
+        "EN1": "pwm",
+        "EN2": "pwm"
+      }
+    },
+    "pins": {
+      "count": 16,
+      "package": "SOIC-16W",
+      "power": [
+        {
+          "name": "VSS",
+          "pins": [
+            "16"
+          ],
+          "net": "5V",
+          "note": "4.5-7V logic"
+        },
+        {
+          "name": "VS",
+          "pins": [
+            "8"
+          ],
+          "net": "VMOT",
+          "note": "Motor supply up to 36V"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "4",
+            "5",
+            "12",
+            "13"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "MOTOR_A": {
+          "IN1": "2",
+          "IN2": "7",
+          "EN1": "1",
+          "OUT1": "3",
+          "OUT2": "6"
+        },
+        "MOTOR_B": {
+          "IN3": "10",
+          "IN4": "15",
+          "EN2": "9",
+          "OUT3": "11",
+          "OUT4": "14"
+        }
+      },
+      "notes": "Quad half-H. EN pins enable each H-bridge pair. Built-in clamp diodes."
+    },
+    "power_draw_ma": 24,
+    "auto_add_components": [
+      "cap_470uf_vmot"
+    ],
+    "lcsc_part_number": "C113726",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "high",
+    "ref_designator_prefix": "U"
+  },
+  "pca9685": {
+    "id": "pca9685",
+    "display_name": "PCA9685 16-ch PWM/Servo",
+    "category": "motor_driver",
+    "subcategory": "servo",
+    "kicad_footprint": "Package_SO:TSSOP-28_4.4x9.7mm_P0.65mm",
+    "kicad_symbol": "Interface_I2C:PCA9685",
+    "dimensions_mm": {
+      "width": 7.25,
+      "height": 9.75
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "centre",
+    "placement_priority": 5,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VDD",
+        "max_distance_mm": 2
+      },
+      {
+        "value": "10uF",
+        "package": "0805",
+        "pin": "VDD",
+        "max_distance_mm": 5
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 10,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "I2C"
+    ],
+    "digikey_pn": "568-4616-5-ND",
+    "mpn": "PCA9685PW",
+    "lcsc_pn": "C152386",
+    "datasheet_url": "https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf",
+    "ipc610_notes": "TSSOP-28. 16-ch 12-bit PWM. I2C address configurable via A0-A5.",
+    "capabilities": [
+      "motor_servo"
+    ],
+    "capability_score": {
+      "motor_servo": 10
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 1.5,
+    "connection_hints": {
+      "template": "i2c",
+      "i2c_address": "0x40",
+      "power": "3v3_device"
+    },
+    "pins": {
+      "count": 28,
+      "package": "TSSOP-28",
+      "power": [
+        {
+          "name": "VDD",
+          "pins": [
+            "28"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "14",
+            "27"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "I2C": {
+          "SDA": "27",
+          "SCL": "26",
+          "address": "0x40"
+        }
+      },
+      "control": [
+        {
+          "name": "OE",
+          "pin": "25",
+          "config": "pull_down",
+          "note": "Active low output enable"
+        }
+      ],
+      "notes": "16-channel 12-bit PWM. Each output can drive LED or servo."
+    },
+    "power_modes": {
+      "active": {
+        "current_ma": 10
+      },
+      "sleep": {
+        "current_ma": 0.005
+      },
+      "typical_active_ma": 6,
+      "peak_current_ma": 400
+    },
+    "power_draw_ma": 10,
+    "lcsc_part_number": "C152386",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "high",
+    "ref_designator_prefix": "U"
+  },
+  "uln2003a": {
+    "id": "uln2003a",
+    "display_name": "ULN2003A Darlington Array",
+    "category": "motor_driver",
+    "subcategory": "stepper",
+    "kicad_footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
+    "kicad_symbol": "Transistor_Array:ULN2003",
+    "dimensions_mm": {
+      "width": 6.95,
+      "height": 9.95
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "any",
+    "placement_priority": 6,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [],
+    "requires_decoupling": false,
+    "min_layers": 4,
+    "power_consumption_ma": 1,
+    "supply_voltage": "5V",
+    "interfaces": [
+      "GPIO"
+    ],
+    "digikey_pn": "497-2987-5-ND",
+    "mpn": "ULN2003ADR",
+    "lcsc_pn": "C7584",
+    "datasheet_url": "https://www.ti.com/lit/ds/symlink/uln2003a.pdf",
+    "ipc610_notes": "SOIC-16. 7-ch Darlington sink driver. 500mA/ch, 50V. For 28BYJ-48 stepper.",
+    "capabilities": [
+      "motor_stepper"
+    ],
+    "capability_score": {
+      "motor_stepper": 8
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 0.2,
+    "connection_hints": {
+      "template": "gpio_output",
+      "power": "5v_device"
+    },
+    "pins": {
+      "count": 16,
+      "package": "SOIC-16",
+      "power": [
+        {
+          "name": "COM",
+          "pins": [
+            "9"
+          ],
+          "net": "VMOT"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "8"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "STEPPER": {
+          "IN1": "1",
+          "IN2": "2",
+          "IN3": "3",
+          "IN4": "4",
+          "OUT1": "16",
+          "OUT2": "15",
+          "OUT3": "14",
+          "OUT4": "13"
+        }
+      },
+      "notes": "7 Darlington channels. IN1-IN4 drive 4-phase stepper. Built-in flyback diodes."
+    },
+    "power_draw_ma": 1,
+    "lcsc_part_number": "C7584",
+    "jlcpcb_basic": true,
+    "lcsc_confidence": "verified",
+    "ref_designator_prefix": "U"
+  },
+  "drv8871": {
+    "id": "drv8871",
+    "display_name": "DRV8871 Single H-Bridge",
+    "category": "motor_driver",
+    "subcategory": "dc_motor",
+    "kicad_footprint": "Package_SO:SOP-8_3.76x4.96mm_P1.27mm",
+    "kicad_symbol": "Driver_Motor:DRV8871",
+    "dimensions_mm": {
+      "width": 7.11,
+      "height": 5.01
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "any",
+    "placement_priority": 5,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VM",
+        "max_distance_mm": 3
+      },
+      {
+        "value": "10uF",
+        "package": "0805",
+        "pin": "VM",
+        "max_distance_mm": 5
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 1.5,
+    "supply_voltage": "5V",
+    "interfaces": [
+      "PWM"
+    ],
+    "digikey_pn": "296-42651-1-ND",
+    "mpn": "DRV8871DDAR",
+    "lcsc_pn": "C129346",
+    "datasheet_url": "https://www.ti.com/lit/ds/symlink/drv8871.pdf",
+    "ipc610_notes": "SOP-8. Single H-bridge, 3.6A peak. 6.5-45V.",
+    "capabilities": [
+      "motor_dc"
+    ],
+    "capability_score": {
+      "motor_dc": 9
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 1.8,
+    "output_connector": "motor_screw_terminal",
+    "connection_hints": {
+      "template": "pwm_output",
+      "power": "5v_device",
+      "pins": {
+        "IN1": "pwm",
+        "IN2": "pwm"
+      }
+    },
+    "pins": {
+      "count": 8,
+      "package": "SOP-8",
+      "power": [
+        {
+          "name": "VM",
+          "pins": [
+            "1",
+            "2"
+          ],
+          "net": "VMOT"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "3",
+            "4"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "MOTOR": {
+          "IN1": "7",
+          "IN2": "8",
+          "OUT1": "5",
+          "OUT2": "6"
+        }
+      },
+      "notes": "IN1/IN2 accept PWM. Current limit via external ILIM resistor."
+    },
+    "power_draw_ma": 1.5,
+    "auto_add_components": [
+      "cap_470uf_vmot",
+      "tvs_vmot_28v"
+    ],
+    "lcsc_part_number": "C129346",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "high",
+    "ref_designator_prefix": "U"
+  },
+  "drv5053": {
+    "id": "drv5053",
+    "display_name": "DRV5053 Analog Hall Sensor",
+    "category": "sensor",
+    "subcategory": "hall_effect",
+    "kicad_footprint": "Package_TO_SOT_SMD:SOT-23",
+    "kicad_symbol": "Sensor:DRV5053",
+    "dimensions_mm": {
+      "width": 3.41,
+      "height": 2.95
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "any",
+    "placement_priority": 7,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VCC",
+        "max_distance_mm": 2
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 3.5,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "ADC"
+    ],
+    "digikey_pn": "296-44235-1-ND",
+    "mpn": "DRV5053RAQLPG",
+    "lcsc_pn": "C131140",
+    "datasheet_url": "https://www.ti.com/lit/ds/symlink/drv5053.pdf",
+    "ipc610_notes": "SOT-23. Analog output proportional to magnetic field. Ratiometric output.",
+    "capabilities": [
+      "sense_magnetic"
+    ],
+    "capability_score": {
+      "sense_magnetic": 9
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 0.7,
+    "connection_hints": {
+      "template": "adc_input",
+      "power": "3v3_device",
+      "notes": "Analog output to ADC. Ratiometric: VCC/2 at 0 field."
+    },
+    "pins": {
+      "count": 3,
+      "package": "SOT-23",
+      "power": [
+        {
+          "name": "VCC",
+          "pins": [
+            "1"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "2"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "analog": {
+          "OUT": "3",
+          "note": "Analog voltage proportional to B field"
+        }
+      },
+      "notes": "Ratiometric analog output. VCC/2 at zero field."
+    },
+    "power_draw_ma": 3.5,
+    "lcsc_part_number": "C131140",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "high",
+    "ref_designator_prefix": "U"
+  },
+  "ah3362q": {
+    "id": "ah3362q",
+    "display_name": "AH3362Q Hall Switch",
+    "category": "sensor",
+    "subcategory": "hall_effect",
+    "kicad_footprint": "Package_TO_SOT_SMD:SOT-23",
+    "kicad_symbol": "Sensor:AH3362Q",
+    "dimensions_mm": {
+      "width": 3.41,
+      "height": 2.95
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "any",
+    "placement_priority": 7,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VDD",
+        "max_distance_mm": 2
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 3,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "GPIO"
+    ],
+    "digikey_pn": "AH3362Q-P-B-ND",
+    "mpn": "AH3362Q-P-B",
+    "lcsc_pn": "C590665",
+    "datasheet_url": "https://www.diodes.com/assets/Datasheets/AH3362Q.pdf",
+    "ipc610_notes": "SOT-23. Omnipolar hall switch. Open-drain output — needs 10k pull-up.",
+    "capabilities": [
+      "sense_magnetic"
+    ],
+    "capability_score": {
+      "sense_magnetic": 7
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 0.3,
+    "connection_hints": {
+      "template": "gpio_input",
+      "power": "3v3_device",
+      "special_pins": {
+        "OUT": "gpio_interrupt"
+      },
+      "notes": "Digital output, open-drain. Needs pull-up."
+    },
+    "pins": {
+      "count": 3,
+      "package": "SOT-23",
+      "power": [
+        {
+          "name": "VDD",
+          "pins": [
+            "3"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "1"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "digital": {
+          "OUT": "2",
+          "note": "Open-drain output. LOW when magnet detected."
+        }
+      },
+      "notes": "Omnipolar switch. Open-drain output needs 10k pull-up to VDD."
+    },
+    "power_draw_ma": 3,
+    "lcsc_part_number": "C590665",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "high",
+    "ref_designator_prefix": "U"
+  },
+  "as5600": {
+    "id": "as5600",
+    "display_name": "AS5600 Magnetic Rotary Encoder",
+    "category": "sensor",
+    "subcategory": "hall_effect",
+    "kicad_footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+    "kicad_symbol": "Sensor:AS5600",
+    "dimensions_mm": {
+      "width": 6.95,
+      "height": 4.95
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "centre",
+    "placement_priority": 5,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VDD5V",
+        "max_distance_mm": 2
+      },
+      {
+        "value": "10uF",
+        "package": "0805",
+        "pin": "VDD5V",
+        "max_distance_mm": 5
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 6.5,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "I2C"
+    ],
+    "digikey_pn": "AS5600-ASOM-ND",
+    "mpn": "AS5600-ASOM",
+    "lcsc_pn": "C473609",
+    "datasheet_url": "https://ams.com/documents/20143/36005/AS5600_DS000365_5-00.pdf",
+    "ipc610_notes": "SOIC-8. 12-bit magnetic rotary position sensor. I2C + analog output. Diametric magnet required above IC.",
+    "capabilities": [
+      "sense_position"
+    ],
+    "capability_score": {
+      "sense_position": 10
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 1.6,
+    "connection_hints": {
+      "template": "i2c",
+      "i2c_address": "0x36",
+      "power": "3v3_device",
+      "notes": "Diametric magnet required above IC center. 12-bit angle output."
+    },
+    "pins": {
+      "count": 8,
+      "package": "SOIC-8",
+      "power": [
+        {
+          "name": "VDD5V",
+          "pins": [
+            "5"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "4"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "I2C": {
+          "SDA": "1",
+          "SCL": "2",
+          "address": "0x36"
+        },
+        "analog": {
+          "OUT": "8",
+          "note": "Analog angle output (optional)"
+        }
+      },
+      "control": [
+        {
+          "name": "DIR",
+          "pin": "6",
+          "config": "pull_down_or_vdd",
+          "note": "Direction of rotation"
+        }
+      ],
+      "notes": "12-bit rotary encoder. I2C for absolute angle. Needs diametric magnet."
+    },
+    "power_draw_ma": 6.5,
+    "lcsc_part_number": "C473609",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "high",
+    "ref_designator_prefix": "U"
+  },
+  "allegro_a1324": {
+    "id": "allegro_a1324",
+    "display_name": "A1324 Linear Hall Sensor",
+    "category": "sensor",
+    "subcategory": "hall_effect",
+    "kicad_footprint": "Package_TO_SOT_SMD:SOT-23W",
+    "kicad_symbol": "Sensor:A1324",
+    "dimensions_mm": {
+      "width": 3.45,
+      "height": 3.03
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "any",
+    "placement_priority": 7,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VCC",
+        "max_distance_mm": 2
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 5,
+    "supply_voltage": "5V",
+    "interfaces": [
+      "ADC"
+    ],
+    "digikey_pn": "620-1430-1-ND",
+    "mpn": "A1324LLHLT-T",
+    "lcsc_pn": "C126664",
+    "datasheet_url": "https://www.allegromicro.com/-/media/files/datasheets/a1324-datasheet.pdf",
+    "ipc610_notes": "SOT-23W. Linear analog hall sensor. 5mV/G sensitivity. Ratiometric output.",
+    "capabilities": [
+      "sense_magnetic"
+    ],
+    "capability_score": {
+      "sense_magnetic": 8
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 0.9,
+    "connection_hints": {
+      "template": "adc_input",
+      "power": "5v_device"
+    },
+    "pins": {
+      "count": 3,
+      "package": "SOT-23W",
+      "power": [
+        {
+          "name": "VCC",
+          "pins": [
+            "1"
+          ],
+          "net": "5V"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "2"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "analog": {
+          "VOUT": "3",
+          "note": "Linear analog proportional to magnetic field"
+        }
+      },
+      "notes": "Ratiometric linear output. VCC/2 at zero field. 5mV/Gauss."
+    },
+    "power_draw_ma": 5,
+    "lcsc_part_number": "C126664",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "high",
+    "ref_designator_prefix": "U"
+  },
+  "pcm5102a": {
+    "id": "pcm5102a",
+    "display_name": "PCM5102A I2S Stereo DAC",
+    "category": "audio",
+    "subcategory": "dac",
+    "kicad_footprint": "Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm",
+    "kicad_symbol": "Audio:PCM5102A",
+    "dimensions_mm": {
+      "width": 7.25,
+      "height": 6.55
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "centre",
+    "placement_priority": 5,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "DVDD",
+        "max_distance_mm": 2
+      },
+      {
+        "value": "10uF",
+        "package": "0805",
+        "pin": "AVDD",
+        "max_distance_mm": 3
+      },
+      {
+        "value": "2.2uF",
+        "package": "0402",
+        "pin": "CPVDD",
+        "max_distance_mm": 2
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 18,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "I2S"
+    ],
+    "digikey_pn": "296-35736-1-ND",
+    "mpn": "PCM5102APWR",
+    "lcsc_pn": "C108754",
+    "datasheet_url": "https://www.ti.com/lit/ds/symlink/pcm5102a.pdf",
+    "ipc610_notes": "TSSOP-20. 32-bit 384kHz stereo DAC. Line-level output. Keep analog and digital grounds separate with ferrite bead.",
+    "capabilities": [
+      "audio_output"
+    ],
+    "capability_score": {
+      "audio_output": 10
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 2.0,
+    "connection_hints": {
+      "template": "i2s",
+      "power": "3v3_device",
+      "notes": "I2S input. Stereo line-level output. Separate analog/digital ground."
+    },
+    "pins": {
+      "count": 20,
+      "package": "TSSOP-20",
+      "power": [
+        {
+          "name": "DVDD",
+          "pins": [
+            "6"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "AVDD",
+          "pins": [
+            "1"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "DGND",
+          "pins": [
+            "7"
+          ],
+          "net": "GND"
+        },
+        {
+          "name": "AGND",
+          "pins": [
+            "20"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "I2S": {
+          "BCK": "13",
+          "LRCK": "15",
+          "DIN": "14",
+          "SCK": "12"
+        },
+        "audio_output": {
+          "OUTL": "19",
+          "OUTR": "2"
+        }
+      },
+      "control": [
+        {
+          "name": "FMT",
+          "pin": "16",
+          "config": "pull_down",
+          "note": "LOW=I2S, HIGH=Left-justified"
+        },
+        {
+          "name": "DEMP",
+          "pin": "11",
+          "config": "pull_down",
+          "note": "De-emphasis control"
+        },
+        {
+          "name": "XSMT",
+          "pin": "17",
+          "config": "pull_up",
+          "note": "Soft mute — HIGH=unmuted"
+        }
+      ],
+      "notes": "I2S stereo DAC. FMT LOW for I2S format. XSMT HIGH to unmute."
+    },
+    "power_modes": {
+      "active": {
+        "current_ma": 18
+      },
+      "sleep": {
+        "current_ma": 0.1
+      },
+      "typical_active_ma": 18,
+      "peak_current_ma": 25
+    },
+    "power_draw_ma": 18,
+    "lcsc_part_number": "C108754",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "high",
+    "ref_designator_prefix": "U"
+  },
+  "tpa2005d1": {
+    "id": "tpa2005d1",
+    "display_name": "TPA2005D1 Mono Class-D Amp",
+    "category": "audio",
+    "subcategory": "amplifier",
+    "kicad_footprint": "Package_SO:MSOP-8_3x3mm_P0.65mm",
+    "kicad_symbol": "Audio:TPA2005D1",
+    "dimensions_mm": {
+      "width": 5.91,
+      "height": 3.05
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "any",
+    "placement_priority": 6,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "1uF",
+        "package": "0402",
+        "pin": "VDD",
+        "max_distance_mm": 2
+      },
+      {
+        "value": "10uF",
+        "package": "0805",
+        "pin": "VDD",
+        "max_distance_mm": 5
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 4,
+    "supply_voltage": "5V",
+    "interfaces": [],
+    "digikey_pn": "296-13879-1-ND",
+    "mpn": "TPA2005D1DGNR",
+    "lcsc_pn": "C39297",
+    "datasheet_url": "https://www.ti.com/lit/ds/symlink/tpa2005d1.pdf",
+    "ipc610_notes": "MSOP-8. 1.4W mono class-D amp. Filterless. BTL output to speaker.",
+    "capabilities": [
+      "audio_amplifier"
+    ],
+    "capability_score": {
+      "audio_amplifier": 8
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 0.7,
+    "connection_hints": {
+      "template": "audio_amp",
+      "power": "5v_device",
+      "notes": "Differential input. BTL speaker output. No output filter needed."
+    },
+    "pins": {
+      "count": 8,
+      "package": "MSOP-8",
+      "power": [
+        {
+          "name": "VDD",
+          "pins": [
+            "5"
+          ],
+          "net": "5V"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "2",
+            "4",
+            "6"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "audio_input": {
+          "INP": "8",
+          "INN": "7"
+        },
+        "speaker_output": {
+          "OUTP": "3",
+          "OUTN": "1"
+        }
+      },
+      "notes": "Differential input. BTL speaker output — no output coupling caps needed."
+    },
+    "power_draw_ma": 4,
+    "lcsc_part_number": "C39297",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "high",
+    "ref_designator_prefix": "U"
+  },
+  "audio_jack_3_5mm": {
+    "id": "audio_jack_3_5mm",
+    "display_name": "3.5mm Audio Jack",
+    "category": "connector",
+    "subcategory": "audio",
+    "kicad_footprint": "Connector_Audio:Jack_3.5mm_CUI_SJ-3523-SMT_Horizontal",
+    "kicad_symbol": "Connector:AudioJack3",
+    "dimensions_mm": {
+      "width": 10.25,
+      "height": 17.05
+    },
+    "courtyard_clearance_mm": 0.5,
+    "placement_zone": "edge_left",
+    "placement_priority": 3,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [],
+    "requires_decoupling": false,
+    "min_layers": 4,
+    "power_consumption_ma": 0,
+    "supply_voltage": "N/A",
+    "interfaces": [],
+    "digikey_pn": "CP-SJ-3523-SMT-TR-ND",
+    "mpn": "SJ-3523-SMT-TR",
+    "lcsc_pn": "C145825",
+    "datasheet_url": "https://www.cuidevices.com/product/resource/sj-352x-smt.pdf",
+    "ipc610_notes": "3.5mm TRS jack. Edge-mount SMT. Tip=L, Ring=R, Sleeve=GND.",
+    "capabilities": [
+      "audio_output"
+    ],
+    "capability_score": {
+      "audio_output": 5
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 0.4,
+    "user_cable_note": "Standard 3.5mm audio cable (user provides).",
+    "pins": {
+      "count": 5,
+      "package": "3.5mm TRS jack",
+      "key_pins": [
+        {
+          "name": "TIP",
+          "pins": [
+            "1"
+          ],
+          "note": "Left channel"
+        },
+        {
+          "name": "RING",
+          "pins": [
+            "2"
+          ],
+          "note": "Right channel"
+        },
+        {
+          "name": "SLEEVE",
+          "pins": [
+            "3"
+          ],
+          "net": "GND"
+        }
+      ],
+      "notes": "TRS: Tip=Left, Ring=Right, Sleeve=Ground."
+    },
+    "lcsc_part_number": "C145825",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "high",
+    "ref_designator_prefix": "J"
+  },
+  "atmega32u4_au": {
+    "id": "atmega32u4_au",
+    "display_name": "ATmega32U4-AU",
+    "category": "mcu",
+    "subcategory": "avr",
+    "kicad_footprint": "Package_QFP:TQFP-44_10x10mm_P0.8mm",
+    "kicad_symbol": "MCU_Microchip_ATmega:ATmega32U4-AU",
+    "dimensions_mm": {
+      "width": 12.35,
+      "height": 12.35
+    },
+    "courtyard_clearance_mm": 0.5,
+    "placement_zone": "centre",
+    "placement_priority": 1,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VCC",
+        "max_distance_mm": 2
+      },
+      {
+        "value": "10uF",
+        "package": "0805",
+        "pin": "VCC",
+        "max_distance_mm": 5
+      },
+      {
+        "value": "1uF",
+        "package": "0402",
+        "pin": "UCAP",
+        "max_distance_mm": 2
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 15,
+    "supply_voltage": "5V",
+    "interfaces": [
+      "SPI",
+      "I2C",
+      "UART",
+      "USB",
+      "GPIO",
+      "ADC",
+      "PWM"
+    ],
+    "digikey_pn": "ATMEGA32U4-AU-ND",
+    "mpn": "ATMEGA32U4-AU",
+    "lcsc_pn": "C44854",
+    "datasheet_url": "https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7766-8-bit-AVR-ATmega16U4-32U4_Datasheet.pdf",
+    "ipc610_notes": "TQFP-44. AVR 8-bit MCU with native USB. Arduino Leonardo/Pro Micro compatible. 16MHz with external crystal.",
+    "capabilities": [
+      "processing_standard",
+      "usb_device",
+      "uart",
+      "adc_external",
+      "led_single"
+    ],
+    "capability_score": {
+      "processing_standard": 7,
+      "usb_device": 10,
+      "uart": 8,
+      "adc_external": 7
+    },
+    "satisfies_processing": true,
+    "tier": 1,
+    "cost_gbp_unit": 3.2,
+    "power_modes": {
+      "active": {
+        "current_ma": 12,
+        "note": "16MHz, 5V"
+      },
+      "sleep": {
+        "current_ma": 0.0001,
+        "note": "Power-down mode"
+      },
+      "typical_active_ma": 12,
+      "peak_current_ma": 200
+    },
+    "pins": {
+      "count": 44,
+      "package": "TQFP-44",
+      "power": [
+        {
+          "name": "VCC",
+          "pins": [
+            "24",
+            "34",
+            "44"
+          ],
+          "net": "5V"
+        },
+        {
+          "name": "AVCC",
+          "pins": [
+            "14"
+          ],
+          "net": "5V"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "15",
+            "23",
+            "35",
+            "43"
+          ],
+          "net": "GND"
+        },
+        {
+          "name": "UVCC",
+          "pins": [
+            "2"
+          ],
+          "net": "5V",
+          "note": "USB regulator input"
+        }
+      ],
+      "interfaces": {
+        "SPI": {
+          "MOSI": "PB2/10",
+          "MISO": "PB3/11",
+          "SCK": "PB1/9",
+          "CS": "PB0/8"
+        },
+        "I2C": {
+          "SDA": "PD1/18",
+          "SCL": "PD0/17"
+        },
+        "UART": {
+          "TX": "PD3/20",
+          "RX": "PD2/19"
+        },
+        "USB": {
+          "D+": "4",
+          "D-": "3",
+          "UGND": "5"
+        }
+      },
+      "control": [
+        {
+          "name": "RESET",
+          "pin": "13",
+          "config": "pull_up_10k_with_100nF",
+          "note": "Active low reset with RC filter"
+        },
+        {
+          "name": "XTAL1",
+          "pin": "16",
+          "note": "16MHz crystal"
+        },
+        {
+          "name": "XTAL2",
+          "pin": "17",
+          "note": "16MHz crystal"
+        }
+      ],
+      "adc_channels": {
+        "ADC0": "PF0/41",
+        "ADC1": "PF1/40",
+        "ADC4": "PF4/39",
+        "ADC5": "PF5/38",
+        "ADC6": "PF6/37",
+        "ADC7": "PF7/36"
+      },
+      "gpio_available": [
+        "PB4/28",
+        "PB5/29",
+        "PB6/30",
+        "PB7/12",
+        "PC6/31",
+        "PC7/32",
+        "PD4/25",
+        "PD5/22",
+        "PD6/26",
+        "PD7/27",
+        "PE2/33",
+        "PE6/1"
+      ],
+      "gpio_input_only": [],
+      "programming": {
+        "method": "USB_DFU",
+        "pins": [
+          "D+",
+          "D-"
+        ],
+        "note": "Native USB bootloader. No external programmer needed."
+      },
+      "notes": "Arduino Leonardo/Pro Micro compatible. Native USB HID. 16MHz external crystal required."
+    },
+    "power_draw_ma": 15,
+    "auto_add_components": [
+      "crystal_16mhz",
+      "cap_22pf_xtal",
+      "cap_22pf_xtal"
+    ],
+    "auto_add_note": "16MHz crystal + 2x 22pF load caps for clock. UCAP needs 1uF to GND.",
+    "lcsc_part_number": "C44854",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "verified",
+    "ref_designator_prefix": "U"
+  },
+  "esp32_s3_wroom_1": {
+    "id": "esp32_s3_wroom_1",
+    "display_name": "ESP32-S3-WROOM-1",
+    "category": "mcu",
+    "subcategory": "wifi_ble",
+    "kicad_footprint": "RF_Module:ESP32-S3-WROOM-1",
+    "kicad_symbol": "RF_Module:ESP32-S3-WROOM-1",
+    "dimensions_mm": {
+      "width": 45.05,
+      "height": 38.25
+    },
+    "courtyard_clearance_mm": 1.5,
+    "placement_zone": "edge_top",
+    "placement_priority": 1,
+    "antenna_keepout_mm": 5,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "3V3",
+        "max_distance_mm": 2
+      },
+      {
+        "value": "10uF",
+        "package": "0805",
+        "pin": "3V3",
+        "max_distance_mm": 5
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 310,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "SPI",
+      "I2C",
+      "UART",
+      "USB",
+      "GPIO",
+      "ADC",
+      "PWM",
+      "I2S"
+    ],
+    "digikey_pn": "ESP32-S3-WROOM-1-N8R8-ND",
+    "mpn": "ESP32-S3-WROOM-1-N8R8",
+    "lcsc_pn": "C2913202",
+    "datasheet_url": "https://www.espressif.com/sites/default/files/documentation/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf",
+    "ipc610_notes": "Module. Dual-core Xtensa LX7 240MHz. WiFi + BLE 5. Native USB-OTG. AI acceleration (vector instructions).",
+    "capabilities": [
+      "wifi",
+      "bluetooth",
+      "processing_standard",
+      "processing_powerful",
+      "usb_device",
+      "uart",
+      "adc_external",
+      "storage_flash",
+      "low_power_sleep"
+    ],
+    "capability_score": {
+      "wifi": 10,
+      "bluetooth": 10,
+      "processing_standard": 10,
+      "processing_powerful": 7,
+      "usb_device": 10,
+      "uart": 9,
+      "adc_external": 8
+    },
+    "satisfies_processing": true,
+    "tier": 2,
+    "cost_gbp_unit": 3.5,
+    "power_modes": {
+      "active": {
+        "current_ma": 190,
+        "note": "WiFi active"
+      },
+      "sleep": {
+        "current_ma": 0.007,
+        "note": "Deep sleep with RTC"
+      },
+      "typical_active_ma": 100,
+      "peak_current_ma": 500
+    },
+    "pins": {
+      "count": 41,
+      "package": "Module (castellated)",
+      "power": [
+        {
+          "name": "3V3",
+          "pins": [
+            "2"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "1",
+            "40",
+            "41"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "SPI_SPI2": {
+          "MOSI": "GPIO11/16",
+          "MISO": "GPIO13/18",
+          "SCK": "GPIO12/17",
+          "CS": "GPIO10/15"
+        },
+        "I2C": {
+          "SDA": "GPIO8/13",
+          "SCL": "GPIO9/14"
+        },
+        "UART0": {
+          "TX": "GPIO43/38",
+          "RX": "GPIO44/39",
+          "note": "USB-serial — avoid for peripherals"
+        },
+        "UART1": {
+          "TX": "GPIO17/22",
+          "RX": "GPIO18/23"
+        },
+        "USB_OTG": {
+          "D+": "GPIO20/25",
+          "D-": "GPIO19/24",
+          "note": "Native USB-OTG"
+        },
+        "I2S": {
+          "BCK": "GPIO16/21",
+          "WS": "GPIO15/20",
+          "DOUT": "GPIO14/19"
+        }
+      },
+      "control": [
+        {
+          "name": "EN",
+          "pin": "3",
+          "config": "pull_up_10k_with_100nF",
+          "note": "Enable. RC delay."
+        },
+        {
+          "name": "GPIO0",
+          "pin": "27",
+          "config": "pull_up_10k",
+          "note": "BOOT pin. Low=download."
+        }
+      ],
+      "adc_channels": {
+        "ADC1_CH0": "GPIO1/4",
+        "ADC1_CH1": "GPIO2/5",
+        "ADC1_CH2": "GPIO3/6",
+        "ADC1_CH3": "GPIO4/7",
+        "ADC1_CH4": "GPIO5/8",
+        "note": "ADC2 unavailable when WiFi active."
+      },
+      "gpio_available": [
+        "GPIO1/4",
+        "GPIO2/5",
+        "GPIO3/6",
+        "GPIO4/7",
+        "GPIO5/8",
+        "GPIO6/9",
+        "GPIO7/10",
+        "GPIO15/20",
+        "GPIO16/21",
+        "GPIO21/26",
+        "GPIO38/35",
+        "GPIO39/36",
+        "GPIO40/37",
+        "GPIO41/38",
+        "GPIO42/39"
+      ],
+      "gpio_input_only": [],
+      "programming": {
+        "method": "USB",
+        "pins": [
+          "D+",
+          "D-"
+        ],
+        "note": "Native USB bootloader or UART boot."
+      },
+      "notes": "ESP32-S3 with native USB-OTG, AI vector instructions, and 8MB PSRAM. BLE 5 + WiFi 802.11n."
+    },
+    "power_draw_ma": 310,
+    "lcsc_part_number": "C2913202",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "verified",
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": -7.15
+    }
+  },
+  "stm32f411ceu6": {
+    "id": "stm32f411ceu6",
+    "display_name": "STM32F411CEU6",
+    "category": "mcu",
+    "subcategory": "arm_cortex_m4",
+    "kicad_footprint": "Package_QFP:LQFP-48_7x7mm_P0.5mm",
+    "kicad_symbol": "MCU_ST_STM32F4:STM32F411CEUx",
+    "dimensions_mm": {
+      "width": 9.35,
+      "height": 9.35
+    },
+    "courtyard_clearance_mm": 0.5,
+    "placement_zone": "centre",
+    "placement_priority": 1,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VDD",
+        "max_distance_mm": 2
+      },
+      {
+        "value": "4.7uF",
+        "package": "0805",
+        "pin": "VDD",
+        "max_distance_mm": 5
+      },
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VDDA",
+        "max_distance_mm": 2
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 50,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "SPI",
+      "I2C",
+      "UART",
+      "USB",
+      "GPIO",
+      "ADC",
+      "PWM",
+      "I2S"
+    ],
+    "digikey_pn": "497-17335-ND",
+    "mpn": "STM32F411CEU6",
+    "lcsc_pn": "C93144",
+    "datasheet_url": "https://www.st.com/resource/en/datasheet/stm32f411ce.pdf",
+    "ipc610_notes": "LQFP-48. ARM Cortex-M4 100MHz, 512KB flash, 128KB RAM. FPU. WeAct Studio 'Black Pill' compatible.",
+    "capabilities": [
+      "processing_standard",
+      "processing_powerful",
+      "usb_device",
+      "uart",
+      "adc_external"
+    ],
+    "capability_score": {
+      "processing_standard": 9,
+      "processing_powerful": 6,
+      "usb_device": 10,
+      "uart": 9,
+      "adc_external": 8
+    },
+    "satisfies_processing": true,
+    "tier": 2,
+    "cost_gbp_unit": 2.5,
+    "power_modes": {
+      "active": {
+        "current_ma": 38,
+        "note": "100MHz, all peripherals"
+      },
+      "sleep": {
+        "current_ma": 0.002,
+        "note": "Standby mode"
+      },
+      "typical_active_ma": 38,
+      "peak_current_ma": 150
+    },
+    "pins": {
+      "count": 48,
+      "package": "LQFP-48",
+      "power": [
+        {
+          "name": "VDD",
+          "pins": [
+            "1",
+            "24",
+            "36",
+            "48"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "VDDA",
+          "pins": [
+            "9"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "VSS",
+          "pins": [
+            "23",
+            "35",
+            "47"
+          ],
+          "net": "GND"
+        },
+        {
+          "name": "VSSA",
+          "pins": [
+            "8"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "SPI": {
+          "MOSI": "PA7/22",
+          "MISO": "PA6/21",
+          "SCK": "PA5/20",
+          "CS": "PA4/19"
+        },
+        "I2C": {
+          "SDA": "PB7/42",
+          "SCL": "PB6/41"
+        },
+        "UART": {
+          "TX": "PA9/30",
+          "RX": "PA10/31"
+        },
+        "USB": {
+          "D+": "PA12/33",
+          "D-": "PA11/32"
+        },
+        "I2S": {
+          "WS": "PA4/19",
+          "CK": "PA5/20",
+          "SD": "PA7/22"
+        }
+      },
+      "control": [
+        {
+          "name": "NRST",
+          "pin": "7",
+          "config": "pull_up_10k_with_100nF",
+          "note": "Active low reset"
+        },
+        {
+          "name": "BOOT0",
+          "pin": "44",
+          "config": "pull_down",
+          "note": "LOW=normal, HIGH=system bootloader"
+        }
+      ],
+      "adc_channels": {
+        "ADC_IN0": "PA0/10",
+        "ADC_IN1": "PA1/11",
+        "ADC_IN2": "PA2/12",
+        "ADC_IN3": "PA3/13",
+        "ADC_IN4": "PA4/14"
+      },
+      "gpio_available": [
+        "PA0/10",
+        "PA1/11",
+        "PA2/12",
+        "PA3/13",
+        "PA8/29",
+        "PA15/34",
+        "PB0/25",
+        "PB1/26",
+        "PB3/39",
+        "PB4/40",
+        "PB5/41",
+        "PB8/43",
+        "PB9/44",
+        "PB10/27",
+        "PB12/28",
+        "PB13/29",
+        "PB14/30",
+        "PB15/31"
+      ],
+      "gpio_input_only": [],
+      "programming": {
+        "method": "USB_DFU",
+        "pins": [
+          "D+",
+          "D-",
+          "BOOT0"
+        ],
+        "note": "USB DFU bootloader or SWD debug."
+      },
+      "notes": "STM32F4 Black Pill. 100MHz Cortex-M4 with FPU. USB FS device. 3x SPI, 3x I2C, 3x USART."
+    },
+    "power_draw_ma": 50,
+    "auto_add_components": [
+      "crystal_8mhz",
+      "cap_22pf_xtal",
+      "cap_22pf_xtal"
+    ],
+    "lcsc_part_number": "C93144",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "verified",
+    "ref_designator_prefix": "U"
+  },
+  "samd21g18a": {
+    "id": "samd21g18a",
+    "display_name": "SAMD21G18A",
+    "category": "mcu",
+    "subcategory": "arm_cortex_m0",
+    "kicad_footprint": "Package_QFP:TQFP-48_7x7mm_P0.5mm",
+    "kicad_symbol": "MCU_Microchip_SAMD:ATSAMD21G18A-AU",
+    "dimensions_mm": {
+      "width": 9.35,
+      "height": 9.35
+    },
+    "courtyard_clearance_mm": 0.5,
+    "placement_zone": "centre",
+    "placement_priority": 1,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VDDCORE",
+        "max_distance_mm": 2
+      },
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VDDIO",
+        "max_distance_mm": 2
+      },
+      {
+        "value": "10uF",
+        "package": "0805",
+        "pin": "VDDIO",
+        "max_distance_mm": 5
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 8,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "SPI",
+      "I2C",
+      "UART",
+      "USB",
+      "GPIO",
+      "ADC",
+      "PWM"
+    ],
+    "digikey_pn": "ATSAMD21G18A-AU-ND",
+    "mpn": "ATSAMD21G18A-AUT",
+    "lcsc_pn": "C78624",
+    "datasheet_url": "https://ww1.microchip.com/downloads/en/DeviceDoc/SAM_D21_DA1_Family_DataSheet_DS40001882F.pdf",
+    "ipc610_notes": "TQFP-48. ARM Cortex-M0+ 48MHz. Arduino Zero/M0 compatible. Native USB. Low power.",
+    "capabilities": [
+      "processing_standard",
+      "usb_device",
+      "uart",
+      "adc_external",
+      "low_power_sleep"
+    ],
+    "capability_score": {
+      "processing_standard": 7,
+      "usb_device": 10,
+      "uart": 8,
+      "adc_external": 8,
+      "low_power_sleep": 9
+    },
+    "satisfies_processing": true,
+    "tier": 1,
+    "cost_gbp_unit": 2.8,
+    "power_modes": {
+      "active": {
+        "current_ma": 6,
+        "note": "48MHz active"
+      },
+      "sleep": {
+        "current_ma": 0.0005,
+        "note": "Standby with RTC"
+      },
+      "typical_active_ma": 6,
+      "peak_current_ma": 50
+    },
+    "pins": {
+      "count": 48,
+      "package": "TQFP-48",
+      "power": [
+        {
+          "name": "VDDIO",
+          "pins": [
+            "17",
+            "36"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "VDDANA",
+          "pins": [
+            "6"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "VDDCORE",
+          "pins": [
+            "29"
+          ],
+          "net": "VCORE",
+          "note": "1.62V internal regulator output — cap only"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "18",
+            "42"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "SPI": {
+          "MOSI": "PA16/25",
+          "MISO": "PA19/28",
+          "SCK": "PA17/26",
+          "CS": "PA18/27"
+        },
+        "I2C": {
+          "SDA": "PA22/31",
+          "SCL": "PA23/32"
+        },
+        "UART": {
+          "TX": "PA10/15",
+          "RX": "PA11/16"
+        },
+        "USB": {
+          "D+": "PA25/34",
+          "D-": "PA24/33"
+        }
+      },
+      "control": [
+        {
+          "name": "RESET",
+          "pin": "40",
+          "config": "pull_up_10k_with_100nF",
+          "note": "Active low reset"
+        }
+      ],
+      "adc_channels": {
+        "AIN0": "PA2/3",
+        "AIN1": "PA3/4",
+        "AIN2": "PB08/7",
+        "AIN3": "PB09/8",
+        "AIN4": "PA4/9",
+        "AIN5": "PA5/10"
+      },
+      "gpio_available": [
+        "PA2/3",
+        "PA3/4",
+        "PA4/9",
+        "PA5/10",
+        "PA6/11",
+        "PA7/12",
+        "PA8/13",
+        "PA9/14",
+        "PA12/21",
+        "PA13/22",
+        "PA14/23",
+        "PA15/24",
+        "PA20/29",
+        "PA21/30",
+        "PB10/19",
+        "PB11/20"
+      ],
+      "gpio_input_only": [],
+      "programming": {
+        "method": "USB_DFU",
+        "pins": [
+          "D+",
+          "D-"
+        ],
+        "note": "UF2 bootloader via USB. Also SWD."
+      },
+      "notes": "Arduino Zero compatible. 6x SERCOM (configurable SPI/I2C/UART). Native USB. Ultra-low power."
+    },
+    "power_draw_ma": 8,
+    "auto_add_components": [
+      "crystal_32khz"
+    ],
+    "auto_add_note": "32.768kHz crystal for RTC and USB SOF clock recovery.",
+    "lcsc_part_number": "C78624",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "verified",
+    "ref_designator_prefix": "U"
+  },
+  "ch340g": {
+    "id": "ch340g",
+    "display_name": "CH340G USB-UART Bridge",
+    "category": "comms",
+    "subcategory": "usb_serial",
+    "kicad_footprint": "Package_SO:SOP-16_4.4x10.4mm_P1.27mm",
+    "kicad_symbol": "Interface_USB:CH340G",
+    "dimensions_mm": {
+      "width": 8.05,
+      "height": 10.45
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "any",
+    "placement_priority": 6,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VCC",
+        "max_distance_mm": 2
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 15,
+    "supply_voltage": "5V",
+    "interfaces": [
+      "USB",
+      "UART"
+    ],
+    "digikey_pn": "2108-CH340G-ND",
+    "mpn": "CH340G",
+    "lcsc_pn": "C14267",
+    "datasheet_url": "https://www.wch-ic.com/downloads/CH340DS1_PDF.html",
+    "ipc610_notes": "SOP-16. USB to UART bridge. Up to 2Mbps. 12MHz crystal required.",
+    "capabilities": [
+      "usb_device",
+      "uart"
+    ],
+    "capability_score": {
+      "usb_device": 7,
+      "uart": 8
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 0.3,
+    "connection_hints": {
+      "template": "usb_uart",
+      "power": "5v_device",
+      "notes": "USB to UART bridge. Needs 12MHz crystal. DTR/RTS for auto-reset."
+    },
+    "pins": {
+      "count": 16,
+      "package": "SOP-16",
+      "power": [
+        {
+          "name": "VCC",
+          "pins": [
+            "16"
+          ],
+          "net": "5V"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "1"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "USB": {
+          "D+": "5",
+          "D-": "6"
+        },
+        "UART": {
+          "TXD": "2",
+          "RXD": "3",
+          "DTR": "13",
+          "RTS": "14"
+        }
+      },
+      "control": [
+        {
+          "name": "XI",
+          "pin": "7",
+          "note": "12MHz crystal input"
+        },
+        {
+          "name": "XO",
+          "pin": "8",
+          "note": "12MHz crystal output"
+        }
+      ],
+      "notes": "USB-UART bridge. 12MHz crystal on XI/XO. DTR/RTS for MCU auto-reset."
+    },
+    "power_draw_ma": 15,
+    "auto_add_components": [
+      "crystal_12mhz",
+      "cap_22pf_xtal",
+      "cap_22pf_xtal"
+    ],
+    "lcsc_part_number": "C14267",
+    "jlcpcb_basic": true,
+    "lcsc_confidence": "verified",
+    "ref_designator_prefix": "U"
+  },
+  "ft232rl": {
+    "id": "ft232rl",
+    "display_name": "FT232RL USB-UART",
+    "category": "comms",
+    "subcategory": "usb_serial",
+    "kicad_footprint": "Package_SO:SSOP-28_5.3x10.2mm_P0.65mm",
+    "kicad_symbol": "Interface_USB:FT232RL",
+    "dimensions_mm": {
+      "width": 8.95,
+      "height": 10.25
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "any",
+    "placement_priority": 6,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VCC",
+        "max_distance_mm": 2
+      },
+      {
+        "value": "10uF",
+        "package": "0805",
+        "pin": "VCC",
+        "max_distance_mm": 5
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 15,
+    "supply_voltage": "5V",
+    "interfaces": [
+      "USB",
+      "UART"
+    ],
+    "digikey_pn": "768-1007-1-ND",
+    "mpn": "FT232RL-REEL",
+    "lcsc_pn": "C8690",
+    "datasheet_url": "https://ftdichip.com/wp-content/uploads/2020/08/DS_FT232R.pdf",
+    "ipc610_notes": "SSOP-28. USB to UART bridge. Internal clock (no crystal). EEPROM configurable.",
+    "capabilities": [
+      "usb_device",
+      "uart"
+    ],
+    "capability_score": {
+      "usb_device": 8,
+      "uart": 9
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 3.5,
+    "connection_hints": {
+      "template": "usb_uart",
+      "power": "5v_device",
+      "notes": "USB-UART bridge. No external crystal needed. DTR/RTS for auto-reset."
+    },
+    "pins": {
+      "count": 28,
+      "package": "SSOP-28",
+      "power": [
+        {
+          "name": "VCC",
+          "pins": [
+            "20"
+          ],
+          "net": "5V"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "7",
+            "18",
+            "21"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "USB": {
+          "USBDP": "15",
+          "USBDM": "16"
+        },
+        "UART": {
+          "TXD": "1",
+          "RXD": "5",
+          "DTR": "2",
+          "RTS": "3",
+          "CTS": "11",
+          "DSR": "9"
+        }
+      },
+      "notes": "USB-UART with internal oscillator. No external crystal needed."
+    },
+    "power_draw_ma": 15,
+    "lcsc_part_number": "C8690",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "verified",
+    "ref_designator_prefix": "U"
+  },
+  "nrf24l01_module": {
+    "id": "nrf24l01_module",
+    "display_name": "nRF24L01+ 2.4GHz Radio Module",
+    "category": "comms",
+    "subcategory": "radio_2_4ghz",
+    "kicad_footprint": "Connector_PinHeader_2.54mm:PinHeader_2x04_P2.54mm_Vertical",
+    "kicad_symbol": "Connector_Generic:Conn_02x04_Odd_Even",
+    "dimensions_mm": {
+      "width": 5.08,
+      "height": 10.16
+    },
+    "courtyard_clearance_mm": 0.5,
+    "placement_zone": "edge_top",
+    "placement_priority": 3,
+    "antenna_keepout_mm": 3,
+    "decoupling_caps": [
+      {
+        "value": "10uF",
+        "package": "0805",
+        "pin": "VCC",
+        "max_distance_mm": 3
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 12,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "SPI"
+    ],
+    "digikey_pn": "1528-2599-ND",
+    "mpn": "nRF24L01+",
+    "lcsc_pn": "C75117",
+    "datasheet_url": "https://www.sparkfun.com/datasheets/Components/SMD/nRF24L01Pluss_Preliminary_Product_Specification_v1_0.pdf",
+    "ipc610_notes": "2x4 pin header module. 2.4GHz ISM band, 2Mbps max. SPI interface. 3.3V ONLY — do not supply 5V.",
+    "capabilities": [
+      "radio_2_4ghz"
+    ],
+    "capability_score": {
+      "radio_2_4ghz": 9
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 1.0,
+    "user_cable_note": "On-board module via pin header. No cable needed.",
+    "safety_warnings": [
+      "3.3V ONLY — 5V will destroy the module"
+    ],
+    "connection_hints": {
+      "template": "spi",
+      "power": "3v3_device",
+      "special_pins": {
+        "CE": "gpio",
+        "IRQ": "gpio_interrupt"
+      },
+      "notes": "SPI + CE + IRQ. 3.3V only."
+    },
+    "pins": {
+      "count": 8,
+      "package": "2x04 pin header",
+      "power": [
+        {
+          "name": "VCC",
+          "pins": [
+            "2"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "1"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "SPI": {
+          "MOSI": "6",
+          "MISO": "7",
+          "SCK": "5",
+          "CSN": "4"
+        }
+      },
+      "control": [
+        {
+          "name": "CE",
+          "pin": "3",
+          "config": "gpio",
+          "note": "Chip enable — HIGH to TX/RX"
+        },
+        {
+          "name": "IRQ",
+          "pin": "8",
+          "config": "gpio_input",
+          "note": "Active low interrupt"
+        }
+      ],
+      "notes": "SPI interface. CE for TX/RX enable. IRQ for data ready/sent/max retransmit."
+    },
+    "power_draw_ma": 12,
+    "lcsc_part_number": "C75117",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "high",
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 1.27,
+      "y": 3.81
+    }
+  },
+  "hc05_module": {
+    "id": "hc05_module",
+    "display_name": "HC-05 Bluetooth SPP Module",
+    "category": "comms",
+    "subcategory": "bluetooth",
+    "kicad_footprint": "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical",
+    "kicad_symbol": "Connector_Generic:Conn_01x06",
+    "dimensions_mm": {
+      "width": 2.54,
+      "height": 15.24
+    },
+    "courtyard_clearance_mm": 0.5,
+    "placement_zone": "edge_top",
+    "placement_priority": 3,
+    "antenna_keepout_mm": 3,
+    "decoupling_caps": [],
+    "requires_decoupling": false,
+    "min_layers": 4,
+    "power_consumption_ma": 30,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "UART"
+    ],
+    "digikey_pn": "HC-05-ND",
+    "mpn": "HC-05",
+    "lcsc_pn": "C82588",
+    "datasheet_url": "https://components101.com/sites/default/files/component_datasheet/HC-05%20Datasheet.pdf",
+    "ipc610_notes": "1x06 pin header module. Bluetooth 2.0 SPP. UART interface. 3.3V logic but some modules have 5V regulator.",
+    "capabilities": [
+      "bluetooth"
+    ],
+    "capability_score": {
+      "bluetooth": 8
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 2.0,
+    "user_cable_note": "On-board module via pin header.",
+    "connection_hints": {
+      "template": "uart",
+      "power": "3v3_device",
+      "notes": "UART interface. TX/RX at 3.3V. Default baud 9600."
+    },
+    "pins": {
+      "count": 6,
+      "package": "1x06 pin header",
+      "power": [
+        {
+          "name": "VCC",
+          "pins": [
+            "2"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "3"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "UART": {
+          "TX": "1",
+          "RX": "4"
+        }
+      },
+      "control": [
+        {
+          "name": "EN",
+          "pin": "5",
+          "config": "pull_up",
+          "note": "HIGH=enable"
+        },
+        {
+          "name": "STATE",
+          "pin": "6",
+          "config": "gpio_input",
+          "note": "HIGH when connected"
+        }
+      ],
+      "notes": "Bluetooth SPP module. UART TX/RX. EN pin HIGH to enable."
+    },
+    "power_draw_ma": 30,
+    "lcsc_part_number": "C82588",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "high",
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 0.0,
+      "y": 6.35
+    }
+  },
+  "xkc_y25_v": {
+    "id": "xkc_y25_v",
+    "display_name": "XKC-Y25-V Non-Contact Water Level Sensor",
+    "category": "sensor",
+    "subcategory": "water_level",
+    "kicad_footprint": "Connector_JST:JST_PH_B3B-PH-K_1x03_P2.00mm_Vertical",
+    "kicad_symbol": "Connector_Generic:Conn_01x03",
+    "dimensions_mm": {
+      "width": 7.95,
+      "height": 4.55
+    },
+    "courtyard_clearance_mm": 0.5,
+    "placement_zone": "any",
+    "placement_priority": 6,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [],
+    "requires_decoupling": false,
+    "min_layers": 4,
+    "power_consumption_ma": 5,
+    "supply_voltage": "5V",
+    "interfaces": [
+      "GPIO"
+    ],
+    "digikey_pn": "XKC-Y25-V-ND",
+    "mpn": "XKC-Y25-V",
+    "lcsc_pn": "C5765064",
+    "datasheet_url": "https://www.epitran.it/ebayDrive/datasheet/XKC-Y25-V.pdf",
+    "ipc610_notes": "3-pin JST connector to external non-contact capacitive water level sensor. Mounts outside tank wall. Digital output.",
+    "capabilities": [
+      "sense_water_level"
+    ],
+    "capability_score": {
+      "sense_water_level": 9
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 1.5,
+    "user_cable_note": "External sensor module attaches to outside of tank/pipe. 3-wire cable to PCB connector (VCC, GND, OUT).",
+    "connector_required": "jst_ph_3pin",
+    "connection_hints": {
+      "template": "gpio_input",
+      "power": "5v_device",
+      "special_pins": {
+        "OUT": "gpio_interrupt"
+      },
+      "notes": "Digital output: HIGH when water detected. Non-contact — senses through container wall up to 20mm."
+    },
+    "pins": {
+      "count": 3,
+      "package": "JST PH 3-pin",
+      "key_pins": [
+        {
+          "name": "VCC",
+          "pins": [
+            "1"
+          ],
+          "net": "5V"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "3"
+          ],
+          "net": "GND"
+        },
+        {
+          "name": "OUT",
+          "pins": [
+            "2"
+          ],
+          "note": "Digital output — HIGH when water detected"
+        }
+      ],
+      "notes": "Non-contact capacitive sensor. Digital output. Senses through plastic/glass up to 20mm thick."
+    },
+    "power_draw_ma": 5,
+    "lcsc_part_number": "C5765064",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "needs_verify",
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 2.0,
+      "y": 0.55
+    }
+  },
+  "at42qt1012": {
+    "id": "at42qt1012",
+    "display_name": "AT42QT1012 Capacitive Leak Sensor",
+    "category": "sensor",
+    "subcategory": "water_leak",
+    "kicad_footprint": "Package_TO_SOT_SMD:SOT-23-6",
+    "kicad_symbol": "Sensor_Capacitive:AT42QT1012",
+    "dimensions_mm": {
+      "width": 3.65,
+      "height": 2.95
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "any",
+    "placement_priority": 6,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VDD",
+        "max_distance_mm": 2
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 4,
+    "power_consumption_ma": 0.015,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "GPIO"
+    ],
+    "digikey_pn": "AT42QT1012-TSHR-ND",
+    "mpn": "AT42QT1012-TSHR",
+    "lcsc_pn": "C129793",
+    "datasheet_url": "https://ww1.microchip.com/downloads/en/DeviceDoc/40001946A.pdf",
+    "ipc610_notes": "SOT-23-6. Single-channel capacitive proximity sensor. Auto-calibrating with drift compensation. Detects water through sealed enclosures. Sensitivity set via external Cs capacitor. Not needed for ESP32 — use built-in touch pins instead.",
+    "capabilities": [
+      "sense_water_leak",
+      "sense_proximity"
+    ],
+    "capability_score": {
+      "sense_water_leak": 10,
+      "sense_proximity": 7
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 0.6,
+    "user_cable_note": "External sensing probe required — connected via JST PH 2-pin connector. Probe cable sits on floor; PCB must be mounted away from water. Never use on-board electrode.",
+    "connection_hints": {
+      "template": "gpio_input",
+      "power": "3v3_device",
+      "special_pins": {
+        "OUT": "gpio_interrupt"
+      },
+      "notes": "REMOTE PROBE ONLY. For non-touch MCUs (ATmega, STM32, RP2040). ESP32 designs should use leak_probe_connector with native esp32_touch instead."
+    },
+    "pins": {
+      "count": 6,
+      "package": "SOT-23-6",
+      "power": [
+        {
+          "name": "VDD",
+          "pins": [
+            "1"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "VSS",
+          "pins": [
+            "2"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "capacitive_sense": {
+          "SNS1": "3",
+          "note": "Sensing input — connect to electrode via Cs sample capacitor"
+        },
+        "digital": {
+          "OUT": "6",
+          "note": "Active low output. LOW when detection threshold exceeded."
+        }
+      },
+      "control": [
+        {
+          "name": "SYNC",
+          "pin": "5",
+          "config": "pull_down",
+          "note": "Sync input for multi-sensor setups. Tie to GND if unused."
+        },
+        {
+          "name": "MODE",
+          "pin": "4",
+          "config": "pull_down_or_vdd",
+          "note": "LOW=fast mode (6ms), HIGH=low-power mode (64ms)"
+        }
+      ],
+      "notes": "Capacitive proximity sensor. SNS1 connects to REMOTE PROBE via sample cap (1-50nF) and JST connector. OUT is active-low open-drain — needs 10k pull-up. Auto-calibrates on power-up and compensates for drift. Never use on-board sensing electrode."
+    },
+    "power_modes": {
+      "active": {
+        "current_ma": 0.275,
+        "note": "Fast mode, 6ms response"
+      },
+      "sleep": {
+        "current_ma": 0.015,
+        "note": "Low-power mode, 64ms response"
+      },
+      "typical_active_ma": 0.015,
+      "peak_current_ma": 0.5
+    },
+    "power_draw_ma": 0.015,
+    "auto_add_components": [
+      "res_10k_0402",
+      "jst_ph_2pin"
+    ],
+    "auto_add_note": "10k pull-up on OUT (open-drain). JST PH 2-pin connector for remote sensing probe cable. Cs sample capacitor (1-50nF) selected by resolver.",
+    "lcsc_part_number": "C129793",
+    "jlcpcb_basic": false,
+    "lcsc_confidence": "high",
+    "ref_designator_prefix": "U",
+    "safety_warnings": [
+      "Sensing electrode MUST be a remote probe — never on the main PCB",
+      "Main PCB must be mounted above potential water line",
+      "Use shielded cable for probe runs over 500mm to avoid false triggers"
+    ]
+  },
+  "leak_probe_connector": {
+    "id": "leak_probe_connector",
+    "display_name": "Water Leak Probe Connector",
+    "category": "connector",
+    "subcategory": "sensor_probe",
+    "kicad_footprint": "Connector_JST:JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical",
+    "kicad_symbol": "Connector_Generic:Conn_01x02",
+    "dimensions_mm": {
+      "width": 5.95,
+      "height": 4.55
+    },
+    "courtyard_clearance_mm": 0.5,
+    "placement_zone": "edge_bottom",
+    "placement_priority": 7,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [],
+    "requires_decoupling": false,
+    "min_layers": 4,
+    "power_consumption_ma": 0,
+    "supply_voltage": "N/A",
+    "interfaces": [
+      "GPIO"
+    ],
+    "digikey_pn": "455-1704-ND",
+    "mpn": "B2B-PH-K-S(LF)(SN)",
+    "lcsc_pn": "C131337",
+    "datasheet_url": "https://www.jst-mfg.com/product/pdf/eng/ePH.pdf",
+    "ipc610_notes": "JST PH 2-pin for remote water leak probe. One pin to touch-capable GPIO (ESP32) or AT42QT1012 SNS input, other to GND. ESPHome: esp32_touch binary_sensor platform.",
+    "capabilities": [
+      "sense_water_leak"
+    ],
+    "capability_score": {
+      "sense_water_leak": 10
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 0.1,
+    "user_cable_note": "External leak probe cable required. Probe sits on floor; PCB must be mounted above potential water line. Use JST PH 2-pin pigtail.",
+    "safety_warnings": [
+      "Sensing probe MUST be remote — never on the main PCB",
+      "Main PCB must be mounted above potential water line",
+      "Use shielded cable for probe runs over 500mm"
+    ],
+    "connection_hints": {
+      "template": "gpio_input",
+      "power": "none",
+      "esphome": {
+        "platform": "esp32_touch",
+        "component": "binary_sensor",
+        "config_example": "pin: GPIO32, threshold: 400",
+        "note": "Use touch-capable GPIO (GPIO0/2/4/12-15/27/32/33). ESPHome handles calibration."
+      },
+      "notes": "REMOTE PROBE ONLY. Pin 1 to ESP32 touch-capable GPIO (GPIO32/33 recommended — not strapping pins). Pin 2 to GND. ESPHome esp32_touch platform auto-calibrates. For non-ESP32 MCUs, pair with at42qt1012."
+    },
+    "pins": {
+      "count": 2,
+      "package": "JST PH 2-pin",
+      "key_pins": [
+        {
+          "name": "SENSE",
+          "pins": [
+            "1"
+          ],
+          "note": "To touch-capable GPIO (ESP32) or AT42QT1012 SNS1"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "2"
+          ],
+          "net": "GND"
+        }
+      ],
+      "notes": "Remote water leak probe connector. ESP32: connect SENSE to touch GPIO (T8/GPIO32 or T9/GPIO33 recommended). ESPHome esp32_touch platform handles threshold and calibration. For ATmega/STM32/RP2040: pair with AT42QT1012 capacitive sensing IC."
+    },
+    "power_draw_ma": 0,
+    "lcsc_part_number": "C131337",
+    "jlcpcb_basic": true,
+    "lcsc_confidence": "verified",
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 1.0,
+      "y": 0.55
+    }
+  },
+  "ds18b20": {
+    "id": "ds18b20",
+    "display_name": "DS18B20 1-Wire Temperature Sensor",
+    "category": "sensor",
+    "subcategory": "temperature",
+    "kicad_footprint": "Package_TO_SOT_THT:TO-92",
+    "kicad_symbol": "Sensor_Temperature:DS18B20",
+    "dimensions_mm": {
+      "width": 4.51,
+      "height": 3.79
+    },
+    "courtyard_clearance_mm": 0.5,
+    "placement_zone": "centre",
+    "placement_priority": 5,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [],
+    "requires_decoupling": false,
+    "min_layers": 2,
+    "power_consumption_ma": 1.5,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "1-Wire"
+    ],
+    "mpn": "DS18B20",
+    "lcsc_pn": "C376218",
+    "datasheet_url": "https://datasheets.maximintegrated.com/en/ds/DS18B20.pdf",
+    "ipc610_notes": "TO-92 through-hole. Often used with waterproof probe via 3-pin connector. Pull-up 4.7k on DQ line required.",
+    "capabilities": [
+      "sense_temperature"
+    ],
+    "capability_score": {
+      "sense_temperature": 10
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 1.2,
+    "user_cable_note": "Can use waterproof probe variant connected via 3-pin header. On-board TO-92 for ambient temp.",
+    "power_modes": {
+      "active": {
+        "current_ma": 1.5,
+        "note": "Temperature conversion active"
+      },
+      "sleep": {
+        "current_ma": 0.001,
+        "note": "Standby"
+      },
+      "typical_active_ma": 1.0,
+      "peak_current_ma": 1.5
+    },
+    "connection_hints": {
+      "template": "one_wire",
+      "power": "3v3_device",
+      "notes": "DQ requires 4.7k pull-up to VDD. Parasitic power mode possible but not recommended."
+    },
+    "pins": {
+      "count": 3,
+      "package": "TO-92",
+      "power": [
+        {
+          "name": "VDD",
+          "pins": [
+            "3"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "1"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "1-Wire": {
+          "DQ": "2"
+        }
+      },
+      "control": [
+        {
+          "name": "DQ",
+          "pin": "2",
+          "config": "pull_up_4k7",
+          "note": "1-Wire data line. 4.7k pull-up to VDD required."
+        }
+      ],
+      "notes": "Pin 1=GND, Pin 2=DQ (data), Pin 3=VDD. Flat side facing you, left to right."
+    },
+    "ref_designator_prefix": "U",
+    "footprint_center_offset_mm": {
+      "x": 1.27,
+      "y": -0.36
+    }
+  },
+  "aht20": {
+    "id": "aht20",
+    "display_name": "AHT20 Temperature & Humidity Sensor",
+    "category": "sensor",
+    "subcategory": "environmental",
+    "kicad_footprint": "Package_DFN_QFN:DFN-6-1EP_3x3mm_P0.95mm_EP1.7x2.6mm",
+    "kicad_symbol": "Sensor_Humidity:AHT20",
+    "dimensions_mm": {
+      "width": 3.0,
+      "height": 3.0
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "centre",
+    "placement_priority": 5,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VDD",
+        "max_distance_mm": 2
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 2,
+    "power_consumption_ma": 0.098,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "I2C"
+    ],
+    "mpn": "AHT20",
+    "lcsc_pn": "C2757823",
+    "datasheet_url": "https://asairsensors.com/wp-content/uploads/2021/09/Data-Sheet-AHT20-Humidity-and-Temperature-Sensor-ASAIR-V1.0.03.pdf",
+    "ipc610_notes": "DFN-6, 3x3mm. Humidity sensor — avoid flux residue near sensing port. Keep away from heat sources.",
+    "capabilities": [
+      "sense_temperature",
+      "sense_humidity"
+    ],
+    "capability_score": {
+      "sense_temperature": 7,
+      "sense_humidity": 8
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 0.8,
+    "user_cable_note": "On-board component. Soldered directly to PCB.",
+    "power_modes": {
+      "active": {
+        "current_ma": 0.098,
+        "note": "Measurement mode"
+      },
+      "sleep": {
+        "current_ma": 0.00025,
+        "note": "Sleep mode"
+      },
+      "typical_active_ma": 0.098,
+      "peak_current_ma": 0.098
+    },
+    "connection_hints": {
+      "template": "i2c",
+      "i2c_address": "0x38",
+      "power": "3v3_device",
+      "notes": "Fixed I2C address 0x38. No address pin — only one per bus."
+    },
+    "pins": {
+      "count": 6,
+      "package": "DFN-6",
+      "power": [
+        {
+          "name": "VDD",
+          "pins": [
+            "5"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "2"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "I2C": {
+          "SDA": "6",
+          "SCL": "4",
+          "address": "0x38"
+        }
+      },
+      "control": [],
+      "notes": "Pin 1=NC, Pin 2=GND, Pin 3=NC, Pin 4=SCL, Pin 5=VDD, Pin 6=SDA"
+    },
+    "ref_designator_prefix": "U"
+  },
+  "sht40": {
+    "id": "sht40",
+    "display_name": "SHT40 Temperature & Humidity Sensor",
+    "category": "sensor",
+    "subcategory": "environmental",
+    "kicad_footprint": "Sensor_Humidity:Sensirion_DFN-4_1.5x1.5mm_P0.8mm_SHT4x_NoCentralPad",
+    "kicad_symbol": "Sensor_Humidity:SHT4x",
+    "dimensions_mm": {
+      "width": 1.5,
+      "height": 1.5
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "centre",
+    "placement_priority": 5,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VDD",
+        "max_distance_mm": 2
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 2,
+    "power_consumption_ma": 0.4,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "I2C"
+    ],
+    "mpn": "SHT40-AD1B-R2",
+    "lcsc_pn": "C2843677",
+    "datasheet_url": "https://sensirion.com/media/documents/33FD6951/624C4357/Datasheet_SHT4x.pdf",
+    "ipc610_notes": "DFN-4, 1.5x1.5mm. Tiny humidity sensor. Avoid flux residue. No-clean flux recommended.",
+    "capabilities": [
+      "sense_temperature",
+      "sense_humidity"
+    ],
+    "capability_score": {
+      "sense_temperature": 9,
+      "sense_humidity": 9
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 1.5,
+    "user_cable_note": "On-board component. Soldered directly to PCB.",
+    "power_modes": {
+      "active": {
+        "current_ma": 0.4,
+        "note": "High-precision measurement"
+      },
+      "sleep": {
+        "current_ma": 8e-05,
+        "note": "Sleep mode"
+      },
+      "typical_active_ma": 0.1,
+      "peak_current_ma": 0.4
+    },
+    "connection_hints": {
+      "template": "i2c",
+      "i2c_address": "0x44",
+      "power": "3v3_device",
+      "notes": "SHT40-AD1B address 0x44. SHT40-BD1B address 0x45. SHT41/SHT45 also pin-compatible."
+    },
+    "pins": {
+      "count": 4,
+      "package": "DFN-4",
+      "power": [
+        {
+          "name": "VDD",
+          "pins": [
+            "4"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "VSS",
+          "pins": [
+            "2"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "I2C": {
+          "SDA": "1",
+          "SCL": "3",
+          "address": "0x44"
+        }
+      },
+      "control": [],
+      "notes": "Pin 1=SDA, Pin 2=VSS, Pin 3=SCL, Pin 4=VDD"
+    },
+    "ref_designator_prefix": "U"
+  },
+  "bme280": {
+    "id": "bme280",
+    "display_name": "BME280 Temperature, Humidity & Pressure Sensor",
+    "category": "sensor",
+    "subcategory": "environmental",
+    "kicad_footprint": "Package_LGA:Bosch_LGA-8_2.5x2.5mm_P0.65mm_ClockwisePinNumbering",
+    "kicad_symbol": "Sensor:BME280",
+    "dimensions_mm": {
+      "width": 2.5,
+      "height": 2.5
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "centre",
+    "placement_priority": 5,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VDD",
+        "max_distance_mm": 2
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 2,
+    "power_consumption_ma": 0.714,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "I2C",
+      "SPI"
+    ],
+    "mpn": "BME280",
+    "lcsc_pn": "C92489",
+    "datasheet_url": "https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf",
+    "ipc610_notes": "LGA-8, 2.5x2.5mm. Humidity sensor port must not be obstructed. Avoid flux residue.",
+    "capabilities": [
+      "sense_temperature",
+      "sense_humidity",
+      "sense_pressure"
+    ],
+    "capability_score": {
+      "sense_temperature": 8,
+      "sense_humidity": 8,
+      "sense_pressure": 9
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 2.5,
+    "user_cable_note": "On-board component. Soldered directly to PCB.",
+    "power_modes": {
+      "active": {
+        "current_ma": 0.714,
+        "note": "All sensors active, normal mode"
+      },
+      "sleep": {
+        "current_ma": 0.0001,
+        "note": "Sleep mode"
+      },
+      "typical_active_ma": 0.35,
+      "peak_current_ma": 0.714
+    },
+    "connection_hints": {
+      "template": "i2c",
+      "i2c_address": "0x76",
+      "i2c_alt_address": "0x77",
+      "address_pin": "SDO",
+      "power": "3v3_device",
+      "notes": "SDO low=0x76, high=0x77. Also supports SPI. Pin-compatible with BMP280 (no humidity)."
+    },
+    "pins": {
+      "count": 8,
+      "package": "LGA-8",
+      "power": [
+        {
+          "name": "VDD",
+          "pins": [
+            "8"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "VDDIO",
+          "pins": [
+            "6"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "1",
+            "7"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "I2C": {
+          "SDA": "3",
+          "SCL": "4",
+          "address": "0x76",
+          "alt_address": "0x77 (SDO=HIGH)"
+        },
+        "SPI": {
+          "MOSI": "3",
+          "MISO": "5",
+          "SCK": "4",
+          "CS": "2",
+          "note": "SPI mode when CSB pulled low"
+        }
+      },
+      "control": [
+        {
+          "name": "SDO",
+          "pin": "5",
+          "config": "pull_down",
+          "note": "I2C: GND=0x76, VDD=0x77. SPI: this is MISO output."
+        }
+      ],
+      "notes": "Pin 2 (CSB): HIGH=I2C mode, LOW=SPI mode. SDO pin 5 sets I2C address or acts as SPI MISO."
+    },
+    "ref_designator_prefix": "U"
+  },
+  "scd40": {
+    "id": "scd40",
+    "display_name": "SCD40 NDIR CO2 Sensor",
+    "category": "sensor",
+    "subcategory": "environmental",
+    "kicad_footprint": "Sensor:Sensirion_SCD4x-1EP_10.1x10.1mm_P1.25mm_EP4.8x4.8mm",
+    "kicad_symbol": "Sensor_Gas:SCD4x",
+    "dimensions_mm": {
+      "width": 10.1,
+      "height": 10.1
+    },
+    "courtyard_clearance_mm": 0.5,
+    "placement_zone": "centre",
+    "placement_priority": 4,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VDD",
+        "max_distance_mm": 3
+      },
+      {
+        "value": "10uF",
+        "package": "0805",
+        "pin": "VDD",
+        "max_distance_mm": 5
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 2,
+    "power_consumption_ma": 75,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "I2C"
+    ],
+    "mpn": "SCD40-D-R2",
+    "lcsc_pn": "C2838051",
+    "datasheet_url": "https://sensirion.com/media/documents/48C4B7FB/6426E14D/CD_DS_SCD40_SCD41_Datasheet_D1.pdf",
+    "ipc610_notes": "QFN-like 10.1x10.1mm. Large thermal pad. IR optical sensor — sensing aperture must face open air. Do not place components above.",
+    "capabilities": [
+      "sense_co2",
+      "sense_temperature",
+      "sense_humidity"
+    ],
+    "capability_score": {
+      "sense_co2": 10,
+      "sense_temperature": 5,
+      "sense_humidity": 5
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 12.0,
+    "user_cable_note": "On-board component. Sensing aperture must face open air. Large component — plan board space accordingly.",
+    "power_modes": {
+      "active": {
+        "current_ma": 75,
+        "note": "CO2 measurement active (peak during IR pulse)"
+      },
+      "sleep": {
+        "current_ma": 0.004,
+        "note": "Idle between measurements"
+      },
+      "typical_active_ma": 18,
+      "peak_current_ma": 75
+    },
+    "connection_hints": {
+      "template": "i2c",
+      "i2c_address": "0x62",
+      "power": "3v3_device",
+      "notes": "Fixed I2C address 0x62. Measures CO2 400-2000ppm (SCD40) or 400-5000ppm (SCD41). Also provides temp/humidity."
+    },
+    "pins": {
+      "count": 20,
+      "package": "QFN-20",
+      "power": [
+        {
+          "name": "VDD",
+          "pins": [
+            "19"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "10",
+            "EP"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "I2C": {
+          "SDA": "17",
+          "SCL": "18",
+          "address": "0x62"
+        }
+      },
+      "control": [],
+      "notes": "Many pins are NC. Thermal pad connects to GND. Large 10uF + 100nF decoupling required due to pulsed IR source."
+    },
+    "ref_designator_prefix": "U"
+  },
+  "pms5003_connector": {
+    "id": "pms5003_connector",
+    "display_name": "PMS5003 Particulate Sensor Connector",
+    "category": "connector",
+    "subcategory": "sensor_interface",
+    "kicad_footprint": "Connector_PinHeader_1.27mm:PinHeader_2x04_P1.27mm_Vertical",
+    "kicad_symbol": "Connector_Generic:Conn_02x04_Odd_Even",
+    "dimensions_mm": {
+      "width": 3.81,
+      "height": 5.08
+    },
+    "courtyard_clearance_mm": 0.5,
+    "placement_zone": "edge",
+    "placement_priority": 6,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [],
+    "requires_decoupling": false,
+    "min_layers": 2,
+    "power_consumption_ma": 100,
+    "supply_voltage": "5V",
+    "interfaces": [
+      "UART"
+    ],
+    "mpn": "PMS5003",
+    "datasheet_url": "https://www.aqmd.gov/docs/default-source/aq-spec/resources-page/plantower-pms5003-manual_v2-3.pdf",
+    "ipc610_notes": "8-pin 1.27mm pitch connector for PMS5003 particulate sensor cable. External sensor module, not soldered to PCB.",
+    "capabilities": [
+      "sense_particulate"
+    ],
+    "capability_score": {
+      "sense_particulate": 10
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 15.0,
+    "user_cable_note": "External PMS5003 sensor module connects via 8-pin cable to this header.",
+    "power_modes": {
+      "active": {
+        "current_ma": 100,
+        "note": "Fan + laser active"
+      },
+      "sleep": {
+        "current_ma": 0.2,
+        "note": "Sleep mode via SET pin"
+      },
+      "typical_active_ma": 100,
+      "peak_current_ma": 120
+    },
+    "connection_hints": {
+      "template": "uart",
+      "power": "5v_device",
+      "notes": "UART 9600 baud. 5V power, 3.3V logic. Reports PM1.0, PM2.5, PM10 concentrations."
+    },
+    "pins": {
+      "count": 8,
+      "package": "2x04_1.27mm",
+      "power": [
+        {
+          "name": "VCC",
+          "pins": [
+            "1",
+            "2"
+          ],
+          "net": "5V"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "3",
+            "4"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "UART": {
+          "TX": "5",
+          "RX": "6"
+        }
+      },
+      "control": [
+        {
+          "name": "SET",
+          "pin": "7",
+          "config": "pull_up_10k",
+          "note": "LOW=sleep, HIGH=active. Default pull-up."
+        },
+        {
+          "name": "RESET",
+          "pin": "8",
+          "note": "Active low reset"
+        }
+      ],
+      "notes": "Pinout matches PMS5003 cable connector. Pin 1-2=VCC, 3-4=GND, 5=TX, 6=RX, 7=SET, 8=RESET."
+    },
+    "ref_designator_prefix": "J",
+    "footprint_center_offset_mm": {
+      "x": 0.64,
+      "y": 1.91
+    }
+  },
+  "ens160": {
+    "id": "ens160",
+    "display_name": "ENS160 Digital VOC & eCO2 Sensor",
+    "category": "sensor",
+    "subcategory": "environmental",
+    "kicad_footprint": "Package_LGA:AMS_LGA-10-1EP_2.7x4mm_P0.6mm",
+    "kicad_symbol": "Sensor_Gas:ENS160",
+    "dimensions_mm": {
+      "width": 2.7,
+      "height": 4.0
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "centre",
+    "placement_priority": 5,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VDD",
+        "max_distance_mm": 2
+      },
+      {
+        "value": "10uF",
+        "package": "0603",
+        "pin": "VDD",
+        "max_distance_mm": 3
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 2,
+    "power_consumption_ma": 30,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "I2C",
+      "SPI"
+    ],
+    "mpn": "ENS160-BGLM",
+    "lcsc_pn": "C2843090",
+    "datasheet_url": "https://www.sciosense.com/wp-content/uploads/2023/12/ENS160-Datasheet.pdf",
+    "ipc610_notes": "LGA-10, 2.7x4mm. Gas sensor — avoid encapsulants over sensing area. Keep away from VOC emitting components.",
+    "capabilities": [
+      "sense_voc",
+      "sense_co2"
+    ],
+    "capability_score": {
+      "sense_voc": 10,
+      "sense_co2": 7
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 4.0,
+    "user_cable_note": "On-board component. Soldered directly to PCB. Sensing area must face open air.",
+    "power_modes": {
+      "active": {
+        "current_ma": 30,
+        "note": "Standard measurement mode"
+      },
+      "sleep": {
+        "current_ma": 0.001,
+        "note": "Deep sleep"
+      },
+      "typical_active_ma": 10,
+      "peak_current_ma": 30
+    },
+    "connection_hints": {
+      "template": "i2c",
+      "i2c_address": "0x52",
+      "i2c_alt_address": "0x53",
+      "power": "3v3_device",
+      "notes": "ADDR pin: LOW=0x52, HIGH=0x53. 4 measurement modes. Reports TVOC (ppb) and eCO2 (ppm). 1h initial burn-in."
+    },
+    "pins": {
+      "count": 10,
+      "package": "LGA-10",
+      "power": [
+        {
+          "name": "VDD",
+          "pins": [
+            "9"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "VDDIO",
+          "pins": [
+            "10"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "3",
+            "EP"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "I2C": {
+          "SDA": "7",
+          "SCL": "8",
+          "address": "0x52"
+        },
+        "SPI": {
+          "MOSI": "7",
+          "MISO": "5",
+          "SCK": "8",
+          "CS": "6"
+        }
+      },
+      "control": [
+        {
+          "name": "ADDR",
+          "pin": "1",
+          "config": "pull_down",
+          "note": "I2C address select. LOW=0x52, HIGH=0x53."
+        },
+        {
+          "name": "INT",
+          "pin": "4",
+          "note": "Active-low interrupt output"
+        },
+        {
+          "name": "nCS",
+          "pin": "6",
+          "config": "pull_up",
+          "note": "HIGH=I2C mode, LOW=SPI mode"
+        }
+      ],
+      "notes": "Pin 2=NC. Thermal pad to GND. Interface selected by nCS pin level."
+    },
+    "ref_designator_prefix": "U"
+  },
+  "ina226": {
+    "id": "ina226",
+    "display_name": "INA226 DC Current/Power Monitor",
+    "category": "sensor",
+    "subcategory": "current",
+    "kicad_footprint": "Package_SO:MSOP-10-1EP_3x3mm_P0.5mm_EP1.68x1.88mm",
+    "kicad_symbol": "Analog_ADC:INA226",
+    "dimensions_mm": {
+      "width": 5.81,
+      "height": 3.05
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "centre",
+    "placement_priority": 6,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VS",
+        "max_distance_mm": 2
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 2,
+    "power_consumption_ma": 0.33,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "I2C"
+    ],
+    "mpn": "INA226AIDGSR",
+    "lcsc_pn": "C116584",
+    "datasheet_url": "https://www.ti.com/lit/ds/symlink/ina226.pdf",
+    "ipc610_notes": "MSOP-10, 3x3mm. High-side or low-side current sensing. Kelvin connections recommended for shunt resistor.",
+    "capabilities": [
+      "sense_current",
+      "sense_voltage",
+      "sense_power"
+    ],
+    "capability_score": {
+      "sense_current": 10,
+      "sense_voltage": 7,
+      "sense_power": 10
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 1.8,
+    "user_cable_note": "On-board component. Requires external shunt resistor (typically 10-100 milliohm).",
+    "power_modes": {
+      "active": {
+        "current_ma": 0.33,
+        "note": "Continuous conversion mode"
+      },
+      "sleep": {
+        "current_ma": 0.001,
+        "note": "Shutdown mode"
+      },
+      "typical_active_ma": 0.33,
+      "peak_current_ma": 0.33
+    },
+    "connection_hints": {
+      "template": "i2c",
+      "i2c_address": "0x40",
+      "power": "3v3_device",
+      "notes": "16 I2C addresses via A0/A1 pins (GND/VS/SDA/SCL combinations). Default 0x40 (both GND). Needs external shunt resistor."
+    },
+    "pins": {
+      "count": 10,
+      "package": "MSOP-10",
+      "power": [
+        {
+          "name": "VS",
+          "pins": [
+            "3"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "GND",
+          "pins": [
+            "7",
+            "EP"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "I2C": {
+          "SDA": "6",
+          "SCL": "5",
+          "address": "0x40"
+        }
+      },
+      "control": [
+        {
+          "name": "A0",
+          "pin": "1",
+          "config": "pull_down",
+          "note": "Address bit 0. GND=0, VS=1, SDA=2, SCL=3"
+        },
+        {
+          "name": "A1",
+          "pin": "4",
+          "config": "pull_down",
+          "note": "Address bit 1. Same encoding as A0."
+        },
+        {
+          "name": "ALERT",
+          "pin": "2",
+          "note": "Active-low alert output. Open-drain."
+        },
+        {
+          "name": "IN+",
+          "pin": "10",
+          "note": "Shunt resistor high-side input"
+        },
+        {
+          "name": "IN-",
+          "pin": "9",
+          "note": "Shunt resistor low-side input"
+        },
+        {
+          "name": "VBUS",
+          "pin": "8",
+          "note": "Bus voltage sense input (0-36V)"
+        }
+      ],
+      "notes": "Place shunt resistor between IN+ and IN-. VBUS connects to load-side of shunt for bus voltage reading."
+    },
+    "ref_designator_prefix": "U"
+  },
+  "sht30": {
+    "id": "sht30",
+    "display_name": "SHT30 Temperature & Humidity Sensor",
+    "category": "sensor",
+    "subcategory": "environmental",
+    "kicad_footprint": "Sensor_Humidity:Sensirion_DFN-8-1EP_2.5x2.5mm_P0.5mm_EP1.1x1.7mm",
+    "kicad_symbol": "Sensor_Humidity:SHT3x-DIS",
+    "dimensions_mm": {
+      "width": 2.5,
+      "height": 2.5
+    },
+    "courtyard_clearance_mm": 0.25,
+    "placement_zone": "centre",
+    "placement_priority": 5,
+    "antenna_keepout_mm": 0,
+    "decoupling_caps": [
+      {
+        "value": "100nF",
+        "package": "0402",
+        "pin": "VDD",
+        "max_distance_mm": 2
+      }
+    ],
+    "requires_decoupling": true,
+    "min_layers": 2,
+    "power_consumption_ma": 0.6,
+    "supply_voltage": "3.3V",
+    "interfaces": [
+      "I2C"
+    ],
+    "mpn": "SHT30-DIS-B2.5kS",
+    "lcsc_pn": "C79772",
+    "datasheet_url": "https://sensirion.com/media/documents/213E6A3B/63A5A569/Datasheet_SHT3x_DIS.pdf",
+    "ipc610_notes": "DFN-8, 2.5x2.5mm. Sensirion humidity sensor. Avoid flux residue. No-clean flux recommended.",
+    "capabilities": [
+      "sense_temperature",
+      "sense_humidity"
+    ],
+    "capability_score": {
+      "sense_temperature": 8,
+      "sense_humidity": 9
+    },
+    "satisfies_processing": false,
+    "cost_gbp_unit": 2.0,
+    "user_cable_note": "On-board component. Soldered directly to PCB.",
+    "power_modes": {
+      "active": {
+        "current_ma": 0.6,
+        "note": "High repeatability measurement"
+      },
+      "sleep": {
+        "current_ma": 0.0002,
+        "note": "Sleep mode"
+      },
+      "typical_active_ma": 0.2,
+      "peak_current_ma": 0.6
+    },
+    "connection_hints": {
+      "template": "i2c",
+      "i2c_address": "0x44",
+      "i2c_alt_address": "0x45",
+      "address_pin": "ADDR",
+      "power": "3v3_device",
+      "notes": "ADDR pin: LOW=0x44, HIGH=0x45. SHT31 is higher accuracy variant, pin-compatible."
+    },
+    "pins": {
+      "count": 8,
+      "package": "DFN-8",
+      "power": [
+        {
+          "name": "VDD",
+          "pins": [
+            "2"
+          ],
+          "net": "3V3"
+        },
+        {
+          "name": "VSS",
+          "pins": [
+            "5",
+            "EP"
+          ],
+          "net": "GND"
+        }
+      ],
+      "interfaces": {
+        "I2C": {
+          "SDA": "1",
+          "SCL": "4",
+          "address": "0x44",
+          "alt_address": "0x45 (ADDR=HIGH)"
+        }
+      },
+      "control": [
+        {
+          "name": "ADDR",
+          "pin": "3",
+          "config": "pull_down",
+          "note": "Address select. LOW=0x44, HIGH=0x45."
+        },
+        {
+          "name": "ALERT",
+          "pin": "6",
+          "note": "Alert output. Open-drain, active low."
+        },
+        {
+          "name": "nRESET",
+          "pin": "8",
+          "config": "pull_up",
+          "note": "Active-low reset. Connect to VDD via 10k if unused."
+        },
+        {
+          "name": "R",
+          "pin": "7",
+          "note": "NC — leave unconnected"
+        }
+      ],
+      "notes": "Pin 7 (R) must be left floating. Thermal pad connects to VSS."
+    },
+    "ref_designator_prefix": "U"
   }
 }

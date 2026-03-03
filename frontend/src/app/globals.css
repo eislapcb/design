@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-copper: #C27840;
+  --color-copper-light: #D4956A;
+  --color-copper-dark: #A56230;
+  --color-teal: #0E3D3F;
+  --color-teal-light: #1A5C5F;
+  --color-cream: #FDF8F0;
+  --color-cream-dark: #F5EDE0;
+  --color-dark: #1A1A1A;
+  --color-dark-light: #333333;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}

@@ -35,6 +35,7 @@ Output (in job_dir):
 import csv
 import json
 import os
+import subprocess
 import sys
 import zipfile
 from pathlib import Path
@@ -80,10 +81,55 @@ def load_db():
 
 # ─── Gerber export ────────────────────────────────────────────────────────────
 
-def export_gerbers(board, gerber_dir, layer_count=2):
-    """Export Gerber files (RS-274X) for all relevant layers."""
+def export_gerbers(board, gerber_dir, layer_count=2, pcb_path=None):
+    """Export Gerber files via kicad-cli (reliable in KiCad 9 headless mode).
+
+    Falls back to pcbnew PLOT_CONTROLLER if kicad-cli is unavailable.
+    """
     os.makedirs(gerber_dir, exist_ok=True)
 
+    kicad_cli = os.environ.get("KICAD_CLI", "C:/Program Files/KiCad/9.0/bin/kicad-cli.exe")
+    # Also check without .exe for Linux/macOS
+    if not os.path.exists(kicad_cli):
+        kicad_cli = kicad_cli.replace(".exe", "")
+
+    if pcb_path and os.path.exists(kicad_cli):
+        # ── kicad-cli approach (KiCad 9 recommended) ─────────────────
+        # Build layer list
+        layers = ["F.Cu", "B.Cu", "F.Mask", "B.Mask", "F.SilkS", "B.SilkS",
+                  "F.Paste", "B.Paste", "Edge.Cuts"]
+        inner_names = ["In1.Cu", "In2.Cu", "In3.Cu", "In4.Cu"]
+        if layer_count > 2:
+            layers.extend(inner_names[:min(layer_count - 2, 4)])
+
+        cmd = [str(kicad_cli), "pcb", "export", "gerbers",
+               "-o", str(gerber_dir) + "/",
+               "-l", ",".join(layers),
+               "--no-x2",
+               "--subtract-soldermask",
+               str(pcb_path)]
+
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        if result.returncode != 0:
+            print(f"[postprocess] kicad-cli gerber export failed: {result.stderr}")
+
+        # Also export drill files via kicad-cli
+        drill_cmd = [str(kicad_cli), "pcb", "export", "drill",
+                     "-o", str(gerber_dir) + "/",
+                     "--format", "excellon",
+                     "--generate-map", "--map-format", "gerberx2",
+                     str(pcb_path)]
+        subprocess.run(drill_cmd, capture_output=True, text=True, timeout=60)
+
+        # Collect what was actually generated
+        exported = []
+        gerber_path = Path(gerber_dir)
+        for f in sorted(gerber_path.iterdir()):
+            if f.is_file():
+                exported.append((f.name, f.name))
+        return exported
+
+    # ── Fallback: pcbnew PLOT_CONTROLLER ──────────────────────────────
     plot_ctrl = pcbnew.PLOT_CONTROLLER(board)
     plot_opts = plot_ctrl.GetPlotOptions()
 
@@ -104,16 +150,18 @@ def export_gerbers(board, gerber_dir, layer_count=2):
 
     exported = []
 
-    # Standard layers
     for layer_id, ext, desc in GERBER_LAYERS:
         filename = f"board.{ext}"
         plot_ctrl.OpenPlotfile(filename, pcbnew.PLOT_FORMAT_GERBER, desc)
         plot_ctrl.SetLayer(layer_id)
         plot_ctrl.PlotLayer()
         plot_ctrl.ClosePlot()
-        exported.append((filename, desc))
+        # Verify file was actually created
+        if Path(gerber_dir, filename).exists():
+            exported.append((filename, desc))
+        else:
+            print(f"[postprocess] WARNING: {filename} was not generated")
 
-    # Inner copper layers (only if board has >2 layers)
     if layer_count > 2:
         inner_needed = min(layer_count - 2, len(INNER_LAYERS))
         for i in range(inner_needed):
@@ -123,7 +171,10 @@ def export_gerbers(board, gerber_dir, layer_count=2):
             plot_ctrl.SetLayer(layer_id)
             plot_ctrl.PlotLayer()
             plot_ctrl.ClosePlot()
-            exported.append((filename, desc))
+            if Path(gerber_dir, filename).exists():
+                exported.append((filename, desc))
+            else:
+                print(f"[postprocess] WARNING: {filename} was not generated")
 
     return exported
 
@@ -230,8 +281,9 @@ def generate_drc_text(drc_report, out_path):
     if errors:
         lines.append(f"ERRORS ({len(errors)}):")
         for e in errors:
-            loc = f" at {e['location']}" if e.get("location") else ""
-            lines.append(f"  - {e['type']}: {e['message']}{loc}")
+            loc = f" at {e.get('location', '')}" if e.get("location") else ""
+            msg = e.get("description", e.get("message", "unknown"))
+            lines.append(f"  - {e.get('type', 'error')}: {msg}{loc}")
         lines.append("")
 
     if unrouted:
@@ -243,8 +295,9 @@ def generate_drc_text(drc_report, out_path):
     if warnings:
         lines.append(f"WARNINGS ({len(warnings)}):")
         for w in warnings:
-            loc = f" at {w['location']}" if w.get("location") else ""
-            lines.append(f"  - {w['type']}: {w['message']}{loc}")
+            loc = f" at {w.get('location', '')}" if w.get("location") else ""
+            msg = w.get("description", w.get("message", "unknown"))
+            lines.append(f"  - {w.get('type', 'warning')}: {msg}{loc}")
         lines.append("")
 
     lines.append("These results are included for reference.")
@@ -352,10 +405,10 @@ def main():
         print(f"ERROR: placement.json not found in {job_dir}")
         sys.exit(1)
 
-    # Determine layer count
-    layer_count = 2
+    # Determine layer count (4-layer minimum per BRIEF.md)
+    layer_count = 4
     if board_data:
-        layer_count = board_data.get("layers", 2)
+        layer_count = max(board_data.get("layers", 4), 4)
 
     # ── 1. Load board ─────────────────────────────────────────────────────
     print(f"[postprocess] Loading board ...")
@@ -363,13 +416,15 @@ def main():
 
     # ── 2. Export Gerbers ─────────────────────────────────────────────────
     print(f"[postprocess] Exporting Gerbers ({layer_count} layers) ...")
-    exported = export_gerbers(board, str(gerber_dir), layer_count)
+    exported = export_gerbers(board, str(gerber_dir), layer_count, pcb_path=str(pcb_path))
     for name, desc in exported:
         print(f"  {name} ({desc})")
 
     # ── 3. Export drill ───────────────────────────────────────────────────
-    print(f"[postprocess] Exporting drill file ...")
-    export_drill(board, str(gerber_dir))
+    # Fallback drill export if kicad-cli was not used
+    if not list(Path(gerber_dir).glob("*.drl")):
+        print(f"[postprocess] Exporting drill file (fallback) ...")
+        export_drill(board, str(gerber_dir))
 
     # ── 4. BOM ────────────────────────────────────────────────────────────
     bom_count = generate_bom(placement, db, job_dir / "bom.csv")

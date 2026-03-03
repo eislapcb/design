@@ -42,31 +42,24 @@ const PRICE_TIERS = {
   3: { fee_gbp: 749, repeat_fee_gbp: 674 },
 };
 
-// ─── Supporting component inference rules ────────────────────────────────────
+// ─── Capability companions ───────────────────────────────────────────────────
+// Components that must accompany a capability but won't be picked by the greedy
+// matcher (because the capability is already resolved by a higher-scored component).
 
-const SUPPORT_RULES = [
-  {
-    trigger: cap => cap === 'power_lipo',
-    components: ['tp4056'],
-    reason: 'Required for LiPo battery charging and protection',
-  },
-  {
-    trigger: (cap, resolved) =>
-      cap === 'power_lipo' && !resolved.some(r => r.component_id === 'tp4056'),
-    components: [],
-    reason: null,
-  },
-  {
-    trigger: cap => cap === 'rtc',
-    components: ['cr2032_holder'],
-    reason: 'Coin cell backup required for RTC',
-  },
-  {
-    trigger: cap => cap === 'ethernet',
-    components: ['hr911105a'],
-    reason: 'Ethernet magnetics required for isolation and signal conditioning',
-  },
-];
+const CAPABILITY_COMPANIONS = {
+  power_lipo: 'jst_ph_2pin',     // LiPo battery connector
+  rtc:        'cr2032_holder',    // Coin cell backup for RTC
+  ethernet:   'hr911105a',        // Ethernet magnetics + RJ45
+};
+
+// Map decoupling cap value strings to component IDs
+const DECOUPLING_MAP = {
+  '100nF': 'cap_100nf_0402',
+  '10uF':  'cap_10uf_0805',
+  '4.7uF': 'cap_10uf_0805',
+  '1uF':   'cap_100nf_0402',
+  '22uF':  'cap_10uf_0805',
+};
 
 // ─── Conflict detection rules ─────────────────────────────────────────────────
 
@@ -237,8 +230,7 @@ function resolve(input) {
 
   // ── Step 3: Resolve remaining capabilities ────────────────────────────────
   const remaining = [...unresolved].filter(c =>
-    !['processing_basic', 'processing_standard', 'processing_powerful',
-      'power_usb', 'power_lipo', 'power_aa', 'power_mains', 'power_solar'].includes(c)
+    !['processing_basic', 'processing_standard', 'processing_powerful'].includes(c)
   );
 
   // Build a list of components that satisfy at least one remaining capability
@@ -299,64 +291,96 @@ function resolve(input) {
     });
   }
 
-  // ── Step 4: Infer supporting components ───────────────────────────────────
+  // ── Step 4: Infer supporting components (data-driven) ────────────────────
   const powerCaps = selectedCaps.filter(c => Object.keys(POWER_LIMITS).includes(c));
 
-  if (selectedCaps.includes('power_lipo')) {
-    // Add LiPo charger if not already resolved
-    if (!resolved.some(r => r.component_id === 'tp4056' || r.component_id === 'mcp73831_sot')) {
-      const charger = components['tp4056'] || components['mcp73831_sot'];
-      if (charger && !alreadyUsed.has(charger.id)) {
+  // Helper to push an auto-added component
+  // force=true bypasses dedup (used by auto_add_components where duplicates are intentional,
+  // e.g. USB-C needs 2× res_5k1_0402 for CC1+CC2, ATmega needs 2× cap_22pf for crystal)
+  function autoAdd(compId, reason, force = false) {
+    if (!force && alreadyUsed.has(compId)) return false;
+    const comp = components[compId];
+    if (!comp) {
+      warnings.push({ level: 'info', message: `Auto-add component '${compId}' not found in database` });
+      return false;
+    }
+    resolved.push({
+      component_id: comp.id,
+      quantity: 1,
+      satisfies: [],
+      auto_added: true,
+      reason,
+      display_name: comp.display_name,
+      category: comp.category,
+      cost_gbp_unit: comp.cost_gbp_unit || 0,
+      power_consumption_ma: comp.power_consumption_ma || 0,
+    });
+    alreadyUsed.add(comp.id);
+    return true;
+  }
+
+  // 4a. Capability companions — components that must accompany a capability
+  for (const [cap, compId] of Object.entries(CAPABILITY_COMPANIONS)) {
+    if (!selectedCaps.includes(cap)) continue;
+    const comp = components[compId];
+    autoAdd(compId, (comp && comp.auto_add_note) || `Required companion for ${cap}`);
+  }
+
+  // 4b. Process auto_add_components from all resolved components
+  // force=true: honour duplicate entries (e.g. 2× crystal load caps, 2× CC pull-downs)
+  const resolvedSnapshot = [...resolved];
+  for (const entry of resolvedSnapshot) {
+    const comp = components[entry.component_id];
+    if (!comp || !Array.isArray(comp.auto_add_components)) continue;
+    for (const addId of comp.auto_add_components) {
+      autoAdd(addId, comp.auto_add_note || `Required by ${comp.display_name || comp.id}`, true);
+    }
+  }
+
+  // 4c. Decoupling caps for ICs with requires_decoupling: true
+  for (const entry of resolved) {
+    const comp = components[entry.component_id];
+    if (!comp || !comp.requires_decoupling || !Array.isArray(comp.decoupling_caps)) continue;
+    for (const dc of comp.decoupling_caps) {
+      const capId = DECOUPLING_MAP[dc.value] || 'cap_100nf_0402';
+      const capComp = components[capId];
+      if (!capComp) continue;
+      // Each VDD pin gets its own cap — don't deduplicate
+      resolved.push({
+        component_id: capComp.id,
+        quantity: 1,
+        satisfies: [],
+        auto_added: true,
+        reason: `Decoupling for ${comp.display_name || comp.id} pin ${dc.pin || 'VDD'}`,
+        display_name: capComp.display_name,
+        category: capComp.category,
+        cost_gbp_unit: capComp.cost_gbp_unit || 0,
+        power_consumption_ma: 0,
+      });
+    }
+  }
+
+  // 4d. I2C bus pull-ups (one shared pair per bus)
+  const hasI2C = resolved.some(entry => {
+    const comp = components[entry.component_id];
+    return comp && Array.isArray(comp.interfaces) && comp.interfaces.includes('I2C');
+  });
+  if (hasI2C) {
+    const pullup = components['res_4k7_0402'];
+    if (pullup) {
+      for (const line of ['SDA', 'SCL']) {
         resolved.push({
-          component_id: charger.id,
+          component_id: pullup.id,
           quantity: 1,
           satisfies: [],
           auto_added: true,
-          reason: 'Required for LiPo battery charging',
-          display_name: charger.display_name,
-          category: charger.category,
-          cost_gbp_unit: charger.cost_gbp_unit || 0,
-          power_consumption_ma: charger.power_consumption_ma || 0,
+          reason: `I2C ${line} pull-up (4.7k, shared across bus)`,
+          display_name: pullup.display_name,
+          category: pullup.category,
+          cost_gbp_unit: pullup.cost_gbp_unit || 0,
+          power_consumption_ma: 0,
         });
-        alreadyUsed.add(charger.id);
       }
-    }
-    // Add coin cell holder for RTC if RTC selected
-  }
-
-  if (selectedCaps.includes('rtc')) {
-    const holder = components['cr2032_holder'];
-    if (holder && !alreadyUsed.has(holder.id)) {
-      resolved.push({
-        component_id: holder.id,
-        quantity: 1,
-        satisfies: [],
-        auto_added: true,
-        reason: 'Coin cell backup required for real-time clock',
-        display_name: holder.display_name,
-        category: holder.category,
-        cost_gbp_unit: holder.cost_gbp_unit || 0,
-        power_consumption_ma: 0,
-      });
-      alreadyUsed.add(holder.id);
-    }
-  }
-
-  if (selectedCaps.includes('ethernet')) {
-    const mag = components['hr911105a'];
-    if (mag && !alreadyUsed.has(mag.id)) {
-      resolved.push({
-        component_id: mag.id,
-        quantity: 1,
-        satisfies: [],
-        auto_added: true,
-        reason: 'Ethernet magnetics required for isolation and signal conditioning',
-        display_name: mag.display_name,
-        category: mag.category,
-        cost_gbp_unit: mag.cost_gbp_unit || 0,
-        power_consumption_ma: mag.power_consumption_ma || 0,
-      });
-      alreadyUsed.add(mag.id);
     }
   }
 
@@ -404,20 +428,8 @@ function resolve(input) {
   }
 
   // ── Step 7: Layer recommendation ──────────────────────────────────────────
-  const hasRf      = resolved.some(r => (components[r.component_id]?.antenna_keepout_mm || 0) > 0);
-  const compCount  = resolved.length;
-  const userLayers = board.layers || 2;
-
-  let recommendedLayers = 2;
-  if (compCount > 12 || hasRf) recommendedLayers = 4;
-  if (compCount > 20)          recommendedLayers = 4;
-
-  if (userLayers < recommendedLayers) {
-    warnings.push({
-      level: 'warn',
-      message: `${recommendedLayers}-layer board recommended for this design (${compCount} components${hasRf ? ', RF module present' : ''}) — ${userLayers}-layer may have routing difficulties`,
-    });
-  }
+  // All Eisla boards are 4-layer as standard (BRIEF.md §Pricing).
+  const recommendedLayers = 4;
 
   // ── Step 8: Pricing ───────────────────────────────────────────────────────
   const mcuTier = selectedMcu?.tier || 1;

@@ -225,6 +225,31 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
   res.json({ success: true, user: req.user, profile: req.profile });
 });
 
+// ─── Account routes ─────────────────────────────────────────────────────────
+
+/**
+ * GET /api/account/designs
+ * Returns all designs belonging to the authenticated user.
+ */
+app.get('/api/account/designs', requireAuth, async (req, res) => {
+  try {
+    const { createClient } = require('@supabase/supabase-js');
+    const admin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+    const { data, error } = await admin
+      .from('designs')
+      .select('id, customer_id, description, status, tier, design_fee_gbp, created_at, updated_at')
+      .eq('customer_id', req.user.id)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json({ success: true, designs: data || [] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ─── Stripe routes ───────────────────────────────────────────────────────────
 
 /**
@@ -237,6 +262,39 @@ app.post('/api/checkout', requireAuth, async (req, res) => {
   if (!tier || !boardConfig || !capabilities) {
     return res.status(400).json({ error: 'tier, boardConfig and capabilities are required' });
   }
+
+  // Dev mode: skip Stripe, create design directly
+  if (process.env.SKIP_STRIPE === 'true') {
+    try {
+      const { createClient } = require('@supabase/supabase-js');
+      const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+      const { resolve } = require('./resolver');
+      const resolved = resolve({ capabilities, board: boardConfig, repeat_customer: !!repeat_customer });
+
+      const { data, error } = await admin.from('designs').insert({
+        customer_id:    req.user.id,
+        description:    `Dev design — ${capabilities.join(', ')}`,
+        status:         'paid',
+        tier:           parseInt(tier, 10),
+        design_fee_gbp: resolved.pricing?.design_fee_gbp || 499,
+        capabilities,
+        resolved,
+      }).select('id').single();
+
+      if (error) throw error;
+
+      console.log(`[checkout] DEV MODE — created design ${data.id} (skipped Stripe)`);
+
+      // Queue the pipeline
+      await enqueue('process_design', { designId: data.id });
+
+      return res.json({ success: true, designId: data.id });
+    } catch (err) {
+      console.error('[checkout] dev mode error:', err.message);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  }
+
   try {
     const result = await createDesignCheckout({
       tier:            parseInt(tier, 10),
@@ -322,7 +380,7 @@ async function getOwnedDesign(designId, userId) {
     .eq('id', designId)
     .single();
   if (error || !data) throw Object.assign(new Error('Design not found'), { status: 404 });
-  if (userId && data.user_id !== userId) throw Object.assign(new Error('Forbidden'), { status: 403 });
+  if (userId && data.customer_id !== userId) throw Object.assign(new Error('Forbidden'), { status: 403 });
   return data;
 }
 
@@ -574,6 +632,62 @@ app.post('/api/internal/approve-review', requireServiceKey, async (req, res) => 
 
     await enqueue('engineer-reviewed', { designId });
     res.json({ success: true, message: 'Engineer review approved — advancing to customer approval' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/internal/reprocess
+ * Re-runs a design through the full pipeline from scratch.
+ * Optionally overrides capabilities if the original design had none.
+ * Body: { designId, capabilities?: string[] }
+ */
+app.post('/api/internal/reprocess', requireServiceKey, async (req, res) => {
+  try {
+    const { designId, capabilities } = req.body;
+    if (!designId) return res.status(400).json({ error: 'designId required' });
+
+    const { createClient } = require('@supabase/supabase-js');
+    const admin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
+    const { data: design, error } = await admin
+      .from('designs')
+      .select('id, status, capabilities, description')
+      .eq('id', designId)
+      .single();
+
+    if (error || !design) {
+      return res.status(404).json({ error: 'Design not found' });
+    }
+
+    // Determine capabilities: explicit override > stored > extracted from description
+    let caps = capabilities;
+    if (!Array.isArray(caps) || caps.length === 0) {
+      caps = design.capabilities;
+    }
+    if (!Array.isArray(caps) || caps.length === 0) {
+      // Try to extract from "Dev design — cap1, cap2, cap3" format
+      const desc = design.description || '';
+      const match = desc.match(/Dev design\s*[-—–]\s*(.+)/i);
+      if (match) {
+        caps = match[1].split(',').map(s => s.trim()).filter(Boolean);
+      }
+    }
+
+    // Update capabilities in the database so the worker can read them
+    if (Array.isArray(caps) && caps.length > 0) {
+      await admin.from('designs').update({ capabilities: caps }).eq('id', designId);
+    }
+
+    // Reset status to paid so the pipeline runs from the beginning
+    await admin.from('designs').update({ status: 'paid' }).eq('id', designId);
+
+    await enqueue('process_design', { designId });
+    res.json({ success: true, message: `Design ${designId} re-queued for processing` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
